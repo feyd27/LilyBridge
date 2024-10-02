@@ -1,0 +1,8 @@
+Digital Ocean Cloud
+user: root
+pwd: E3.?6ZpSwVEh_fd
+hostname: lilybridge-esp32-message
+
+ESP32 
+user: lily 
+pwd: Radar#Cicler
