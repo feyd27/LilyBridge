@@ -6,3 +6,12 @@ hostname: lilybridge-esp32-message
 ESP32 
 user: lily 
 pwd: Radar#Cicler
+
+#MQTT
+You can use the next table as a reference for the parameters you can pass in mosquitto_sub and mosquitto_pub commands:
+
+-h	Hostname
+-t	MQTT topic
+-m	MQTT message
+-u	MQTT username
+-P	MQTT Password
