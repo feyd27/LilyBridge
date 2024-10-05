@@ -25,6 +25,7 @@ OneWire oneWire(oneWireBus);
 // Pass our oneWire reference to Dallas Temperature sensor 
 DallasTemperature sensors(&oneWire);
 
+
 #define WIFI_SSID "HUAWEI-B315-D4C8"
 #define WIFI_PASSWORD "T9DFD1H4RDJ"
 
@@ -33,16 +34,20 @@ const long  gmtOffset_sec = 3600;
 const int   daylightOffset_sec = 3600;
 
 // Digital Ocean MQTT Mosquitto Broker
-#define MQTT_HOST IPAddress(165, 22, 65, 210)
+// #define MQTT_HOST IPAddress(165, 22, 65, 210)
 // For a cloud MQTT broker, type the domain name
-//#define MQTT_HOST "example.com"
+#define MQTT_HOST "lily-bridge.online"
 #define MQTT_PORT 1883
 
 #define MQTT_USERNAME "lily"
 #define MQTT_PASSWORD "Radar#Cicler"
 
-// Test MQTT Topic
-#define MQTT_PUB_TEST "test"
+// Temperature MQTT Topic
+#define MQTT_PUB_TEMP "temperature"
+// Status MQTT Topic
+#define MQTT_PUB_STATUS "status"
+// Errors MQTT Topic
+#define MQTT_PUB_ERROR "errors"
 
 AsyncMqttClient mqttClient;
 TimerHandle_t mqttReconnectTimer;
@@ -84,6 +89,31 @@ void onMqttConnect(bool sessionPresent) {
   Serial.println("Connected to MQTT.");
   Serial.print("Session present: ");
   Serial.println(sessionPresent);
+  // Get the current time
+  struct tm timeinfo;
+  if(!getLocalTime(&timeinfo)){
+    Serial.println("Failed to obtain time");
+    String timeErrorString = String(ESP.getChipModel()) + String(ESP.getChipRevision()) + " Failed to obtain time";
+ // Publish an MQTT message in errors topic
+    uint16_t packetIdPub1 = mqttClient.publish(MQTT_PUB_ERROR, 1, true, timeErrorString.c_str());
+    Serial.printf("Publishing on topic %s at QoS 1, packetId: %i\n", MQTT_PUB_ERROR, packetIdPub1);
+    Serial.println("Message: " + timeErrorString);
+    return;
+  }
+ String macAddress = WiFi.macAddress();
+  // Get the current time in a formatted string
+  char timeStringBuff[50];  // Buffer to store the formatted time string
+  strftime(timeStringBuff, sizeof(timeStringBuff), "%d.%m.%Y %H:%M:%S", &timeinfo);
+   // Combine MQTT session and message
+    //Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");  // Print the formatted time
+    strftime(timeStringBuff, sizeof(timeStringBuff), "%d.%m.%Y %H:%M:%S", &timeinfo);
+    String mqttStatusString = String(ESP.getChipModel()) + String(ESP.getChipRevision()) + "@" + macAddress + "| CONNECTED to broker | Time: " + String(timeStringBuff);
+    
+    // Publish an MQTT message
+    uint16_t packetIdPub1 = mqttClient.publish(MQTT_PUB_STATUS, 1, true, mqttStatusString.c_str());
+    
+    Serial.printf("Publishing on topic %s at QoS 1, packetId: %i\n", MQTT_PUB_STATUS, packetIdPub1);
+    Serial.println("Message: " + mqttStatusString);
 }
 
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
@@ -93,22 +123,6 @@ void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
   }
 }
 
-
-/*void onMqttSubscribe(uint16_t packetId, uint8_t qos) {
-  Serial.println("Subscribe acknowledged.");
-  Serial.print("  packetId: ");
-  Serial.println(packetId);
-  Serial.print("  qos: ");
-  Serial.println(qos);
-}
-void onMqttUnsubscribe(uint16_t packetId) {
-  Serial.println("Unsubscribe acknowledged.");
-  Serial.print("  packetId: ");
-  Serial.println(packetId);
-}*/
-
-
-  
   
 void onMqttPublish(uint16_t packetId) {
   Serial.print("Publish acknowledged.");
@@ -148,7 +162,7 @@ void printLocalTime(){
     Serial.println("Failed to obtain time");
     return;
   }
-  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");  // Print the formatted time
+ // Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");  // Print the formatted time
 }
 
 void loop() {
@@ -164,6 +178,11 @@ void loop() {
   struct tm timeinfo;
   if(!getLocalTime(&timeinfo)){
     Serial.println("Failed to obtain time");
+    String timeErrorString = String(ESP.getChipModel()) + String(ESP.getChipRevision()) + " Failed to obtain time";
+ // Publish an MQTT message in errors topic
+    uint16_t packetIdPub1 = mqttClient.publish(MQTT_PUB_ERROR, 1, true, timeErrorString.c_str());
+    Serial.printf("Publishing on topic %s at QoS 1, packetId: %i\n", MQTT_PUB_ERROR, packetIdPub1);
+    Serial.println("Message: " + timeErrorString);
     return;
   }
  String macAddress = WiFi.macAddress();
@@ -179,12 +198,12 @@ void loop() {
     previousMillis = currentMillis;
 
     // Combine temperature and timestamp into a message string
-    String testString = "Device: " + macAddress + " T: " + String(temperature) + "°C, on: " + String(timeStringBuff);
+    String temperatureString = String(ESP.getChipModel()) + String(ESP.getChipRevision()) + "@" + macAddress + "| T: " + String(temperature) + "°C| Time: " + String(timeStringBuff);
     
     // Publish an MQTT message
-    uint16_t packetIdPub1 = mqttClient.publish(MQTT_PUB_TEST, 1, true, testString.c_str());
+    uint16_t packetIdPub1 = mqttClient.publish(MQTT_PUB_TEMP, 1, true, temperatureString.c_str());
     
-    Serial.printf("Publishing on topic %s at QoS 1, packetId: %i\n", MQTT_PUB_TEST, packetIdPub1);
-    Serial.println("Message: " + testString);
+    Serial.printf("Publishing on topic %s at QoS 1, packetId: %i\n", MQTT_PUB_TEMP, packetIdPub1);
+    Serial.println("Message: " + temperatureString);
   }
 }
