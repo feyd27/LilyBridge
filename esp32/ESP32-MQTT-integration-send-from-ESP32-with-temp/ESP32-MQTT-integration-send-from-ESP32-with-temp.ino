@@ -166,7 +166,7 @@ void loop() {
     Serial.println("Failed to obtain time");
     return;
   }
-
+ String macAddress = WiFi.macAddress();
   // Get the current time in a formatted string
   char timeStringBuff[50];  // Buffer to store the formatted time string
   strftime(timeStringBuff, sizeof(timeStringBuff), "%d.%m.%Y %H:%M:%S", &timeinfo);
@@ -179,7 +179,7 @@ void loop() {
     previousMillis = currentMillis;
 
     // Combine temperature and timestamp into a message string
-    String testString = "Temperature: " + String(temperature) + "°C, Timestamp: " + String(timeStringBuff);
+    String testString = "Device: " + macAddress + " T: " + String(temperature) + "°C, on: " + String(timeStringBuff);
     
     // Publish an MQTT message
     uint16_t packetIdPub1 = mqttClient.publish(MQTT_PUB_TEST, 1, true, testString.c_str());
