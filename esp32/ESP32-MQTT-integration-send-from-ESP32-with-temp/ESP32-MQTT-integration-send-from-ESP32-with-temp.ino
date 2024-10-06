@@ -56,7 +56,7 @@ TimerHandle_t mqttReconnectTimer;
 TimerHandle_t wifiReconnectTimer;
 
 unsigned long previousMillis = 0;   // Stores last time temperature was published
-const long interval = 60000;         // Interval at which to publish sensor readings
+const long interval = 300000;         // Interval at which to publish sensor readings
 
 unsigned long previousStatusCheckMillis = 0;
 const long statusCheckInterval = 60000;  // Check status every 60 seconds
@@ -196,6 +196,7 @@ void loop() {
   strftime(timeStringBuff, sizeof(timeStringBuff), "%d.%m.%Y %H:%M:%S", &timeinfo);
 
   unsigned long currentMillis = millis();
+  unsigned long currentStatusMillis = millis();
 
   // Every X number of seconds (interval = 60 seconds)
   // it publishes a new MQTT message
@@ -211,4 +212,14 @@ void loop() {
     Serial.printf("Publishing on topic %s at QoS 1, packetId: %i\n", MQTT_PUB_TEMP, packetIdPub1);
     Serial.println("Message: " + temperatureString);
   }
+
+  if (currentStatusMillis - previousStatusCheckMillis >= statusCheckInterval) {
+    previousStatusCheckMillis = currentStatusMillis;
+     String statusCheckString = String(ESP.getChipModel()) + String(ESP.getChipRevision()) + "@" + macAddress + "| Wifi OK | MQTT OK | Time: " + String(timeStringBuff);
+    if ((WiFi.status() == WL_CONNECTED) && (mqttClient.connected()))
+     uint16_t packetIdPub1 = mqttClient.publish(MQTT_PUB_STATUS, 1, true, statusCheckString.c_str());
+    Serial.println("Message: " + statusCheckString);
+  }
+
+
 }
