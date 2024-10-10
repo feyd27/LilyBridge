@@ -10,11 +10,15 @@ require('./db');
 
 connectToDatabase();
 
+
 // Initialize Express app
 const app = express();
 
 // Middleware to parse incoming JSON requests
 app.use(express.json());
+
+const mqttRoutes = require('./routes/mqttRoutes');
+app.use('/api/mqtt', mqttRoutes);
 
 // Swagger config
 const swaggerOptions = {

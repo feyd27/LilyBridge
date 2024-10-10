@@ -1,5 +1,6 @@
 // controllers/mqttController.js
 
+
 const mqttClient = require('../services/mqttService');
 
 exports.checkMqttStatus = (req, res) => {

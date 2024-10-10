@@ -1,6 +1,6 @@
 // services/database.js
 const mongoose = require('mongoose');
-const config = require('../config/config'); // Adjust the path as needed
+const config = require('./config'); // Adjust the path as needed
 
 // Function to initialize the database connection
 const connectToDatabase = () => {

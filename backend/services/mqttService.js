@@ -2,18 +2,16 @@
 require('dotenv').config();
 const mqtt = require('mqtt');
 const config = require('../config/config');
-const MqttMessage = require('../models/message');
-
+const databaseService = require('./databaseService');
 
 const mqttClient = mqtt.connect(`${process.env.MQTT_HOST}:${process.env.MQTT_PORT}`, {
   username: process.env.MQTT_USERNAME,
   password: process.env.MQTT_PASSWORD,
 });
-// console.log('MQTT_HOST:', process.env.MQTT_HOST);  // Debugging line
-// console.log('MQTT_PORT:', process.env.MQTT_PORT);  // Debugging line
+
 mqttClient.on('connect', () => {
   console.log('Connected to MQTT broker');
-  mqttClient.subscribe(process.env.MQTT_TOPICS, (err) => {
+  mqttClient.subscribe(process.env.MQTT_TOPICS.split(','), (err, granted) => {
     if (!err) {
       console.log(`Subscribed to topics: ${process.env.MQTT_TOPICS}`);
     } else {
@@ -39,15 +37,9 @@ mqttClient.on('message', (topic, message) => {
   const messageContent = message.toString();
   console.log(`Received message from ${topic}: ${messageContent}`);
 
-  // Save the message to the database
-  const newMessage = new MqttMessage({ topic, message: messageContent });
-  newMessage.save((err) => {
-      if (err) {
-          console.error('Error saving message to database:', err);
-      } else {
-          console.log('Message saved to database');
-      }
-  });
+  // Save the message using the database service
+  databaseService.saveMessage(topic, messageContent);
 });
 
 module.exports = mqttClient;
+
