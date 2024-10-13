@@ -7,12 +7,20 @@ const routes = require('./routes');
 const  connectToDatabase = require('./config/db_conn.js');
 require('./services/mqttService');
 require('./db');
-
+const path = require('path');
 connectToDatabase();
 
 
 // Initialize Express app
 const app = express();
+
+// Serve static files from the frontend folder
+app.use(express.static(path.join(__dirname, '../frontend')));
+
+// Route to serve the index.html file
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/pages/index.html'));
+});
 
 // Middleware to parse incoming JSON requests
 app.use(express.json());
@@ -47,35 +55,9 @@ const swaggerOptions = {
 //Initialize Swagger docs
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-
+// Other middleware
+app.use('/api', mqttRoutes);  // Prefix all routes in mqttRoutes with /api
 app.use(routes);
-
-
-
-// // Database configuration (assuming MongoDB)
-// mongoose.connect('mongodb://localhost:27017/mqtt-data', {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-// });
-
-// // Define a schema and model for saving messages
-// const messageSchema = new mongoose.Schema({
-//   topic: String,
-//   message: String,
-//   receivedAt: { type: Date, default: Date.now },
-// });
-
-// const MqttMessage = mongoose.model('MqttMessage', messageSchema);
-
-//   // Save the message to the database
-//   const newMessage = new MqttMessage({ topic, message: messageContent });
-//   newMessage.save((err) => {
-//     if (err) {
-//       console.error('Error saving message to database:', err);
-//     } else {
-//       console.log('Message saved to database');
-//     }
-//   });
 // Start the Express server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
