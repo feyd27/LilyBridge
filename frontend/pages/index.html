@@ -18,49 +18,85 @@
         </div>
       </header>
     
-      <!-- Temperature Messages Section -->
+      <!-- Temperature Table Section -->
+      <section class="grid-container">
+        <h2>Temperature Messages</h2>
+        <table id="temperatureTable" class="stack">
+          <thead>
+            <tr>
+              <th>Board</th>
+              <th>MAC Address</th>
+              <th>Temperature</th>
+              <th>Timestamp</th>
+              <th>Uploaded to IOTA</th>
+              <th>Uploaded to Signum</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Temperature rows will be dynamically inserted here -->
+          </tbody>
+        </table>
+        <div id="temperaturePagination">
+          <!-- Pagination controls will be inserted here -->
+        </div>
+      </section>
+     <!--  Temperature Messages Section 
       <section class="grid-container">
         <div class="grid-x grid-padding-x">
           <div class="cell medium-8 large-6">
             <h2>Temperature Messages</h2>
-            <div id="temperatureMessagesContainer" style="border: 1px solid red; padding: 10px;">
-              <!-- Temperature data will be inserted here by JavaScript -->
+            <div id="temperatureMessagesContainer" class="callout"> -->
+              <!-- Temperature data will be inserted here by JavaScript 
             </div>
           </div>
         </div>
-      </section>
+      </section> -->
     
       <!-- Status Message Section -->
       <section class="grid-container">
         <div class="grid-x grid-padding-x">
           <div class="cell medium-8 large-6">
             <h2>Latest Status Message</h2>
-            <div id="status-message" class="callout primary">
+            <div id="statusMessagesContainer" class="callout primary">
               <!-- Status message and time since sent will be inserted here -->
             </div>
           </div>
         </div>
       </section>
     
-      <!-- Error Messages Section -->
+          <!-- Error Table Section -->
+    <section class="grid-container">
+      <h2>Error Messages</h2>
+      <table id="errorTable" class="stack">
+        <thead>
+          <tr>
+            <th>Message</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Error rows will be dynamically inserted here -->
+        </tbody>
+      </table>
+    </section>
+            <!-- Error Messages Section 
       <section class="grid-container">
         <div class="grid-x grid-padding-x">
           <div class="cell medium-8 large-6">
-            <h2>Today's Error Messages</h2>
-            <div id="error-messages" class="callout alert">
-              <!-- Error messages for today will be inserted here -->
+            <h2>Error Messages</h2>
+            <div id="errorMessagesContainer">-->
+              <!-- Error data will be inserted here by JavaScript 
             </div>
           </div>
         </div>
-      </section>
+      </section>-->
+
     
       <!-- Foundation JavaScript -->
       <script src="js/foundation.min.js"></script>
     <script src="js/main.js"></script>
+    <script type="module" src="js/utils.js"></script>
     
-    
-
-
   
 </body>
 </html>

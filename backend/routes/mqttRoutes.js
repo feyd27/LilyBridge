@@ -129,30 +129,65 @@ router.get('/messages/temperature', async (req, res) => {
  *               properties:
  *                 topic:
  *                   type: string
- *                 message:
+ *                 chipID:
+ *                   type: string
+ *                 macAddress:
+ *                   type: string
+ *                 status:
+ *                   type: string
+ *                 timestamp:
  *                   type: string
  *                 receivedAt:
  *                   type: string
  *                   format: date-time
  *                 timeSinceReceived:
  *                   type: string
+ *       404:
+ *         description: No status message found
+ *       500:
+ *         description: Failed to retrieve last status message
  */
+
 router.get('/messages/status/last', async (req, res) => {
   try {
-    const lastMessage = await MqttMessage.findOne({ topic: 'status' })
-      .sort({ receivedAt: -1 });
-      
+    const lastMessage = await MqttMessage.findOne({ topic: 'status' }).sort({ receivedAt: -1 });
+
     if (!lastMessage) {
       return res.status(404).json({ error: 'No status message found' });
     }
 
+    // Example message format: "ESP32-D0WD1@8C:4B:14:08:12:58| Wifi OK | MQTT OK | Time: 14.10.2024 20:57:29"
+    const messageParts = lastMessage.message.split('|').map(part => part.trim());
+
+    // Extract chipID, macAddress, status, and timestamp
+    const [chipAndMac, ...statusParts] = messageParts;
+    const [chipID, macAddress] = chipAndMac.split('@');
+    
+    // Join all status parts except the last one (Time), in case there are multiple
+    const status = statusParts.slice(0, -1).join(' | ');
+    
+    // Extract timestamp from the last part
+    const timestampMatch = statusParts[statusParts.length - 1].match(/Time: (.+)/);
+    const timestamp = timestampMatch ? timestampMatch[1] : null;
+
     const timeSinceReceived = moment(lastMessage.receivedAt).fromNow();
-    res.status(200).json({ ...lastMessage.toObject(), timeSinceReceived });
+
+    res.status(200).json({
+      topic: lastMessage.topic,
+      chipID: chipID || 'Unknown',
+      macAddress: macAddress || 'Unknown',
+      status: status || 'Unknown',
+      timestamp: timestamp || 'Unknown',
+      receivedAt: lastMessage.receivedAt,
+      timeSinceReceived: timeSinceReceived,
+    });
   } catch (error) {
     console.error('Error retrieving last status message:', error);
     res.status(500).json({ error: 'Failed to retrieve last status message' });
   }
 });
+
+
 
 /**
  * @swagger
