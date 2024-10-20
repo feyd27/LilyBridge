@@ -1,42 +1,93 @@
 
 // frontend/js/main.js
 
-  document.addEventListener('DOMContentLoaded', () => {
+//   document.addEventListener('DOMContentLoaded', () => {
+//     fetch('/api/messages/status/last')
+//      .then(response => response.json())
+//       .then(data => {
+//         console.log('Fetched Data:', data);  // Debugging line
+//         displayLastStatusMessage(data);  // Pass the message object to the display function
+//       })
+//       .catch(error => console.error('Error fetching status message:', error));
+// });
+
+// function displayLastStatusMessage(message) {
+//     console.log('Message to Display:', message);  // Check structure of `message` object
+
+//     const container = document.getElementById('statusMessagesContainer');
+//     container.innerHTML = ''; // Clear any existing content
+//     if (!container) {
+//         console.error('Container element not found');  
+//         return;
+//     }
+
+//     // Check if the properties exist in `message`
+//     const chipID = message.chipID || 'Unknown';
+//     const macAddress = message.macAddress || 'Unknown';
+//     const status = message.status || 'Unknown';
+//     const timestamp = message.timestamp || 'Unknown';
+
+//     // Display the message details
+//     const messageDiv = document.createElement('div');
+//     messageDiv.className = 'message';
+//     messageDiv.innerHTML = `
+//       <p><strong>Board ID:</strong> ${chipID} | <strong>MAC:</strong> ${macAddress}</p>
+//       <p><strong>Status:</strong> ${status}</p>
+//       <p><strong>Time:</strong> ${timestamp}</p>
+//     `;
+//     container.appendChild(messageDiv);
+// }
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Function to fetch and display the last status message
+  function fetchStatusMessage() {
     fetch('/api/messages/status/last')
-     .then(response => response.json())
+      .then(response => response.json())
       .then(data => {
-        console.log('Fetched Data:', data);  // Debugging line
-        displayLastStatusMessage(data);  // Pass the message object to the display function
+        // Check if data has the status message
+        if (data && data.receivedAt) {
+          displayStatusMessage(data);
+        } else {
+          console.error('No status message received');
+        }
       })
       .catch(error => console.error('Error fetching status message:', error));
-});
+  }
 
-function displayLastStatusMessage(message) {
-    console.log('Message to Display:', message);  // Check structure of `message` object
-
+  // Function to display the status message
+  function displayStatusMessage(message) {
     const container = document.getElementById('statusMessagesContainer');
-    container.innerHTML = ''; // Clear any existing content
-    if (!container) {
-        console.error('Container element not found');  
-        return;
-    }
+    const timeSinceReceived = new Date() - new Date(message.receivedAt); // Calculate elapsed time
 
-    // Check if the properties exist in `message`
     const chipID = message.chipID || 'Unknown';
     const macAddress = message.macAddress || 'Unknown';
     const status = message.status || 'Unknown';
     const timestamp = message.timestamp || 'Unknown';
 
     // Display the message details
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message';
-    messageDiv.innerHTML = `
+    container.innerHTML = `
       <p><strong>Board ID:</strong> ${chipID} | <strong>MAC:</strong> ${macAddress}</p>
       <p><strong>Status:</strong> ${status}</p>
       <p><strong>Time:</strong> ${timestamp}</p>
     `;
-    container.appendChild(messageDiv);
-}
+
+    // Check if the time elapsed is more than 60 seconds (60000 milliseconds)
+    if (timeSinceReceived > 60000) {
+      container.classList.remove('primary');
+      container.classList.add('alert');
+    } else {
+      container.classList.remove('alert');
+      container.classList.add('primary');
+    }
+  }
+
+  // Poll the backend every 60 seconds to get the latest status message
+  setInterval(fetchStatusMessage, 60000);
+
+  // Fetch the status message when the page first loads
+  fetchStatusMessage();
+});
+
 
 document.addEventListener('DOMContentLoaded', () => {
   fetchTemperatureMessages(25, 1); // Default page size of 25, starting at page 1
