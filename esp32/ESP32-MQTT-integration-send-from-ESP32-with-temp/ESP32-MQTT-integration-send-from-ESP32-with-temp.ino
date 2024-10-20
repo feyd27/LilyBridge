@@ -56,7 +56,7 @@ TimerHandle_t mqttReconnectTimer;
 TimerHandle_t wifiReconnectTimer;
 
 unsigned long previousMillis = 0;   // Stores last time temperature was published
-const long interval = 300000;         // Interval at which to publish sensor readings
+const long interval = 600000;         // Interval at which to publish sensor readings
 
 unsigned long previousStatusCheckMillis = 0;
 const long statusCheckInterval = 60000;  // Check status every 60 seconds
