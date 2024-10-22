@@ -5,6 +5,7 @@ const moment = require('moment');
 const config = require('../config/config');
 const databaseService = require('./databaseService');
 const MqttMessage = require('../models/message');
+const logger = require('../services/logger');
 
 const mqttClient = mqtt.connect(`${process.env.MQTT_HOST}:${process.env.MQTT_PORT}`, {
   username: process.env.MQTT_USERNAME,
@@ -12,32 +13,32 @@ const mqttClient = mqtt.connect(`${process.env.MQTT_HOST}:${process.env.MQTT_POR
 });
 
 mqttClient.on('connect', () => {
-  console.log('Connected to MQTT broker');
+  logger.log('Connected to MQTT broker');
   mqttClient.subscribe(process.env.MQTT_TOPICS.split(','), (err, granted) => {
     if (!err) {
-      console.log(`Subscribed to topics: ${process.env.MQTT_TOPICS}`);
+      logger.log(`Subscribed to topics: ${process.env.MQTT_TOPICS}`);
     } else {
-      console.error('Subscription error:', err);
+      logger.error('Subscription error:', err);
     }
   });
 });
 
 mqttClient.on('error', (err) => {
-  console.error('MQTT connection error:', err);
+  logger.error('MQTT connection error:', err);
 });
 
 mqttClient.on('offline', () => {
-  console.log('MQTT client is offline');
+  logger.log('MQTT client is offline');
 });
 
 mqttClient.on('reconnect', () => {
-  console.log('MQTT client is reconnecting');
+  logger.log('MQTT client is reconnecting');
 });
 
 // Handle incoming MQTT messages
 mqttClient.on('message', async (topic, message) => {
   const messageContent = message.toString();
-  console.log(`Received message from ${topic}: ${messageContent}`);
+  logger.log(`Received message from ${topic}: ${messageContent}`);
 
   let parsedMessage;
 
@@ -71,9 +72,9 @@ mqttClient.on('message', async (topic, message) => {
   try {
     const newMessage = new MqttMessage(parsedMessage);
     await newMessage.save();
-    console.log('Message saved to database');
+    logger.log('Message saved to database');
   } catch (err) {
-    console.error('Error saving message to database: ', err);
+    logger.error('Error saving message to database: ', err);
   }
 });
   

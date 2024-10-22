@@ -1,42 +1,86 @@
+let temperatureChartInstance = null;  // To keep track of the chart instance
 
-// frontend/js/main.js
+// Function to create the temperature chart
+function createTemperatureChart(data) {
+    const ctx = document.getElementById('temperatureChart').getContext('2d');
 
-//   document.addEventListener('DOMContentLoaded', () => {
-//     fetch('/api/messages/status/last')
-//      .then(response => response.json())
-//       .then(data => {
-//         console.log('Fetched Data:', data);  // Debugging line
-//         displayLastStatusMessage(data);  // Pass the message object to the display function
-//       })
-//       .catch(error => console.error('Error fetching status message:', error));
-// });
+    // Destroy the existing chart if it exists
+    if (temperatureChartInstance !== null) {
+        temperatureChartInstance.destroy();
+    }
 
-// function displayLastStatusMessage(message) {
-//     console.log('Message to Display:', message);  // Check structure of `message` object
+    // Create a new chart
+    temperatureChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels, // Time labels or X-axis data
+            datasets: [{
+                label: 'Temperature (°C)',
+                data: data.temperatures, // Y-axis temperature data
+                borderWidth: 2,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                fill: true
+            }]
+        },
+        options: {
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Time'
+                    }
+                },
+                y: {
+                    beginAtZero: false,
+                    title: {
+                        display: true,
+                        text: 'Temperature (°C)'
+                    }
+                }
+            }
+        }
+    });
+}
 
-//     const container = document.getElementById('statusMessagesContainer');
-//     container.innerHTML = ''; // Clear any existing content
-//     if (!container) {
-//         console.error('Container element not found');  
-//         return;
-//     }
+// Fetch the last 50 temperature messages and create a chart
+document.addEventListener('DOMContentLoaded', () => {
+    fetch('/api/messages/temperature/last50')
+        .then(response => response.json())
+        .then(data => {
+            // Debugging: Log the entire response
+            console.log('Fetched Data:', data);
 
-//     // Check if the properties exist in `message`
-//     const chipID = message.chipID || 'Unknown';
-//     const macAddress = message.macAddress || 'Unknown';
-//     const status = message.status || 'Unknown';
-//     const timestamp = message.timestamp || 'Unknown';
+            // Check if data is an array and has elements
+            if (!Array.isArray(data) || data.length === 0) {
+                console.error('No valid messages data found:', data);
+                return;
+            }
 
-//     // Display the message details
-//     const messageDiv = document.createElement('div');
-//     messageDiv.className = 'message';
-//     messageDiv.innerHTML = `
-//       <p><strong>Board ID:</strong> ${chipID} | <strong>MAC:</strong> ${macAddress}</p>
-//       <p><strong>Status:</strong> ${status}</p>
-//       <p><strong>Time:</strong> ${timestamp}</p>
-//     `;
-//     container.appendChild(messageDiv);
-// }
+            // Extract temperature data and timestamps
+            const labels = data.map(message => {
+                // Check if timestamp exists, otherwise default to empty
+                return message.timestamp ? new Date(message.timestamp).toLocaleString() : '';
+            });
+            const temperatures = data.map(message => message.temperature || 0); // Default to 0 if temperature is missing
+
+            // Ensure there are valid labels and temperature points
+            if (labels.length === 0 || temperatures.length === 0) {
+                console.error('No valid labels or temperature data:', { labels, temperatures });
+                return;
+            }
+
+            // Create chart data object
+            const chartData = {
+                labels: labels,
+                temperatures: temperatures
+            };
+
+            // Create the temperature chart
+            createTemperatureChart(chartData);
+        })
+        .catch(error => console.error('Error fetching temperature messages:', error));
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   // Function to fetch and display the last status message

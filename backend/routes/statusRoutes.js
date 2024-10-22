@@ -3,6 +3,7 @@
 const express = require('express');
 const router = express.Router();
 const mqttController = require('../controllers/mqttController');
+const logger = require('../services/logger');
 
 
 /**
@@ -10,6 +11,7 @@ const mqttController = require('../controllers/mqttController');
  * /:
  *   get:
  *     summary: Returns a message indicating the server is running
+ *     tags: [Server and broker status]
  *     responses:
  *       200:
  *         description: A simple status message
@@ -20,7 +22,7 @@ router.get('/', (req, res) => {
   try {
     res.send('Lily-Bridge MQTT Backend is running');
   } catch (error) {
-    console.error('Error occurred:', error);
+    logger.error('Error occurred:', error);
     res.status(500).send('Server error, please try again later');
   }
 });
@@ -30,6 +32,7 @@ router.get('/', (req, res) => {
  * /mqtt-status:
  *   get:
  *     summary: Checks the status of the MQTT broker connection
+ *     tags: [Server and broker status]
  *     responses:
  *       200:
  *         description: MQTT broker is connected

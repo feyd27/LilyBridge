@@ -1,6 +1,7 @@
 // services/database.js
 const mongoose = require('mongoose');
 const config = require('./config'); // Adjust the path as needed
+const logger = require('../services/logger');
 
 // Function to initialize the database connection
 const connectToDatabase = () => {
@@ -9,10 +10,10 @@ const connectToDatabase = () => {
         useUnifiedTopology: true
     })
     .then(() => {
-        console.log('Connected to MongoDB');
+        logger.log('Connected to MongoDB');
     })
     .catch(err => {
-        console.error('Error connecting to MongoDB:', err);
+        logger.error('Error connecting to MongoDB:', err);
     });
 };
 
