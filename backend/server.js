@@ -14,13 +14,18 @@ connectToDatabase();
 
 // Initialize Express app
 const app = express();
+const expressLayouts = require('express-ejs-layouts');
+
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, '../frontend/pages'));
+app.use(expressLayouts);
 
 // Serve static files from the frontend folder
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Route to serve the index.html file
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/pages/index.html'));
+  res.render('index', { title: 'Home' });
 });
 
 // Middleware to parse incoming JSON requests
