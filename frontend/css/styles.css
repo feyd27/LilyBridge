@@ -31,7 +31,7 @@ h1 {
   }
   
   .dashboard-sidebar .menu a {
-    color: #ecf0f1;
+    color: #020202;
     font-size: 1.1em;
     margin: 10px 0;
     display: block;
@@ -89,6 +89,56 @@ table.custom-table {
       width: 100%; /* Full width for small screens */
     }
   }
+  .title-align {
+    text-align: center;
+    vertical-align: top;
+  }
   
-  
-  
+/* Custom gradient background for the body */
+body {
+  background: linear-gradient(135deg, #b342b3, #b1ecf8);
+  background-attachment: fixed; /* Keep the gradient fixed on scroll */
+  font-family: "Helvetica Neue", Arial, sans-serif; /* Foundation default font */
+}
+
+/* Optional - Add some padding to your container for spacing */
+.grid-container {
+  padding: 2rem;
+  max-width: 90%;
+}
+
+/* Optional - Adjust colors for content containers like callouts to ensure readability */
+.dashboard-sidebar {
+  background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent for gradient effect */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for better contrast */
+  color: #000;
+}
+
+/* Table styling adjustments to match gradient background */
+table {
+  background-color: #ffffff; /* Solid background for readability */
+  border-collapse: collapse;
+  width: 100%;
+  border: 1px solid #e1e4e8;
+}
+
+table th, table td {
+  padding: 0.75rem;
+  border: 1px solid #e1e4e8;
+  text-align: left;
+}
+/* CSS for the container */
+.header-container {
+  background-color: transparent; /* Ensures container has no background color */
+}
+/* CSS for the image */
+.header-image {
+  background-color: transparent;
+  z-index: 1;
+}
+.custom-text {
+  color: #000;
+}
+.neg-margin {
+  margin-top: -5em;
+}

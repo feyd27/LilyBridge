@@ -25,7 +25,7 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Route to serve the index.html file
 app.get('/', (req, res) => {
-  res.render('index', { title: 'Home' });
+  res.render('index', { title: 'Lily-Bridge.online' });
 });
 
 // Middleware to parse incoming JSON requests

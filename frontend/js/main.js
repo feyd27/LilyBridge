@@ -18,28 +18,77 @@ function createTemperatureChart(data) {
                 label: 'Temperature (°C)',
                 data: data.temperatures, // Y-axis temperature data
                 borderWidth: 2,
-                borderColor: 'rgba(75, 192, 192, 1)',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(78, 97, 255, 1)',
+                backgroundColor: 'rgba(250, 236, 142, 0.5)',
                 fill: true
             }]
         },
         options: {
+            responsive: true,
+            plugins: {
+              title: {
+                display: true,
+                text: 'Last 50 messages',
+                color: '#000',
+                font: {
+                  family: 'Helvetica',
+                  weight: 'bold'
+                }
+              },
+              legend: {
+                labels: {
+                  color: '#000',
+                  font: {
+                    family: 'Helvetica',
+                    size: 12
+                  }
+                }
+              },
+              tooltip: {
+                bodyFont: {
+                  family: 'Helvetica',
+                  size: 14
+                },
+                titleFont: {
+                  family: 'Helvetica',
+                  size: 14
+                },
+                backgroundColor: 'rgba(68, 110, 255, 0.8)',
+                bodyColor: '#fff'
+              }
+            },
             scales: {
                 x: {
                     title: {
                         display: true,
-                        text: 'Time'
+                        text: 'Time',
+                        color: '#000',
+                        font: {
+                          family: 'Helvetica',
+                          size: 12
+                        },
+                    },
+                    ticks: {
+                      color: '#000',
                     }
                 },
                 y: {
                     beginAtZero: false,
                     title: {
                         display: true,
-                        text: 'Temperature (°C)'
+                        text: 'Temperature (°C)',
+                        color: '#000',
+                        font: {
+                          family: 'Helvetica',
+                          size: 12
+                        },
+                    },
+                    ticks: {
+                      color: '#000',
                     }
                 }
             }
-        }
+        } // options end
     });
 }
 
