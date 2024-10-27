@@ -142,3 +142,26 @@ table th, table td {
 .neg-margin {
   margin-top: -5em;
 }
+.custom-table th, .custom-table td {
+  padding: 8px 12px;
+}
+
+.custom-table th.board, .custom-table td.board {
+  width: 20%; /* Adjust width as needed */
+}
+
+.custom-table th.macAddress, .custom-table td.macAddress {
+  width: 25%; /* Adjust width as needed */
+}
+
+.custom-table th.temperature, .custom-table td.temperature {
+  width: 15%; /* Adjust width as needed */
+}
+
+.custom-table th.timestamp, .custom-table td.timestamp {
+  width: 40%; /* Adjust width as needed */
+}
+.custom-table {
+  table-layout: fixed;
+  width: 100%; /* Ensures it spans the full width of its container */
+}

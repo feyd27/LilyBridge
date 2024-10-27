@@ -364,17 +364,35 @@ router.get('/messages/status', async (req, res) => {
     const pageNum = Math.max(parseInt(page), 1);
 
     const query = { topic: 'status' };
-
     const totalItems = await MqttMessage.countDocuments(query);
 
     if (totalItems === 0) {
       return res.status(404).json({ error: 'No status messages found' });
     }
 
-    const messages = await MqttMessage.find(query)
+    const rawMessages = await MqttMessage.find(query)
       .sort({ receivedAt: -1 })
       .skip((pageNum - 1) * limitNum)
       .limit(limitNum);
+
+    const messages = rawMessages.map((message) => {
+      const messageParts = message.message.split('|').map(part => part.trim());
+      const [chipAndMac, ...statusParts] = messageParts;
+      const [chipID, macAddress] = chipAndMac.split('@');
+      const status = statusParts.slice(0, -1).join(' | ');
+
+      const timestampMatch = statusParts[statusParts.length - 1].match(/Time: (.+)/);
+      const timestamp = timestampMatch ? timestampMatch[1] : null;
+
+      return {
+        topic: message.topic,
+        chipID: chipID || 'Unknown',
+        macAddress: macAddress || 'Unknown',
+        status: status || 'Unknown',
+        timestamp: timestamp || 'Unknown',
+        receivedAt: message.receivedAt,
+      };
+    });
 
     res.status(200).json({
       totalItems,
@@ -387,6 +405,7 @@ router.get('/messages/status', async (req, res) => {
     res.status(500).json({ error: 'Failed to retrieve status messages' });
   }
 });
+
 
 /**
  * @swagger

@@ -23,17 +23,18 @@
 <body>
     <!-- Temperature data display-->
     
-    <main class="grid-contain)er">
-        <h2>Temperature Messages</h2>
+    <main class="grid-container">
+        <h1 class="title-align">Temperature Messages</h1>
+        <br>
         <div id="temperatureMessagesContainer">
             <!-- Table structure for messages -->
             <table class="custom-table">
                 <thead>
                     <tr>
-                        <th>Board</th>
-                        <th>MAC Address</th>
-                        <th>Temperature</th>
-                        <th>Timestamp</th>
+                        <th class="board">Board</th>
+                        <th class="macAddress">MAC Address</th>
+                        <th class="temperature">Temperature</th>
+                        <th class="timestamp">Timestamp</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -42,15 +43,21 @@
             </table>
     
             <!-- Pagination controls -->
-            <div id="paginationControls">
-                <button class="button primary small" id="prevPage">Previous</button>
-                <select id="pageSize">
+            <div id="paginationControls" class="grid-x grid-padding-x">
+                <div class="cell small-3">
+                  <label for="pageSize">Rows per page:</label>
+                  <select id="pageSize">
                     <option value="25">25</option>
                     <option value="50">50</option>
                     <option value="100">100</option>
-                </select>
-                <button class="button primary small" id="nextPage">Next</button>
-            </div>
+                  </select>
+                </div>
+                <div class="cell small-9 text-right">
+                  <span id="paginationInfo"></span>
+                  <button class="button small primary radius small-radius" id="prevPage">Previous</button>
+                  <button class="button small primary radius small-radius" id="nextPage">Next</button>
+                </div>
+              </div>
         </div>
     </main>
     

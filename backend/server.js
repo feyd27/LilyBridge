@@ -33,6 +33,12 @@ app.get('/temperature', (req, res) => {
   res.render('temperature', { title: 'Temperature messages overview'});
 });
 
+// Route to render the status messages page
+app.get('/status', (req, res) => {
+  res.render('status');
+});
+
+
 
 // Middleware to parse incoming JSON requests
 app.use(express.json());
