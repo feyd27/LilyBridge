@@ -28,6 +28,12 @@ app.get('/', (req, res) => {
   res.render('index', { title: 'Lily-Bridge.online' });
 });
 
+// Route to render the temperature messages page
+app.get('/temperature', (req, res) => {
+  res.render('temperature', { title: 'Temperature messages overview'});
+});
+
+
 // Middleware to parse incoming JSON requests
 app.use(express.json());
 

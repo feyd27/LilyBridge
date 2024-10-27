@@ -231,27 +231,27 @@ function fetchTemperatureMessages(pageSize, page) {
     .catch(error => console.error('Error fetching temperature messages:', error));
 }
 
-function displayTemperatureMessages(messages) {
-  const tableBody = document.getElementById('temperatureTable')?.querySelector('tbody');
-  if (!tableBody) {
-    console.error('Temperature table not found');
-    return;
-  }
-  tableBody.innerHTML = ''; // Clear existing rows
+// function displayTemperatureMessages(messages) {
+//   const tableBody = document.getElementById('temperatureTable')?.querySelector('tbody');
+//   if (!tableBody) {
+//     console.error('Temperature table not found');
+//     return;
+//   }
+//   tableBody.innerHTML = ''; // Clear existing rows
 
-  messages.forEach(message => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${message.chipID}</td>
-      <td>${message.macAddress}</td>
-      <td>${message.temperature}°C</td>
-      <td>${new Date(message.timestamp).toLocaleDateString('en-GB')} ${new Date(message.timestamp).toLocaleTimeString('en-GB')}</td>
-      <td></td>
-      <td></td>
-    `;
-    tableBody.appendChild(row);
-  });
-}
+//   messages.forEach(message => {
+//     const row = document.createElement('tr');
+//     row.innerHTML = `
+//       <td>${message.chipID}</td>
+//       <td>${message.macAddress}</td>
+//       <td>${message.temperature}°C</td>
+//       <td>${new Date(message.timestamp).toLocaleDateString('en-GB')} ${new Date(message.timestamp).toLocaleTimeString('en-GB')}</td>
+//       <td></td>
+//       <td></td>
+//     `;
+//     tableBody.appendChild(row);
+//   });
+// }
 function fetchErrorMessages() {
   fetch('/api/messages/error/today')  // Adjust this to your actual endpoint if different
     .then(response => response.json())
