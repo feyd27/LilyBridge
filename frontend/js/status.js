@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function displayStatusMessages(messages) {
-        const container = document.getElementById('statusMessagesContainer');
+        const container = document.getElementById('statusMessagesTable');
         container.innerHTML = '';
         messages.forEach(message => {
             const row = document.createElement('tr');
