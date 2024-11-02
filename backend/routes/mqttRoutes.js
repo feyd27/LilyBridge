@@ -165,17 +165,23 @@ router.get('/messages/temperature/last50', async (req, res) => {
 
 /**
  * @swagger
- * /api/messages/temperature/{id}:
+ * /api/messages/temperature:
  *   delete:
- *     summary: Delete a temperature message by its ID
+ *     summary: Delete multiple temperature messages by their IDs
  *     tags: [Messages]
+ *     requestBody:
+ *       description: An array of IDs of the temperature messages to delete
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               ids:
+ *                 type: array
+ *                 items:
+ *                   type: string
  *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: The ID of the temperature message to delete
  *       - in: query
  *         name: limit
  *         schema:
@@ -191,7 +197,7 @@ router.get('/messages/temperature/last50', async (req, res) => {
  *         description: Page number
  *     responses:
  *       200:
- *         description: The deleted message and paginated remaining messages
+ *         description: The deleted messages and paginated remaining messages
  *         content:
  *           application/json:
  *             schema:
@@ -199,26 +205,27 @@ router.get('/messages/temperature/last50', async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
- *                 deletedMessage:
- *                   type: object
- *                   properties:
- *                     _id:
- *                       type: string
- *                     topic:
- *                       type: string
- *                     chipID:
- *                       type: string
- *                     macAddress:
- *                       type: string
- *                     temperature:
- *                       type: number
- *                     timestamp:
- *                       type: string
- *                     receivedAt:
- *                       type: string
+ *                 deletedMessages:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       topic:
+ *                         type: string
+ *                       chipID:
+ *                         type: string
+ *                       macAddress:
+ *                         type: string
+ *                       temperature:
+ *                         type: number
+ *                       timestamp:
+ *                         type: string
+ *                         format: date-time
  *                 totalItems:
  *                   type: integer
- *                   description: Total number of messages
+ *                   description: Total number of remaining messages
  *                 totalPages:
  *                   type: integer
  *                   description: Total number of pages
@@ -242,38 +249,34 @@ router.get('/messages/temperature/last50', async (req, res) => {
  *                         type: string
  *                         format: date-time
  *       404:
- *         description: Message not found or no temperature messages found
+ *         description: No messages found or no temperature messages found
  *       500:
  *         description: Server error
  */
-router.delete('/messages/temperature/:id', async (req, res) => {
+router.delete('/messages/temperature', async (req, res) => {
   try {
-    const { id } = req.params;
+    const { ids } = req.body;
 
-    // Debug: Log the received message ID for deletion
-    logger.log('Received _id for deletion:', id);
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'Array of message IDs is required' });
+    }
 
     const { limit = 25, page = 1 } = req.query;
     const limitNum = Math.min(Math.max(parseInt(limit), 1), 100);
     const pageNum = Math.max(parseInt(page), 1);
 
-    // Find and delete the message by _id
-    const deletedMessage = await MqttMessage.findByIdAndDelete(id);
+    // Delete all messages with IDs in the array
+    const deletedMessages = await MqttMessage.deleteMany({ _id: { $in: ids } });
 
-    if (!deletedMessage) {
-      logger.error('No message found with _id:', id);
-      return res.status(404).json({ error: 'Message not found' });
+    if (deletedMessages.deletedCount === 0) {
+      return res.status(404).json({ error: 'No messages found with provided IDs' });
     }
-
-    // Log the deleted message for debugging
-    logger.log('Deleted message:', deletedMessage);
 
     // After deletion, fetch the remaining paginated messages
     const totalItems = await MqttMessage.countDocuments({ topic: 'temperature' });
 
     if (totalItems === 0) {
-      logger.log('No temperature messages left in the database');
-      return res.status(404).json({ error: 'No temperature messages found' });
+      return res.status(404).json({ error: 'No temperature messages left in the database' });
     }
 
     const messages = await MqttMessage.find({ topic: 'temperature' })
@@ -281,23 +284,20 @@ router.delete('/messages/temperature/:id', async (req, res) => {
       .skip((pageNum - 1) * limitNum)
       .limit(limitNum);
 
-    // Log the remaining messages for debugging
-    logger.log('Remaining messages:', messages);
-
     res.status(200).json({
-      message: 'Temperature message deleted successfully',
-      deletedMessage,
+      message: 'Temperature messages deleted successfully',
+      deletedCount: deletedMessages.deletedCount,
       totalItems,
       totalPages: Math.ceil(totalItems / limitNum),
       currentPage: pageNum,
       messages,
     });
   } catch (error) {
-    // Log the error if any
-    logger.error('Error deleting temperature message:', error);
-    res.status(500).json({ error: 'Failed to delete temperature message' });
+    console.error('Error deleting temperature messages:', error);
+    res.status(500).json({ error: 'Failed to delete temperature messages' });
   }
 });
+
 
 
 /**
@@ -342,13 +342,19 @@ router.delete('/messages/temperature/:id', async (req, res) => {
  *                   items:
  *                     type: object
  *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         description: The unique identifier of the message
  *                       topic:
+ *                         type: string
+ *                       chipID:
+ *                         type: string
+ *                       macAddress:
  *                         type: string
  *                       status:
  *                         type: string
  *                       timestamp:
  *                         type: string
- *                         format: date-time
  *                       receivedAt:
  *                         type: string
  *                         format: date-time
@@ -385,6 +391,7 @@ router.get('/messages/status', async (req, res) => {
       const timestamp = timestampMatch ? timestampMatch[1] : null;
 
       return {
+        _id: message._id,  // Include the unique identifier
         topic: message.topic,
         chipID: chipID || 'Unknown',
         macAddress: macAddress || 'Unknown',
@@ -405,6 +412,7 @@ router.get('/messages/status', async (req, res) => {
     res.status(500).json({ error: 'Failed to retrieve status messages' });
   }
 });
+
 
 
 /**
@@ -482,17 +490,23 @@ router.get('/messages/status/last', async (req, res) => {
 });
 /**
  * @swagger
- * /api/messages/status/{id}:
+ * /api/messages/status:
  *   delete:
- *     summary: Delete a status message by its ID
+ *     summary: Delete multiple status messages by their IDs
  *     tags: [Messages]
+ *     requestBody:
+ *       description: An array of IDs of the status messages to delete
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               ids:
+ *                 type: array
+ *                 items:
+ *                   type: string
  *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: The ID of the status message to delete
  *       - in: query
  *         name: limit
  *         schema:
@@ -508,7 +522,7 @@ router.get('/messages/status/last', async (req, res) => {
  *         description: Page number
  *     responses:
  *       200:
- *         description: The deleted message and paginated remaining messages
+ *         description: The deleted messages and paginated remaining messages
  *         content:
  *           application/json:
  *             schema:
@@ -516,21 +530,12 @@ router.get('/messages/status/last', async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
- *                 deletedMessage:
- *                   type: object
- *                   properties:
- *                     _id:
- *                       type: string
- *                     topic:
- *                       type: string
- *                     message:
- *                       type: string
- *                     receivedAt:
- *                       type: string
- *                       format: date-time
+ *                 deletedCount:
+ *                   type: integer
+ *                   description: Number of messages deleted
  *                 totalItems:
  *                   type: integer
- *                   description: Total number of messages
+ *                   description: Total number of remaining messages
  *                 totalPages:
  *                   type: integer
  *                   description: Total number of pages
@@ -550,38 +555,34 @@ router.get('/messages/status/last', async (req, res) => {
  *                         type: string
  *                         format: date-time
  *       404:
- *         description: Message not found or no status messages found
+ *         description: No messages found or no status messages found
  *       500:
  *         description: Server error
  */
-router.delete('/messages/status/:id', async (req, res) => {
+router.delete('/messages/status', async (req, res) => {
   try {
-    const { id } = req.params;
+    const { ids } = req.body;
 
-    // Debug: Log the received message ID for deletion
-    logger.log('Received _id for deletion:', id);
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'Array of message IDs is required' });
+    }
 
     const { limit = 25, page = 1 } = req.query;
     const limitNum = Math.min(Math.max(parseInt(limit), 1), 100);
     const pageNum = Math.max(parseInt(page), 1);
 
-    // Find and delete the status message by _id
-    const deletedMessage = await MqttMessage.findByIdAndDelete(id);
+    // Delete all messages with IDs in the array
+    const deleteResult = await MqttMessage.deleteMany({ _id: { $in: ids }, topic: 'status' });
 
-    if (!deletedMessage) {
-      logger.error('No message found with _id:', id);
-      return res.status(404).json({ error: 'Message not found' });
+    if (deleteResult.deletedCount === 0) {
+      return res.status(404).json({ error: 'No messages found with provided IDs' });
     }
 
-    // Log the deleted message for debugging
-    logger.log('Deleted message:', deletedMessage);
-
-    // After deletion, fetch the remaining paginated messages for the 'status' topic
+    // After deletion, fetch the remaining paginated messages
     const totalItems = await MqttMessage.countDocuments({ topic: 'status' });
 
     if (totalItems === 0) {
-      logger.log('No status messages left in the database');
-      return res.status(404).json({ error: 'No status messages found' });
+      return res.status(404).json({ error: 'No status messages left in the database' });
     }
 
     const messages = await MqttMessage.find({ topic: 'status' })
@@ -589,21 +590,17 @@ router.delete('/messages/status/:id', async (req, res) => {
       .skip((pageNum - 1) * limitNum)
       .limit(limitNum);
 
-    // Log the remaining messages for debugging
-    logger.log('Remaining messages:', messages);
-
     res.status(200).json({
-      message: 'Status message deleted successfully',
-      deletedMessage,
+      message: 'Status messages deleted successfully',
+      deletedCount: deleteResult.deletedCount,
       totalItems,
       totalPages: Math.ceil(totalItems / limitNum),
       currentPage: pageNum,
       messages,
     });
   } catch (error) {
-    // Log the error if any
-    logger.error('Error deleting status message:', error);
-    res.status(500).json({ error: 'Failed to delete status message' });
+    console.error('Error deleting status messages:', error);
+    res.status(500).json({ error: 'Failed to delete status messages' });
   }
 });
 
@@ -734,17 +731,24 @@ router.get('/messages/error/today', async (req, res) => {
 });
 /**
  * @swagger
- * /api/messages/errors/{id}:
+ * /api/messages/errors:
  *   delete:
- *     summary: Delete an error message by its ID
+ *     summary: Delete multiple error messages by their IDs
  *     tags: [Messages]
+ *     requestBody:
+ *       description: Array of message IDs to delete
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               ids:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: An array of IDs of the error messages to delete
  *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: The ID of the error message to delete
  *       - in: query
  *         name: limit
  *         schema:
@@ -760,7 +764,7 @@ router.get('/messages/error/today', async (req, res) => {
  *         description: Page number
  *     responses:
  *       200:
- *         description: The deleted message and paginated remaining messages
+ *         description: Successfully deleted messages and retrieved remaining paginated messages
  *         content:
  *           application/json:
  *             schema:
@@ -768,18 +772,20 @@ router.get('/messages/error/today', async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
- *                 deletedMessage:
- *                   type: object
- *                   properties:
- *                     _id:
- *                       type: string
- *                     topic:
- *                       type: string
- *                     message:
- *                       type: string
- *                     receivedAt:
- *                       type: string
- *                       format: date-time
+ *                 deletedMessages:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       topic:
+ *                         type: string
+ *                       message:
+ *                         type: string
+ *                       receivedAt:
+ *                         type: string
+ *                         format: date-time
  *                 totalItems:
  *                   type: integer
  *                   description: Total number of messages
@@ -802,38 +808,34 @@ router.get('/messages/error/today', async (req, res) => {
  *                         type: string
  *                         format: date-time
  *       404:
- *         description: Message not found or no error messages found
+ *         description: No messages found or no error messages left after deletion
  *       500:
  *         description: Server error
  */
-router.delete('/messages/errors/:id', async (req, res) => {
+router.delete('/messages/errors', async (req, res) => {
   try {
-    const { id } = req.params;
+    const { ids } = req.body;
 
-    // Debug: Log the received message ID for deletion
-    logger.log('Received _id for deletion:', id);
+    // Check if IDs array is provided
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'An array of message IDs is required for deletion' });
+    }
 
     const { limit = 25, page = 1 } = req.query;
     const limitNum = Math.min(Math.max(parseInt(limit), 1), 100);
     const pageNum = Math.max(parseInt(page), 1);
 
-    // Find and delete the error message by _id
-    const deletedMessage = await MqttMessage.findByIdAndDelete(id);
+    // Find and delete the messages by their IDs
+    const deletedMessages = await MqttMessage.deleteMany({ _id: { $in: ids }, topic: 'errors' });
 
-    if (!deletedMessage) {
-      logger.error('No message found with _id:', id);
-      return res.status(404).json({ error: 'Message not found' });
+    if (deletedMessages.deletedCount === 0) {
+      return res.status(404).json({ error: 'No messages found with the provided IDs' });
     }
 
-    // Log the deleted message for debugging
-    logger.log('Deleted message:', deletedMessage);
-
-    // After deletion, fetch the remaining paginated messages for the 'errors' topic
+    // Get updated count and remaining messages after deletion
     const totalItems = await MqttMessage.countDocuments({ topic: 'errors' });
-
     if (totalItems === 0) {
-      logger.log('No error messages left in the database');
-      return res.status(404).json({ error: 'No error messages found' });
+      return res.status(404).json({ error: 'No error messages left in the database' });
     }
 
     const messages = await MqttMessage.find({ topic: 'errors' })
@@ -841,22 +843,19 @@ router.delete('/messages/errors/:id', async (req, res) => {
       .skip((pageNum - 1) * limitNum)
       .limit(limitNum);
 
-    // Log the remaining messages for debugging
-    logger.log('Remaining messages:', messages);
-
     res.status(200).json({
-      message: 'Error message deleted successfully',
-      deletedMessage,
+      message: 'Error messages deleted successfully',
+      deletedMessages: deletedMessages.deletedCount,
       totalItems,
       totalPages: Math.ceil(totalItems / limitNum),
       currentPage: pageNum,
       messages,
     });
   } catch (error) {
-    // Log the error if any
-    logger.error('Error deleting error message:', error);
-    res.status(500).json({ error: 'Failed to delete error message' });
+    logger.error('Error deleting error messages:', error);
+    res.status(500).json({ error: 'Failed to delete error messages' });
   }
 });
+
 
 module.exports = router;

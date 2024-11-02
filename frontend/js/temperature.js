@@ -1,7 +1,13 @@
 // temperature.js
 
 document.addEventListener('DOMContentLoaded', () => {
+
     const pageSizeSelect = document.getElementById('pageSize');
+    if (!pageSizeSelect) {
+        console.error("Element with id 'pageSize' not found.");
+        return;
+    }
+    //const pageSizeSelect = document.getElementById('pageSize');
     const prevPageBtn = document.getElementById('prevPage');
     const nextPageBtn = document.getElementById('nextPage');
     const paginationInfo = document.getElementById('paginationInfo');

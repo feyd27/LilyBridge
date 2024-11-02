@@ -35,8 +35,19 @@ app.get('/temperature', (req, res) => {
 
 // Route to render the status messages page
 app.get('/status', (req, res) => {
-  res.render('status');
+  res.render('status', { title: 'Status messages overview'});
 });
+
+// Route to render the error messages page
+app.get('/errors', (req, res) => {
+  res.render('errors', { title: 'Error messages overview'});
+});
+
+// Route to render the delete messages page
+app.get('/deletemessages', (req, res) => {
+  res.render('deletemessages', { title: 'Cleanup messages'});
+});
+
 
 
 
