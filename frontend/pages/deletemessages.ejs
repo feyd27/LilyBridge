@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %></title>
   <link rel="stylesheet" href="../css/styles.css">
   <!-- Add other CSS files -->
   <title>Lily-Bridge.online Home</title>
@@ -21,10 +20,10 @@
     rel="stylesheet">
 </head>
 <body>
-
+  <script src="/js/deleteTemperature.js"></script>
   <div class="grid-container">
-    <h1>Cleanup Messages</h1>
-
+    <h2 class="title-align">Cleanup Messages</h2>
+    <div id="alertContainer" class="callout success" style="display: none;"></div>
     <!-- Tabbed Navigation -->
     <ul class="tabs" data-tabs id="message-tabs">
       <li class="tabs-title is-active"><a href="#temperature-tab" aria-selected="true">Temperature</a></li>
@@ -37,19 +36,20 @@
       
       <!-- Temperature Messages Tab -->
       <div class="tabs-panel is-active" id="temperature-tab">
-        <form id="temperatureForm" method="POST" action="/api/messages/temperature" onsubmit="return handleDelete('temperature')">
+        
+        <form id="temperatureForm" onsubmit="return handleDelete('temperature')">
           <table class="stack">
             <thead>
               <tr>
-                <th>Select</th>
                 <th>Board ID</th>
                 <th>MAC Address</th>
                 <th>Temperature</th>
                 <th>Timestamp</th>
+                <th>Select</th> <!-- "Select" as the last column -->
               </tr>
             </thead>
             <tbody id="temperatureMessagesContainer">
-              <!-- Temperature data rows will be inserted dynamically here -->
+              <!-- Temperature messages will be dynamically inserted here -->
             </tbody>
           </table>
            <!-- Pagination Controls for Temperature Tab -->
@@ -64,9 +64,9 @@
         <button class="button small primary radius" id="nextPage">Next</button>
         <div id="paginationInfo" class="pagination-info"></div>
       </div>
-      <button class="button alert radius" id="deleteSelectedTemperature">Delete Selected</button>
+      <button class="button alert radius" id="deleteSelectedTemperature" type="submit">Delete Selected</button>
     </div>
-          <button type="submit" class="button alert">Delete Selected</button>
+          <!-- <button type="submit" class="button alert">Delete Selected</button> -->
         </form>
       </div>
 
@@ -110,37 +110,61 @@
       </div>
     </div>
   </div>
-
-
+  
+  <script src="/js/jquery.min.js"></script>
+  <script src="/js/foundation.min.js"></script>
+  <script src="/js/statusMessage.js"></script>
 
   
   <script>
     $(document).foundation();
 
     function handleDelete(topic) {
-      const form = document.getElementById(`${topic}Form`);
-      const checkedBoxes = Array.from(form.querySelectorAll('input[type="checkbox"]:checked'));
-      
-      if (checkedBoxes.length === 0) {
-        alert("Please select at least one message to delete.");
+    const form = document.getElementById(`${topic}Form`);
+    const checkedBoxes = Array.from(form.querySelectorAll('input[type="checkbox"]:checked'));
+
+    if (checkedBoxes.length === 0) {
+        showAlert("Please select at least one message to delete.", "alert");
         return false;
-      }
-
-      const ids = checkedBoxes.map(box => box.nextElementSibling.value);
-      form.action = `/api/messages/${topic}`;
-
-      const idsInput = document.createElement('input');
-      idsInput.type = 'hidden';
-      idsInput.name = 'ids';
-      idsInput.value = JSON.stringify(ids);
-      form.appendChild(idsInput);
-
-      return true;
     }
+
+    const ids = checkedBoxes.map(box => box.value);
+    console.log('Selected IDs for deletion:', ids); // Log the IDs
+
+    fetch(`/api/messages/${topic}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message === 'Messages deleted successfully') {
+            showAlert("Selected messages deleted successfully.", "success");
+            setTimeout(() => location.reload(), 1500); // Reload after 1.5 seconds
+        } else {
+            showAlert("Failed to delete messages", "alert");
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert("An error occurred while deleting messages.", "alert");
+    });
+}
+
+
+// Function to show alerts
+function showAlert(message, type) {
+    const alertContainer = document.getElementById('alertContainer');
+    if (!alertContainer) {
+        console.error('Alert container not found');
+        return;
+    }
+    alertContainer.className = `callout ${type}`;
+    alertContainer.textContent = message;
+    alertContainer.style.display = 'block';
+    console.log('Alert displayed:', message);
+}
+
   </script>
-  <script src="/js/jquery.min.js"></script>
-  <script src="/js/foundation.min.js"></script>
-  <script src="/js/temperature.js"></script>
-  <script src="/js/statusMessage.js"></script>
 </body>
 
