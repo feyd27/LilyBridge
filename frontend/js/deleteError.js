@@ -5,12 +5,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevPageBtn = document.getElementById('prevPage');
     const nextPageBtn = document.getElementById('nextPage');
     const paginationInfo = document.getElementById('paginationInfo');
-    const container = document.getElementById('statusMessagesContainer');
-    const deleteButton = document.getElementById('deleteSelectedStatus');
+    const container = document.getElementById('errorMessagesContainer');
+    const deleteButton = document.getElementById('deleteSelectedError');
     const alertContainer = document.getElementById('alertContainer');
 
     if (!container) {
-        console.error('Error: Container for status messages not found');
+        console.error('Error: Container for error messages not found');
         return;
     }
 
@@ -19,27 +19,25 @@ document.addEventListener('DOMContentLoaded', () => {
     let totalPages = 1;
 
     function fetchAndDisplayMessages() {
-        fetch(`/api/messages/status?page=${currentPage}&limit=${pageSize}`)
+        fetch(`/api/messages/errors?page=${currentPage}&limit=${pageSize}`)
             .then(response => response.json())
             .then(data => {
-                displayStatusMessages(data.messages);
+                displayErrorMessages(data.messages);
                 totalPages = data.totalPages;
                 updatePaginationDisplay(data.totalItems, totalPages, currentPage);
                 updateButtonStates();
             })
-            .catch(error => console.error('Error fetching status messages:', error));
+            .catch(error => console.error('Error fetching error messages:', error));
     }
 
-    function displayStatusMessages(messages) {
+    function displayErrorMessages(messages) {
         container.innerHTML = '';
         messages.forEach(message => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${message.chipID}</td>
-                <td>${message.macAddress}</td>
-                <td>${message.status}</td>
-                <td>${new Date(message.timestamp).toLocaleString()}</td>
-                <td>
+                <td>${message.message}</td>
+                <td>${message.receivedAt}</td>
+               <td>
                     <input type="checkbox" name="selectMessage" value="${message._id}">
                     <input type="hidden" name="messageId" value="${message._id}">
                 </td>
@@ -83,22 +81,21 @@ document.addEventListener('DOMContentLoaded', () => {
         deleteButton.addEventListener('click', (event) => {
             event.preventDefault();
 
-            const checkedBoxes = Array.from(document.querySelectorAll('#statusMessagesContainer input[name="selectMessage"]:checked'));
+            const checkedBoxes = Array.from(document.querySelectorAll('#errorMessagesContainer input[name="selectMessage"]:checked'));
             if (checkedBoxes.length === 0) {
                 showAlert("Please select at least one message to delete.", "alert");
-                setTimeout(() => location.reload(), 1500);
                 return;
             }
 
             const ids = checkedBoxes.map(box => box.value);
-            fetch('/api/messages/status', {
+            fetch('/api/messages/errors', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ids })
             })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.message === 'Status messages deleted successfully') {
+                    if (data.message === 'Error messages deleted successfully') {
                         showAlert("Selected messages deleted successfully.", "success");
                         setTimeout(() => location.reload(), 1500);
                     } else {
@@ -111,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
         });
     } else {
-        console.error("Delete button with ID 'deleteSelectedStatus' not found");
+        console.error("Delete button with ID 'deleteSelectedError' not found");
     }
 
     function showAlert(message, type) {

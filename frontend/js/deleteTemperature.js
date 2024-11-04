@@ -6,12 +6,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextPageBtn = document.getElementById('nextPage');
     const paginationInfo = document.getElementById('paginationInfo');
     const container = document.getElementById('temperatureMessagesContainer');
-    // console.log('Container found after DOMContentLoaded:', container); 
-   
+    const deleteButton = document.getElementById('deleteSelectedTemperature');
+    const alertContainer = document.getElementById('alertContainer');
+
     if (!container) {
         console.error('Error: Container for temperature messages not found');
         return;
-}
+    }
+
     let currentPage = 1;
     let pageSize = parseInt(pageSizeSelect.value);
     let totalPages = 1;
@@ -76,43 +78,49 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     fetchAndDisplayMessages();
-});
-document.addEventListener('DOMContentLoaded', () => {
-    const deleteButton = document.getElementById('deleteSelectedTemperature');
- 
+
     if (deleteButton) {
         deleteButton.addEventListener('click', (event) => {
             event.preventDefault();
- 
+
             const checkedBoxes = Array.from(document.querySelectorAll('#temperatureMessagesContainer input[name="selectMessage"]:checked'));
             if (checkedBoxes.length === 0) {
-                alert("Please select at least one message to delete.");
+                showAlert("Please select at least one message to delete.", "alert");
                 return;
             }
- 
-            const ids = checkedBoxes.map(box => box.value); // Get all selected IDs
-            
-            // Send DELETE request with array of IDs
+
+            const ids = checkedBoxes.map(box => box.value);
             fetch('/api/messages/temperature', {
                 method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ids })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.message === 'Temperature messages deleted successfully') {
-                    showAlert("Selected messages deleted successfully.", "success");
-                    setTimeout(() => location.reload(), 2000); // Reload after 2 seconds
-                } else {
-                    showAlert("Failed to delete messages", "alert");
-                }
-            })
-            .catch(error => console.error('Error:', error));
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === 'Temperature messages deleted successfully') {
+                        showAlert("Selected messages deleted successfully.", "success");
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showAlert("Failed to delete messages", "alert");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert("An error occurred while deleting messages.", "alert");
+                });
         });
     } else {
         console.error("Delete button with ID 'deleteSelectedTemperature' not found");
     }
- });
- 
+
+    function showAlert(message, type) {
+        if (!alertContainer) {
+            console.error('Alert container not found');
+            return;
+        }
+        alertContainer.className = `callout ${type}`;
+        alertContainer.textContent = message;
+        alertContainer.style.display = 'block';
+        console.log('Alert displayed:', message);
+    }
+});

@@ -1,22 +1,20 @@
 <%- include('../partials/header') %>
 <body>
- 
-
-  <div class="grid-container neg-margin">
+   <div class="grid-container neg-margin">
     <div class="grid-x">
         <div class="small-2 cell">
-            <aside class="dashboard-sidebar">
+            <aside>
                 <%- include('../partials/sidebar') %>
             </aside>
         </div>
 
-        <main class="small-8 cell">
+        <main class="small-8 cell grid-container">
            
            
             <%- body %> <!-- This is where page-specific content will be injected -->
         </main>
         <div class="small-2 cell">
-        <aside class="dashboard-sidebar">
+        <aside>
             <%- include('../partials/right-sidebar') %> <!-- Include right sidebar here -->
           </aside>
         </div>
@@ -27,6 +25,7 @@
 
   
   <!-- Add other JS files -->
+   <script src="../js/foundationInit.js"></script>
 </body>
 </html>
 

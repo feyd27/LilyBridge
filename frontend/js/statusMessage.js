@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function displayStatusMessage(message) {
-        const container = document.getElementById('statusMessagesContainer');
+        const container = document.getElementById('lastStatusMessagesContainer');
         const timeSinceReceived = new Date() - new Date(message.receivedAt);
 
         const chipID = message.chipID || 'Unknown';

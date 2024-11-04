@@ -15,7 +15,7 @@ connectToDatabase();
 // Initialize Express app
 const app = express();
 const expressLayouts = require('express-ejs-layouts');
-
+app.use(express.static(path.join(__dirname, '../frontend')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../frontend/pages'));
 app.use(expressLayouts);
@@ -48,6 +48,15 @@ app.get('/delete-temp-messages', (req, res) => {
   res.render('deleteTempMessages', { title: 'Delete Temperature Messages'});
 });
 
+// Route to render the page to delete status messages
+app.get('/delete-status-messages', (req, res) => {
+  res.render('deleteStatusMessages', { title: 'Delete Status Messages'});
+});
+
+// Route to render the page to delete error messages
+app.get('/delete-error-messages', (req, res) => {
+  res.render('deleteErrorMessages', { title: 'Delete Error Messages'});
+});
 
 
 

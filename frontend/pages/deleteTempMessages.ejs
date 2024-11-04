@@ -2,128 +2,71 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="../css/styles.css">
-  <!-- Add other CSS files -->
-  <title>Lily-Bridge.online Home</title>
-  <!-- Add the favicon link below -->
-  <link rel="icon" type="image/png" href="images/favicon.png"> <!-- for .png files -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="css/foundation.min.css">
-  <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
-    rel="stylesheet">
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <!-- Add other CSS files -->
+    <!-- Add the favicon link below -->
+    <link rel="icon" type="image/png" href="images/favicon.png"> <!-- for .png files -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/foundation.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+      rel="stylesheet">
+  </head>
+
 <body>
-    <!-- Temperature data display and delete -->
-    
-    <main class="grid-container">
-        <h1 class="title-align">Delete Temperature Messages</h1>
-        <br>
-        <div class="grid-padding-x">
-            <div id="alertContainer" class="callout success" style="display: none;"></div>
-            <form id="temperatureForm" onsubmit="return handleDelete('temperature')">
-              <table class="custom-table">
-                <thead>
-                  <tr>
-                    <th>Board ID</th>
-                    <th>MAC Address</th>
-                    <th>Temperature</th>
-                    <th>Timestamp</th>
-                    <th>Select</th> <!-- "Select" as the last column -->
-                  </tr>
-                </thead>
-                <tbody id="temperatureMessagesContainer">
-                  <!-- Temperature messages will be dynamically inserted here -->
-                </tbody>
-              </table>
-              <!-- Pagination Controls --> <!-- Pagination Controls for Temperature Tab -->
-    
-              <div id="paginationControls" class="grid-x grid-padding-x">
-                <div class="cell small-6 medium-4">
-                  <label for="pageSize">Rows per page:</label>
-                  <select id="pageSize">
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                  </select>
-                </div>
-                <div class="cell small-6 medium-8 text-right">
-                  <button class="button small primary radius small-radius" id="prevPage">Previous</button>
-                  <button class="button small primary radius small-radius" id="nextPage">Next</button>
-                </div>
-                <div id="paginationInfo" class="cell small-12 text-right"></div>
-              </div>
-              <button class="button alert radius" id="deleteSelectedTemperature" type="submit">Delete Selected</button>
-          
-          </form>
-    
-        </div>
-    </main>
-    
-    
+  
+    <h1 class="title-align">Delete Temperature Messages</h1>
+    <br>
    
-    <script src="/js/deleteTemperature.js"></script> <!-- Link to temperature page-specific JS file -->
-    <script src="/js/statusMessage.js"></script>
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/foundation.min.js"></script>
-    <script src="/js/statusMessage.js"></script>
-  
-  
-    <script>
-      $(document).foundation();
-  
-      function handleDelete(topic) {
-        const form = document.getElementById(`${topic}Form`);
-        const checkedBoxes = Array.from(form.querySelectorAll('input[type="checkbox"]:checked'));
-  
-        if (checkedBoxes.length === 0) {
-          showAlert("Please select at least one message to delete.", "alert");
-          return false;
-        }
-  
-        const ids = checkedBoxes.map(box => box.value);
-        console.log('Selected IDs for deletion:', ids); // Log the IDs
-  
-        fetch(`/api/messages/${topic}`, {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ids })
-        })
-          .then(response => response.json())
-          .then(data => {
-            if (data.message === 'Messages deleted successfully') {
-              showAlert("Selected messages deleted successfully.", "success");
-              setTimeout(() => location.reload(), 1500); // Reload after 1.5 seconds
-            } else {
-              showAlert("Failed to delete messages", "alert");
-            }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            showAlert("An error occurred while deleting messages.", "alert");
-          });
-      }
-  
-  
-      // Function to show alerts
-      function showAlert(message, type) {
-        const alertContainer = document.getElementById('alertContainer');
-        if (!alertContainer) {
-          console.error('Alert container not found');
-          return;
-        }
-        alertContainer.className = `callout ${type}`;
-        alertContainer.textContent = message;
-        alertContainer.style.display = 'block';
-        console.log('Alert displayed:', message);
-      }
-  
-    </script>
+      <div id="alertContainer" class="callout success" style="display: none;"></div>
+      <form id="temperatureForm">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Board ID</th>
+              <th>MAC Address</th>
+              <th>Temperature</th>
+              <th>Timestamp</th>
+              <th>Select</th>
+            </tr>
+          </thead>
+          <tbody id="temperatureMessagesContainer">
+            <!-- Temperature messages will be dynamically inserted here -->
+          </tbody>
+        </table>
+        <div id="paginationControls" class="grid-x grid-padding-x">
+          <div class="cell small-6 medium-4">
+            <label for="pageSize">Rows per page:</label>
+            <select id="pageSize">
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+          <div class="cell small-6 medium-8 text-right">
+            <button class="button small primary radius small-radius" id="prevPage">Previous</button>
+            <button class="button small primary radius small-radius" id="nextPage">Next</button>
+          </div>
+          <div id="paginationInfo" class="cell small-12 text-right"></div>
+        </div>
+        <button class="button alert radius" id="deleteSelectedTemperature" type="button">Delete Selected</button>
+      </form>
+   
+ 
+
+  <script src="/js/jquery.min.js"></script>
+  <script src="/js/foundation.min.js"></script>
+  <script src="/js/deleteTemperature.js"></script>
+  <script src="/js/statusMessage.js"></script>
+  <script src="/js/foundationInit.js"></script>
 </body>
+
+
+</html>
