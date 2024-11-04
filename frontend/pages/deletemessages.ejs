@@ -23,8 +23,9 @@
 
 <body>
   <script src="/js/deleteTemperature.js"></script>
+  
   <main class="grid-container">
-    <h2 class="title-align">Cleanup Messages</h2>
+    <h1 class="title-align">Cleanup Messages</h1>
     <div id="alertContainer" class="callout success" style="display: none;"></div>
     <!-- Tabbed Navigation -->
     <ul class="tabs" data-tabs id="message-tabs">
@@ -54,49 +55,68 @@
               <!-- Temperature messages will be dynamically inserted here -->
             </tbody>
           </table>
-         <!-- Pagination Controls --> <!-- Pagination Controls for Temperature Tab -->
-          
-    <div id="paginationControls" class="grid-x grid-padding-x">
-      <div class="cell small-6 medium-4">
-        <label for="pageSize">Rows per page:</label>
-        <select id="pageSize">
-          <option value="25">25</option>
-          <option value="50">50</option>
-          <option value="100">100</option>
-        </select>
-      </div>
-      <div class="cell small-6 medium-8 text-right">
-        <button class="button small primary radius small-radius" id="prevPage">Previous</button>
-        <button class="button small primary radius small-radius" id="nextPage">Next</button>
-      </div>
-      <div id="paginationInfo" class="cell small-12 text-right"></div>
-    </div>
+          <!-- Pagination Controls --> <!-- Pagination Controls for Temperature Tab -->
+
+          <div id="paginationControls" class="grid-x grid-padding-x">
+            <div class="cell small-6 medium-4">
+              <label for="pageSize">Rows per page:</label>
+              <select id="pageSize">
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+            <div class="cell small-6 medium-8 text-right">
+              <button class="button small primary radius small-radius" id="prevPage">Previous</button>
+              <button class="button small primary radius small-radius" id="nextPage">Next</button>
+            </div>
+            <div id="paginationInfo" class="cell small-12 text-right"></div>
+          </div>
           <button class="button alert radius" id="deleteSelectedTemperature" type="submit">Delete Selected</button>
       </div>
-      
       </form>
-    
+
     </div>
-    
+
     <!-- Status Messages Tab -->
-    <div class="tabs-panel" id="status-tab">
+    <div class="tabs-content" data-tabs-content="message-tabs">
+      <div class="tabs-panel is-active" id="status-tab">
+      <script src="/js/deleteStatus.js"></script> 
       <form id="statusForm" method="POST" action="/api/messages/status" onsubmit="return handleDelete('status')">
-        <table class="stack">
+        <table class="custom-table">
           <thead>
             <tr>
-              <th>Select</th>
               <th>Board ID</th>
               <th>MAC Address</th>
               <th>Status</th>
               <th>Timestamp</th>
+              <th>Select</th>
             </tr>
           </thead>
-          <tbody id="statusTable">
+          <tbody id="statusMessagesTable">
             <!-- Status data rows will be inserted dynamically here -->
           </tbody>
         </table>
-        <button type="submit" class="button alert">Delete Selected</button>
+         <!-- Pagination Controls --> <!-- Pagination Controls for Temperature Tab -->
+
+         <div id="paginationControls" class="grid-x grid-padding-x">
+          <div class="cell small-6 medium-4">
+            <label for="pageSize">Rows per page:</label>
+            <select id="pageSize">
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+          <div class="cell small-6 medium-8 text-right">
+            <button class="button small primary radius small-radius" id="prevPage">Previous</button>
+            <button class="button small primary radius small-radius" id="nextPage">Next</button>
+          </div>
+          <div id="paginationInfo" class="cell small-12 text-right"></div>
+        </div>
+        <button type="button" class="button alert" id="deleteSelectedStatus">Delete Selected</button>
       </form>
+      </div>
     </div>
 
     <!-- Error Messages Tab -->

@@ -43,10 +43,11 @@ app.get('/errors', (req, res) => {
   res.render('errors', { title: 'Error messages overview'});
 });
 
-// Route to render the delete messages page
-app.get('/deletemessages', (req, res) => {
-  res.render('deletemessages', { title: 'Cleanup messages'});
+// Route to render the page to delete temperature messages
+app.get('/delete-temp-messages', (req, res) => {
+  res.render('deleteTempMessages', { title: 'Delete Temperature Messages'});
 });
+
 
 
 
