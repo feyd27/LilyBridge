@@ -74,6 +74,9 @@ p, td, th, span, div {
   background-color: #ffffff;
   border-collapse: collapse;
   border: 1px solid #e1e4e8;
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Subtle drop shadow */
+  overflow: hidden; /* Ensure rounded corners on all sides */
 }
 
 /* Table Header */
@@ -83,6 +86,7 @@ p, td, th, span, div {
   padding: 8px 12px;
   text-align: left;
   border: 1px solid #e1e4e8;
+  background-color: #f3f4f6; /* Light background for header */
 }
 
 /* Table Data Cells */
@@ -106,7 +110,6 @@ p, td, th, span, div {
 .custom-table th.timestamp, .custom-table td.timestamp {
   width: 30%;
 }
-
 /* Callout for Status Messages */
 .sticky {
   position: -webkit-sticky;
@@ -175,4 +178,34 @@ p, td, th, span, div {
 /* Optional: Adjust icon and text alignment for a balanced look */
 .callout.primary .menu a i {
   margin-right: 8px; /* Space between icon and text */
+}
+/* Style for the sidebar wrapper */
+.callout.primary {
+  border-radius: 12px; /* Rounds the corners */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.15); /* Soft shadow for depth */
+  padding: 15px; /* Adds some padding inside the div */
+  background-color: #ffffff; /* Background color for better contrast */
+}
+
+/* Style for individual menu items */
+.vertical.menu > li > a {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  border-radius: 8px; /* Rounds the corners of each menu item */
+  transition: background-color 0.3s ease; /* Smooth transition on hover */
+  color: #333333; /* Darker text for better readability */
+}
+
+/* Hover effect for menu items */
+.vertical.menu > li > a:hover {
+  background-color: #f0f8ff; /* Light blue hover background */
+  color: #007acc; /* Hover text color */
+}
+
+/* Optional: style icons within the menu items for better spacing */
+.vertical.menu > li > a i {
+  margin-right: 8px;
+  font-size: 1.2em; /* Slightly larger icon size */
+  color: inherit;
 }

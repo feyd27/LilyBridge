@@ -1,4 +1,4 @@
-// deleteStatus.js
+// deleteError.js
 
 document.addEventListener('DOMContentLoaded', () => {
     const pageSizeSelect = document.getElementById('pageSize');
@@ -14,11 +14,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    // Initialize `currentPage` once at the top-level scope
     let currentPage = 1;
     let pageSize = parseInt(pageSizeSelect.value);
     let totalPages = 1;
 
     function fetchAndDisplayMessages() {
+        console.log(`Fetching page ${currentPage} with page size ${pageSize}`);
+        
         fetch(`/api/messages/errors?page=${currentPage}&limit=${pageSize}`)
             .then(response => response.json())
             .then(data => {
@@ -36,8 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${message.message}</td>
-                <td>${message.receivedAt}</td>
-               <td>
+                <td>${new Date(message.receivedAt).toLocaleString()}</td>
+                <td>
                     <input type="checkbox" name="selectMessage" value="${message._id}">
                     <input type="hidden" name="messageId" value="${message._id}">
                 </td>
@@ -55,70 +58,77 @@ document.addEventListener('DOMContentLoaded', () => {
         nextPageBtn.disabled = currentPage === totalPages;
     }
 
+    // Listen for page size changes and reset to first page
     pageSizeSelect.addEventListener('change', () => {
         pageSize = parseInt(pageSizeSelect.value);
-        currentPage = 1;
+        currentPage = 1; // Reset to first page on page size change
         fetchAndDisplayMessages();
     });
 
-    nextPageBtn.addEventListener('click', () => {
+    // Event listeners for pagination buttons with debug logs
+    nextPageBtn.addEventListener('click', (event) => {
+        event.preventDefault(); // Prevent form submission if inside a form
         if (currentPage < totalPages) {
             currentPage++;
+            console.log(`Next page clicked. New currentPage is ${currentPage}`);
             fetchAndDisplayMessages();
         }
     });
 
-    prevPageBtn.addEventListener('click', () => {
+    prevPageBtn.addEventListener('click', (event) => {
+        event.preventDefault(); // Prevent form submission if inside a form
         if (currentPage > 1) {
             currentPage--;
+            console.log(`Previous page clicked. New currentPage is ${currentPage}`);
             fetchAndDisplayMessages();
         }
     });
 
+    // Initial fetch
     fetchAndDisplayMessages();
 
-    if (deleteButton) {
-        deleteButton.addEventListener('click', (event) => {
-            event.preventDefault();
+if (deleteButton) {
+    deleteButton.addEventListener('click', (event) => {
+        event.preventDefault();
 
-            const checkedBoxes = Array.from(document.querySelectorAll('#errorMessagesContainer input[name="selectMessage"]:checked'));
-            if (checkedBoxes.length === 0) {
-                showAlert("Please select at least one message to delete.", "alert");
-                return;
-            }
-
-            const ids = checkedBoxes.map(box => box.value);
-            fetch('/api/messages/errors', {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ids })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message === 'Error messages deleted successfully') {
-                        showAlert("Selected messages deleted successfully.", "success");
-                        setTimeout(() => location.reload(), 1500);
-                    } else {
-                        showAlert("Failed to delete messages", "alert");
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showAlert("An error occurred while deleting messages.", "alert");
-                });
-        });
-    } else {
-        console.error("Delete button with ID 'deleteSelectedError' not found");
-    }
-
-    function showAlert(message, type) {
-        if (!alertContainer) {
-            console.error('Alert container not found');
+        const checkedBoxes = Array.from(document.querySelectorAll('#errorMessagesContainer input[name="selectMessage"]:checked'));
+        if (checkedBoxes.length === 0) {
+            showAlert("Please select at least one message to delete.", "alert");
             return;
         }
-        alertContainer.className = `callout ${type}`;
-        alertContainer.textContent = message;
-        alertContainer.style.display = 'block';
-        console.log('Alert displayed:', message);
+
+        const ids = checkedBoxes.map(box => box.value);
+        fetch('/api/messages/errors', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'Error messages deleted successfully') {
+                    showAlert("Selected messages deleted successfully.", "success");
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showAlert("Failed to delete messages", "alert");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert("An error occurred while deleting messages.", "alert");
+            });
+    });
+} else {
+    console.error("Delete button with ID 'deleteSelectedError' not found");
+}
+
+function showAlert(message, type) {
+    if (!alertContainer) {
+        console.error('Alert container not found');
+        return;
     }
+    alertContainer.className = `callout ${type}`;
+    alertContainer.textContent = message;
+    alertContainer.style.display = 'block';
+    console.log('Alert displayed:', message);
+}
 });

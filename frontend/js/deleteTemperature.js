@@ -15,15 +15,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let currentPage = 1;
-    let pageSize = parseInt(pageSizeSelect.value);
+    let pageSize = parseInt(pageSizeSelect.value, 10);
     let totalPages = 1;
 
     function fetchAndDisplayMessages() {
+        console.log(`Fetching page ${currentPage} with page size ${pageSize}`);
         fetch(`/api/messages/temperature?page=${currentPage}&limit=${pageSize}`)
             .then(response => response.json())
             .then(data => {
+                console.log(`Data received for page ${currentPage}:`, data);
                 displayTemperatureMessages(data.messages);
-                totalPages = data.totalPages;
+                totalPages = data.totalPages || Math.ceil(data.totalItems / pageSize);
                 updatePaginationDisplay(data.totalItems, totalPages, currentPage);
                 updateButtonStates();
             })
@@ -57,28 +59,38 @@ document.addEventListener('DOMContentLoaded', () => {
         nextPageBtn.disabled = currentPage === totalPages;
     }
 
+    // Change page size and reload data
     pageSizeSelect.addEventListener('change', () => {
-        pageSize = parseInt(pageSizeSelect.value);
-        currentPage = 1;
+        pageSize = parseInt(pageSizeSelect.value, 10);
+        currentPage = 1; // Reset to first page on page size change
+        console.log(`Page size changed to ${pageSize}. Resetting to page 1.`);
         fetchAndDisplayMessages();
     });
 
+    // Navigate to next page
     nextPageBtn.addEventListener('click', () => {
+        event.preventDefault();
         if (currentPage < totalPages) {
             currentPage++;
+            console.log(`Navigating to next page: ${currentPage}`);
             fetchAndDisplayMessages();
         }
     });
 
+    // Navigate to previous page
     prevPageBtn.addEventListener('click', () => {
+        event.preventDefault(); 
         if (currentPage > 1) {
             currentPage--;
+            console.log(`Navigating to previous page: ${currentPage}`);
             fetchAndDisplayMessages();
         }
     });
 
+    // Initial data fetch
     fetchAndDisplayMessages();
 
+    // Handle deletion
     if (deleteButton) {
         deleteButton.addEventListener('click', (event) => {
             event.preventDefault();
@@ -90,6 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const ids = checkedBoxes.map(box => box.value);
+            console.log(`Deleting selected messages with IDs: ${ids}`);
             fetch('/api/messages/temperature', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
@@ -113,6 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Delete button with ID 'deleteSelectedTemperature' not found");
     }
 
+    // Show alerts in the UI
     function showAlert(message, type) {
         if (!alertContainer) {
             console.error('Alert container not found');

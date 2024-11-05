@@ -1,4 +1,4 @@
-// deleteStatus.js
+// // deleteStatus.js
 
 document.addEventListener('DOMContentLoaded', () => {
     const pageSizeSelect = document.getElementById('pageSize');
@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let totalPages = 1;
 
     function fetchAndDisplayMessages() {
+        console.log(`Fetching page ${currentPage} with page size ${pageSize}`);
+        
         fetch(`/api/messages/status?page=${currentPage}&limit=${pageSize}`)
             .then(response => response.json())
             .then(data => {
@@ -59,24 +61,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     pageSizeSelect.addEventListener('change', () => {
         pageSize = parseInt(pageSizeSelect.value);
-        currentPage = 1;
+        currentPage = 1; // Reset to first page when page size changes
         fetchAndDisplayMessages();
     });
 
-    nextPageBtn.addEventListener('click', () => {
+    // Event listeners for pagination buttons with debug logs
+    nextPageBtn.addEventListener('click', (event) => {
+        event.preventDefault(); // Prevent form submission if inside a form
         if (currentPage < totalPages) {
             currentPage++;
+            console.log(`Next page clicked. New currentPage is ${currentPage}`);
             fetchAndDisplayMessages();
         }
     });
 
-    prevPageBtn.addEventListener('click', () => {
+    prevPageBtn.addEventListener('click', (event) => {
+        event.preventDefault(); // Prevent form submission if inside a form
         if (currentPage > 1) {
             currentPage--;
+            console.log(`Previous page clicked. New currentPage is ${currentPage}`);
             fetchAndDisplayMessages();
         }
     });
 
+    // Initial fetch
     fetchAndDisplayMessages();
 
     if (deleteButton) {
