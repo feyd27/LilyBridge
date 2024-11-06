@@ -98,6 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const checkedBoxes = Array.from(document.querySelectorAll('#temperatureMessagesContainer input[name="selectMessage"]:checked'));
             if (checkedBoxes.length === 0) {
                 showAlert("Please select at least one message to delete.", "alert");
+                smoothScrollToTop();
                 return;
             }
 
@@ -112,9 +113,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(data => {
                     if (data.message === 'Temperature messages deleted successfully') {
                         showAlert("Selected messages deleted successfully.", "success");
-                        setTimeout(() => location.reload(), 1500);
+                        smoothScrollToTop();
+                        setTimeout(() => location.reload(), 2500);
                     } else {
                         showAlert("Failed to delete messages", "alert");
+                        smoothScrollToTop();
                     }
                 })
                 .catch(error => {
@@ -125,14 +128,20 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         console.error("Delete button with ID 'deleteSelectedTemperature' not found");
     }
-
+    // Smooth scroll to the top of the page
+function smoothScrollToTop() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
     // Show alerts in the UI
     function showAlert(message, type) {
         if (!alertContainer) {
             console.error('Alert container not found');
             return;
         }
-        alertContainer.className = `callout ${type}`;
+        alertContainer.className = `callout ${type} show`;
         alertContainer.textContent = message;
         alertContainer.style.display = 'block';
         console.log('Alert displayed:', message);

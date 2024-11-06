@@ -94,7 +94,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const checkedBoxes = Array.from(document.querySelectorAll('#statusMessagesContainer input[name="selectMessage"]:checked'));
             if (checkedBoxes.length === 0) {
                 showAlert("Please select at least one message to delete.", "alert");
-                setTimeout(() => location.reload(), 1500);
+                setTimeout(() => location.reload(), 2500);
+                smoothScrollToTop();
                 return;
             }
 
@@ -108,9 +109,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(data => {
                     if (data.message === 'Status messages deleted successfully') {
                         showAlert("Selected messages deleted successfully.", "success");
-                        setTimeout(() => location.reload(), 1500);
+                        smoothScrollToTop();
+                        setTimeout(() => location.reload(), 2500);
                     } else {
                         showAlert("Failed to delete messages", "alert");
+                        smoothScrollToTop();
                     }
                 })
                 .catch(error => {
@@ -122,12 +125,19 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Delete button with ID 'deleteSelectedStatus' not found");
     }
 
+    // Smooth scroll to the top of the page
+function smoothScrollToTop() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
     function showAlert(message, type) {
         if (!alertContainer) {
             console.error('Alert container not found');
             return;
         }
-        alertContainer.className = `callout ${type}`;
+        alertContainer.className = `callout ${type} show`;
         alertContainer.textContent = message;
         alertContainer.style.display = 'block';
         console.log('Alert displayed:', message);

@@ -209,3 +209,73 @@ p, td, th, span, div {
   font-size: 1.2em; /* Slightly larger icon size */
   color: inherit;
 }
+/* Base styles for the alert container */
+#alertContainer {
+  padding: 15px;
+  border-radius: 8px;  /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Drop shadow */
+  font-weight: bold;
+  color: #ffffff; /* Text color for both types */
+  margin-bottom: 15px;
+  display: none; /* Hidden by default */
+}
+
+/* Success alert style */
+#alertContainer.success {
+  background-color: #28a745; /* More intense green */
+  border: 1px solid #218838;
+}
+
+/* Error alert style */
+#alertContainer.alert {
+  background-color: #dc3545; /* More intense red */
+  border: 1px solid #c82333;
+}
+
+/* Transition for smooth fade-in effect */
+#alertContainer.show {
+  display: block;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Keyframes for fade-in effect */
+@keyframes fadeIn {
+  from {
+      opacity: 0;
+  }
+  to {
+      opacity: 1;
+  }
+}
+/* Base text color */
+body, p, td, th, span, div {
+  color: #1e3a5f; /* Dark blue */
+  font-family: 'Kanit', sans-serif; /* Optional: consistent font */
+}
+
+/* Heading Styles with Drop Shadows */
+h1, h2 {
+  color: #1e3a5f; /* Dark blue */
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Drop shadow effect */
+  font-weight: bold;
+}
+
+/* Specific Font Sizes for Headings */
+h1 {
+  font-size: 28px; /* Adjust as needed */
+}
+
+h2 {
+  font-size: 24px; /* Adjust as needed */
+}
+
+/* Optional Link Styles to Match Dark Blue Theme */
+a {
+  color: #1e3a5f; /* Dark blue for links */
+  text-decoration: none;
+}
+
+a:hover {
+  color: #16304a; /* Darker blue on hover */
+  text-decoration: underline;
+}
