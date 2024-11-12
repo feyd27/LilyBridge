@@ -6,6 +6,7 @@ const config = require('./config/config');  // Import your config file
 const routes = require('./routes');
 const  connectToDatabase = require('./config/db_conn.js');
 const logger = require('./services/logger');
+// const authMiddleware = require('./middleware/authMiddleware');
 require('./services/mqttService');
 require('./db');
 const path = require('path');
@@ -19,6 +20,8 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../frontend/pages'));
 app.use(expressLayouts);
+// Apply JWT auth globally
+// app.use(authMiddleware); // Protects all routes
 
 // Serve static files from the frontend folder
 app.use(express.static(path.join(__dirname, '../frontend')));
@@ -58,6 +61,15 @@ app.get('/delete-error-messages', (req, res) => {
   res.render('deleteErrorMessages', { title: 'Delete Error Messages'});
 });
 
+// Route to render the registration page
+app.get('/register', (req, res) => {
+  res.render('register', { title: 'User Registration'});
+});
+
+// Route to render the login page
+app.get('/login', (req, res) => {
+  res.render('login', { title: 'Login'});
+});
 
 
 
