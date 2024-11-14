@@ -279,3 +279,48 @@ a:hover {
   color: #16304a; /* Darker blue on hover */
   text-decoration: underline;
 }
+
+/* Container for the password input and eye icon */
+.password-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Style for the password input to accommodate icon padding */
+.password-container input[type="password"] {
+  padding-right: 2.5em; /* Space for the eye icon */
+}
+
+/* Positioning the eye icon inside the input field */
+.toggle-password {
+  position: absolute;
+  right: 0.75em;
+  top: 0.75em;
+  cursor: pointer;
+  color: #888; /* Light gray color for the icon */
+}
+
+.toggle-password:hover {
+  color: #333; /* Darker color on hover */
+}
+
+/* CSS for alert container */
+.callout {
+  transition: opacity 1s ease-out; /* Smooth fade-out transition */
+}
+
+/* Fade-out class for hiding alerts */
+.fade-out {
+  opacity: 0;
+}
+/* CSS to smoothly fade-in the table rows */
+.fade-in {
+  opacity: 0;
+  transition: opacity 0.6s ease-in;
+}
+
+.fade-in.visible {
+  opacity: 1;
+}
+

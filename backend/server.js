@@ -11,10 +11,14 @@ require('./services/mqttService');
 require('./db');
 const path = require('path');
 connectToDatabase();
+const authRoutes = require('./routes/auth'); // Import the auth routes
+
 
 
 // Initialize Express app
 const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
 const expressLayouts = require('express-ejs-layouts');
 app.use(express.static(path.join(__dirname, '../frontend')));
 app.set('view engine', 'ejs');
@@ -22,7 +26,7 @@ app.set('views', path.join(__dirname, '../frontend/pages'));
 app.use(expressLayouts);
 // Apply JWT auth globally
 // app.use(authMiddleware); // Protects all routes
-
+app.use('/api/auth', authRoutes); 
 // Serve static files from the frontend folder
 app.use(express.static(path.join(__dirname, '../frontend')));
 

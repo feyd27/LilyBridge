@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %></title>
+  <title>
+    <%= title %>
+  </title>
   <!-- Add other CSS files -->
   <!-- Add the favicon link below -->
   <link rel="icon" type="image/png" href="images/favicon.png"> <!-- for .png files -->
@@ -18,51 +21,60 @@
     href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
     rel="stylesheet">
 </head>
+
 <body>
-    <!-- Temperature data display-->
-    
-    <main class="grid-container">
-        <h1 class="title-align">Temperature Messages</h1>
-        <br>
-        <div id="temperatureMessagesContainer">
-            <!-- Table structure for messages -->
-            <table class="custom-table">
-                <thead>
-                    <tr>
-                        <th class="board">Board</th>
-                        <th class="macAddress">MAC Address</th>
-                        <th class="temperature">Temperature</th>
-                        <th class="timestamp">Timestamp</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Temperature messages will be dynamically inserted here -->
-                </tbody>
-            </table>
-    
-            <!-- Pagination controls -->
-            <div id="paginationControls" class="grid-x grid-padding-x">
-                <div class="cell small-3">
-                  <label for="pageSize">Rows per page:</label>
-                  <select id="pageSize">
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                  </select>
-                </div>
-                <div class="cell small-9 text-right">
-                  <span id="paginationInfo"></span>
-                  <button class="button small primary radius small-radius" id="prevPage">Previous</button>
-                  <button class="button small primary radius small-radius" id="nextPage">Next</button>
-                </div>
-              </div>
-        </div>
-    </main>
-    
-    
+  <!-- Temperature data display-->
+  
+
+  <main class="grid-container">
+    <h1 class="title-align">Temperature Messages</h1>
    
-    <script src="/js/temperature.js"></script> <!-- Link to temperature page-specific JS file -->
-    <script src="/js/statusMessage.js"></script>
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/foundation.min.js"></script>
+
+    <!-- Placeholder before data loads
+    <div id="loadingSpinner" style="display: none; text-align: center; margin-top: 1em;">
+      <i class="fas fa-spinner fa-spin"></i> Loading...
+    </div> -->
+    <br>
+   
+    <div id="temperatureMessagesContainer">
+      <!-- Table structure for messages -->
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th class="board">Board</th>
+            <th class="macAddress">MAC Address</th>
+            <th class="temperature">Temperature</th>
+            <th class="timestamp">Timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Temperature messages will be dynamically inserted here -->
+        </tbody>
+      </table>
+
+      <!-- Pagination controls -->
+      <div id="paginationControls" class="grid-x grid-padding-x">
+        <div class="cell small-3">
+          <label for="pageSize">Rows per page:</label>
+          <select id="pageSize">
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+        <div class="cell small-9 text-right">
+          <span id="paginationInfo"></span>
+          <button class="button small primary radius small-radius" id="prevPage">Previous</button>
+          <button class="button small primary radius small-radius" id="nextPage">Next</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+
+
+  <script src="/js/temperature.js"></script> <!-- Link to temperature page-specific JS file -->
+  <script src="/js/statusMessage.js"></script>
+  <script src="/js/jquery.min.js"></script>
+  <script src="/js/foundation.min.js"></script>
 </body>

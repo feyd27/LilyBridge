@@ -4,64 +4,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>
-        <%= title %>
-    </title>
-    <!-- Add other CSS files -->
-    <!-- Add the favicon link below -->
-    <link rel="icon" type="image/png" href="images/favicon.png"> <!-- for .png files -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title><%= title %></title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
     <link rel="stylesheet" href="css/foundation.min.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
     <div class="container">
         <h1>Register</h1>
-
+    
         <!-- Alert container for showing validation messages -->
         <div id="alertContainer" class="callout alert" style="display: none;"></div>
-
-        <form action="/register" method="POST" id="registrationForm">
+    
+        <form action="api/auth/register" method="POST" id="registrationForm">
             <div class="form-group">
                 <label for="username">Email:</label>
                 <input type="email" id="username" name="username" required>
             </div>
-
+    
             <div class="form-group">
                 <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required minlength="12">
-                <small>Password must be at least 12 characters long.</small>
+                <div class="password-container">
+                    <input type="password" id="password" name="password" required minlength="12">
+                    <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+                </div>
+                <small>Password must be at least 12 characters long, contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 symbol from: !@#$%^&*.</small>
             </div>
-
+    
             <div class="form-group">
                 <label for="confirmPassword">Confirm Password:</label>
-                <input type="password" id="confirmPassword" name="confirmPassword" required>
+                <div class="password-container">
+                    <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    <i class="fas fa-eye toggle-password" id="toggleConfirmPassword"></i>
+                </div>
             </div>
-
-            <!-- Hidden Role Field, defaults to 'reader' -->
+    
             <input type="hidden" name="role" value="reader">
-
             <button type="submit" class="button">Register</button>
         </form>
-
+    
         <p>Already have an account? <a href="/login">Login here</a></p>
     </div>
+    
 
     <!-- Import the validation script -->
+    <script src="/js/statusMessage.js"></script>
     <script src="/js/registerValidation.js"></script>
     <script src="/js/jquery.min.js"></script>
     <script src="/js/foundation.min.js"></script>
-    <script src="/js/deleteError.js"></script>
-    <script src="/js/statusMessage.js"></script>
     <script src="/js/foundationInit.js"></script>
+    
 </body>
 
 </html>

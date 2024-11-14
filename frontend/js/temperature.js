@@ -6,19 +6,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextPageBtn = document.getElementById('nextPage');
     const paginationInfo = document.getElementById('paginationInfo');
     const container = document.querySelector('#temperatureMessagesContainer tbody');
+    const loadingSpinner = document.getElementById('loadingSpinner'); // Spinner element
 
     let currentPage = 1;
     let pageSize = parseInt(pageSizeSelect.value);
     let totalPages = 1;
 
     function fetchAndDisplayMessages() {
+
+        //   // Show loading spinner
+        //   loadingSpinner.style.display = 'block';
+        //   container.style.display = 'none'; // Hide table until data loads
+  
+
         fetch(`/api/messages/temperature?page=${currentPage}&limit=${pageSize}`)
             .then(response => response.json())
             .then(data => {
                 displayTemperatureMessages(data.messages);
+
+                //  // After displaying data, fade-in effect for rows
+                //  setTimeout(() => {
+                //     document.querySelectorAll('.fade-in').forEach(row => row.classList.add('visible'));
+                // }, 50);
+
                 totalPages = data.totalPages;
                 updatePaginationDisplay(data.totalItems, totalPages, currentPage);
                 updateButtonStates();
+
+                //  // Hide loading spinner and show table
+                //  loadingSpinner.style.display = 'none';
+                //  container.style.display = 'grid-container';
+
             })
             .catch(error => console.error('Error fetching temperature messages:', error));
     }

@@ -4,7 +4,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.js');
-
+const logger = require('../services/logger.js');
 const router = express.Router();
 
 /**
@@ -65,6 +65,7 @@ router.post('/register', async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
+        logger.log('Hashed password: ', hashedPassword);
         const newUser = new User({
             username,
             password: hashedPassword,
@@ -126,11 +127,14 @@ router.post('/login', async (req, res) => {
     try {
         const user = await User.findOne({ username });
         if (!user) {
+            logger.log("User not found");
             return res.status(400).json({ message: 'Invalid username or password' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
+        logger.log("Password match:", isMatch);
         if (!isMatch) {
+            logger.log("Password does not match");
             return res.status(400).json({ message: 'Invalid username or password' });
         }
 
