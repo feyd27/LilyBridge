@@ -30,6 +30,14 @@ app.use('/api/auth', authRoutes);
 // Serve static files from the frontend folder
 app.use(express.static(path.join(__dirname, '../frontend')));
 
+app.use((req, res, next) => {
+  res.setHeader(
+    "Content-Security-Policy",
+     "script-src 'self' https://cdn.jsdelivr.net 'unsafe-eval'; object-src 'none';"
+  );
+  next();
+});
+
 // Route to serve the index.html file
 app.get('/', (req, res) => {
   res.render('index', { title: 'Lily-Bridge.online' });

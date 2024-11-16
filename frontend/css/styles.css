@@ -314,7 +314,7 @@ a:hover {
 .fade-out {
   opacity: 0;
 }
-/* CSS to smoothly fade-in the table rows */
+/* CSS to smoothly fade-in the table rows
 .fade-in {
   opacity: 0;
   transition: opacity 0.6s ease-in;
@@ -322,5 +322,5 @@ a:hover {
 
 .fade-in.visible {
   opacity: 1;
-}
+} */
 

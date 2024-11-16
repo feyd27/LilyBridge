@@ -104,7 +104,7 @@ router.post('/register', async (req, res) => {
  *                 example: password123
  *     responses:
  *       200:
- *         description: Login successful and returns a JWT token
+ *         description: Login successful and returns access and refresh tokens
  *         content:
  *           application/json:
  *             schema:
@@ -113,9 +113,12 @@ router.post('/register', async (req, res) => {
  *                 message:
  *                   type: string
  *                   example: Login successful
- *                 token:
+ *                 accessToken:
  *                   type: string
- *                   description: JWT token for authenticated access.
+ *                   description: Short-lived JWT token for accessing protected routes.
+ *                 refreshToken:
+ *                   type: string
+ *                   description: Long-lived JWT token for refreshing access tokens.
  *       400:
  *         description: Invalid username or password
  *       500:
@@ -125,30 +128,83 @@ router.post('/login', async (req, res) => {
     const { username, password } = req.body;
 
     try {
+        // Find the user by username/email
         const user = await User.findOne({ username });
         if (!user) {
-            logger.log("User not found");
             return res.status(400).json({ message: 'Invalid username or password' });
         }
 
+        // Check if the provided password matches the stored password
         const isMatch = await bcrypt.compare(password, user.password);
-        logger.log("Password match:", isMatch);
         if (!isMatch) {
-            logger.log("Password does not match");
             return res.status(400).json({ message: 'Invalid username or password' });
         }
 
-        const token = jwt.sign(
+        // Generate the access token (short-lived)
+        const accessToken = jwt.sign(
             { userId: user._id, role: user.role },
             process.env.JWT_SECRET,
-            { expiresIn: '1h' }
+            { expiresIn: process.env.JWT_EXPIRES_IN || '4h' }
         );
 
-        res.status(200).json({ message: 'Login successful', token });
+        // Generate the refresh token (long-lived)
+        const refreshToken = jwt.sign(
+            { userId: user._id },
+            process.env.JWT_REFRESH_SECRET,
+            { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
+        );
+
+        // Optionally store refresh token in a cookie for better security
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'Strict', // Helps prevent CSRF attacks
+        });
+
+        // Send the tokens to the client
+        res.status(200).json({
+            message: 'Login successful',
+            accessToken,
+            refreshToken, // Return refresh token for client-side storage
+        });
     } catch (error) {
         console.error('Error logging in user:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
+// backend/routes/auth.js
+
+/**
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Logout a user
+ *     tags: [Auth]
+ *     description: Logs out a user by clearing the refresh token stored in cookies.
+ *     responses:
+ *       200:
+ *         description: User successfully logged out
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: User logged out successfully
+ *       500:
+ *         description: Server error
+ */
+router.post('/logout', (req, res) => {
+    try {
+        // Clear the refresh token cookie
+        res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'Strict' });
+        res.status(200).json({ message: 'User logged out successfully' });
+    } catch (error) {
+        console.error('Error logging out user:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
 
 module.exports = router;
+
