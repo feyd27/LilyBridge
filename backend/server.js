@@ -12,7 +12,8 @@ require('./db');
 const path = require('path');
 connectToDatabase();
 const authRoutes = require('./routes/auth'); // Import the auth routes
-
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
 
 
 // Initialize Express app
@@ -24,6 +25,7 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../frontend/pages'));
 app.use(expressLayouts);
+app.use(cookieParser());
 // Apply JWT auth globally
 // app.use(authMiddleware); // Protects all routes
 app.use('/api/auth', authRoutes); 
@@ -37,6 +39,17 @@ app.use((req, res, next) => {
   );
   next();
 });
+
+app.use((req, res, next) => {
+  const accessToken = req.cookies.accessToken;
+  res.locals.isAuthenticated = !!accessToken;
+
+  console.log('Is authenticated:', res.locals.isAuthenticated);
+  console.log('Cookies:', req.cookies);
+
+  next();
+});
+
 
 // Route to serve the index.html file
 app.get('/', (req, res) => {
@@ -83,6 +96,15 @@ app.get('/login', (req, res) => {
   res.render('login', { title: 'Login'});
 });
 
+// Route to render the logout confirmation page
+app.get('/logout-confirmation', (req, res) => {
+  res.render('logoutConfirmation', { title: 'Logged Out' });
+});
+
+// Route to render the logout confirmation page
+app.get('/login-confirmation', (req, res) => {
+  res.render('loginConfirmation', { title: 'Logged Out' });
+});
 
 
 // Middleware to parse incoming JSON requests

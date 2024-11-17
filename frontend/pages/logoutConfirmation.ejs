@@ -1,4 +1,3 @@
-<!-- frontend/partials/layout.ejs -->
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -20,21 +19,22 @@
           rel="stylesheet">
       </head>
 <body>
-    <!-- Temperature Table Section -->
-    <section id="temperatureSection">
-        <h1 class="title-align">Incoming Data Dashboard</h1>
-        <h2 class="title-align">Temperature Over Time</h2>
-        <canvas id="temperatureChart"></canvas>
-    </section>
-
-    <!-- Foundation JavaScript -->
-    <script src="/js/foundation.min.js"></script>
-    <script src="/js/temperatureChart.js"></script>
-    <script src="/js/statusMessage.js"></script>
-    <script type="module" src="js/utils.js"></script>
-    <script src="../js/foundationInit.js"></script>
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/foundation.min.js"></script>
-  
-
+    <div class="grid-container">
+        <div class="callout success text-center">
+            <h1>You have successfully logged out.</h1>
+            <p>Redirecting you to the homepage...</p>
+        </div>
+    </div>
+     <!-- Foundation JavaScript -->
+     <script src="/js/foundation.min.js"></script>
+     
+     <script src="/js/statusMessage.js"></script>
+     <script type="module" src="js/utils.js"></script>
+     <script src="../js/foundationInit.js"></script>
+     <script src="/js/jquery.min.js"></script>
+     <script src="/js/foundation.min.js"></script>
+    <script src="/js/logoutHandler.js"></script>
+  <!-- <script src="/js/logout-redirect.js"></script>   -->
+  <script src="/js/logoutHandler.js"></script>
 </body>
+</html>

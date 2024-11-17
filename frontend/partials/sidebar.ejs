@@ -32,11 +32,18 @@
       </ul>
     </li>
 
+    <!-- Conditionally Render Login and Logout -->
+    <% if (!isAuthenticated) { %>
+      <li><a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+    <% } %>
+    <% if (isAuthenticated) { %>
+      <li><a href="/logout-confirmation"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    <% } %>
+
     <!-- Additional Links -->
-    <li><a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a></li>
     <li><a href="#userSettings"><i class="fas fa-sliders-h"></i> User Settings</a></li>
     <li><a href="#documentation"><i class="fas fa-book"></i> Documentation</a></li>
     <li><a href="https://github.com/feyd27/LilyBridge"><i class="fas fa-code"></i> Repository</a></li>
-    <li><a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
   </ul>
 </div>
+

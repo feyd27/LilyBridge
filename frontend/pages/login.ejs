@@ -19,19 +19,20 @@
       href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
       rel="stylesheet">
   </head>
-  <body>
+
+<body>
     <div class="container">
         <h1>Login</h1>
 
         <!-- Alert container for showing login status messages -->
         <div id="alertContainer" class="callout success" style="display: none;"></div>
 
-        <form id="loginForm" action="api/auth/login" method="POST">
+        <form id="loginForm">
             <div class="form-group">
                 <label for="username">Username (Email):</label>
                 <input type="email" id="username" name="username" required>
             </div>
-            
+
             <div class="form-group">
                 <label for="password">Password:</label>
                 <div class="password-container">
@@ -45,65 +46,12 @@
         <p>Don't have an account? <a href="/register">Register here</a></p>
     </div>
 
-    <!-- JavaScript to handle form submission and toggle password visibility -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const form = document.getElementById('loginForm');
-            const passwordField = document.getElementById('password');
-            const togglePassword = document.getElementById('togglePassword');
-            const alertContainer = document.getElementById('alertContainer');
-
-            // Show or hide the password
-            togglePassword.addEventListener('click', () => {
-                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordField.setAttribute('type', type);
-                togglePassword.classList.toggle('fa-eye-slash'); // Toggle the eye icon
-            });
-
-            // Handle form submission for login
-            form.addEventListener('submit', async (event) => {
-                event.preventDefault();
-                const username = form.username.value;
-                const password = form.password.value;
-
-                try {
-                    const response = await fetch('/api/auth/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, password })
-                    });
-                    const data = await response.json();
-
-                    if (response.ok) {
-                        showAlert("Login successful, welcome!", "success");
-                        setTimeout(() => window.location.href = "/", 5000); // Redirect after 5 seconds
-                    } else {
-                        showAlert(data.message || "Login failed. Please try again.", "alert");
-                    }
-                } catch (error) {
-                    console.error('Error logging in:', error);
-                    showAlert("An error occurred during login. Please try again later.", "alert");
-                }
-            });
-
-            // Function to show alerts
-            function showAlert(message, type) {
-    alertContainer.className = `callout ${type}`;
-    alertContainer.textContent = message;
-    alertContainer.style.display = 'block';
-    alertContainer.classList.remove('fade-out'); // Reset the fade-out
-
-    // Set a timeout to fade out after 3 seconds
-    setTimeout(() => {
-        alertContainer.classList.add('fade-out');
-    }, 3000); // 3000 ms = 3 seconds
-}
-
-        });
-    </script>
+    <!-- External JavaScript -->
     <script src="/js/jquery.min.js"></script>
-  <script src="/js/foundation.min.js"></script>
-  <script src="/js/statusMessage.js"></script>
-  <script src="/js/foundationInit.js"></script>
+    <script src="/js/foundation.min.js"></script>
+    <script src="/js/statusMessage.js"></script>
+    <script src="/js/foundationInit.js"></script>
+    <script src="/js/loginHandler.js"></script> <!-- Login-specific JS -->
 </body>
+
 </html>

@@ -154,12 +154,20 @@ router.post('/login', async (req, res) => {
             { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
         );
 
-        // Optionally store refresh token in a cookie for better security
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: false, // Set to true in production with HTTPS
+            sameSite: 'Strict',
+            path: '/', // Ensure path is '/' for global access
+        });
+
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
-            secure: true,
-            sameSite: 'Strict', // Helps prevent CSRF attacks
+            secure: false, // Set to true in production with HTTPS
+            sameSite: 'Strict',
+            path: '/', // Ensure path is '/' for global access
         });
+
 
         // Send the tokens to the client
         res.status(200).json({
@@ -167,6 +175,8 @@ router.post('/login', async (req, res) => {
             accessToken,
             refreshToken, // Return refresh token for client-side storage
         });
+        logger.log('Access Token:', accessToken);
+        logger.log('Refresh Token:', refreshToken);
     } catch (error) {
         console.error('Error logging in user:', error);
         res.status(500).json({ message: 'Server error' });
@@ -198,13 +208,28 @@ router.post('/login', async (req, res) => {
 router.post('/logout', (req, res) => {
     try {
         // Clear the refresh token cookie
-        res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'Strict' });
+        res.clearCookie('accessToken', {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'Strict',
+            path: '/', // Match the path
+        });
+
+        // Clear the access token cookie
+        res.clearCookie('refreshToken', {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'Strict',
+            path: '/', // Match the path
+        });
+
         res.status(200).json({ message: 'User logged out successfully' });
     } catch (error) {
         console.error('Error logging out user:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
+
 
 module.exports = router;
 
