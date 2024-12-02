@@ -314,13 +314,61 @@ a:hover {
 .fade-out {
   opacity: 0;
 }
-/* CSS to smoothly fade-in the table rows
-.fade-in {
-  opacity: 0;
-  transition: opacity 0.6s ease-in;
+
+.button {
+  display: inline-block;
+  margin: 5px 0;
+  width: 100%; /* Full-width for sidebar alignment */
+  text-align: center;
 }
 
-.fade-in.visible {
-  opacity: 1;
-} */
+.button.primary {
+  background-color: #007BFF;
+  color: white;
+}
 
+.button.alert {
+  background-color: #FF4136;
+  color: white;
+}
+
+#prevPage, #nextPage {
+  width: 25%;
+  padding: 10px; /* Optional: Adjust padding for better aesthetics */
+  margin: 5px; /* Optional: Add spacing between buttons */
+  text-align: center;
+  border: none; /* Optional: Remove border for a cleaner look */
+  border-radius: 5px; /* Add rounded corners */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Add a subtle shadow effect */
+  font-size: 16px; /* Adjust font size */
+  background-color: #0078D4; /* Set background color */
+  color: #ffffff; /* Set text color */
+  cursor: pointer; /* Show pointer on hover */
+  transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition effects */
+}
+
+#prevPage:hover, #nextPage:hover {
+  background-color: #005A9E; /* Darker shade on hover */
+  transform: scale(1.05); /* Slight zoom effect on hover */
+}
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Ensure the body takes at least the full viewport height */
+  margin: 0;
+}
+
+main {
+  flex: 1; /* Allows the main content to expand, pushing the footer to the bottom */
+}
+
+footer {
+ 
+  color: #ecf0f1; /* Light text color for better contrast */
+  text-align: center; /* Center the footer content */
+  padding: 10px 0; /* Add some padding for a better look */
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for separation */
+  position: relative; /* Ensures it stays at the bottom of the content */
+  width: 100%; /* Full width */
+  z-index: 10; /* Ensure it stays above other elements if necessary */
+}

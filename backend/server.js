@@ -42,11 +42,10 @@ app.use((req, res, next) => {
 
 app.use((req, res, next) => {
   const accessToken = req.cookies.accessToken;
-  res.locals.isAuthenticated = !!accessToken;
-
+  res.locals.isAuthenticated = !!req.cookies.accessToken; // Check for access token
   console.log('Is authenticated:', res.locals.isAuthenticated);
   console.log('Cookies:', req.cookies);
-
+  
   next();
 });
 
@@ -98,7 +97,9 @@ app.get('/login', (req, res) => {
 
 // Route to render the logout confirmation page
 app.get('/logout-confirmation', (req, res) => {
-  res.render('logoutConfirmation', { title: 'Logged Out' });
+  const isAuthenticated = !!req.cookies.accessToken;
+  res.render('logoutConfirmation', { isAuthenticated , title: 'Logged Out' });
+  logger.log('testing if we get here');
 });
 
 // Route to render the logout confirmation page

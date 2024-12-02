@@ -230,6 +230,37 @@ router.post('/logout', (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/auth/status:
+ *   get:
+ *     summary: Check the authentication status of the user
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: Authentication status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isAuthenticated:
+ *                   type: boolean
+ *                   description: Whether the user is authenticated
+ *                   example: true
+ *       500:
+ *         description: Server error
+ */
+router.get('/status', (req, res) => {
+    try {
+        const isAuthenticated = !!req.cookies.accessToken; // Check if accessToken is present in cookies
+        res.status(200).json({ isAuthenticated });
+    } catch (error) {
+        console.error('Error checking authentication status:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 
 module.exports = router;
 

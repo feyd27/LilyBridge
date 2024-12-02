@@ -3,6 +3,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const passwordField = document.getElementById('password');
     const togglePassword = document.getElementById('togglePassword');
     const alertContainer = document.getElementById('alertContainer');
+    document.addEventListener('DOMContentLoaded', () => {
+        const loginButton = document.getElementById('loginButton');
+        if (loginButton) {
+            loginButton.addEventListener('click', () => {
+                window.location.href = '/login'; // Redirect to login page
+            });
+        }
+    });
+    
+
 
     // Show or hide the password
     togglePassword.addEventListener('click', () => {
@@ -50,6 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Set a timeout to fade out after 3 seconds
         setTimeout(() => {
             alertContainer.classList.add('fade-out');
-        }, 3000); // 3000 ms = 3 seconds
+        }, 1000); // 3000 ms = 3 seconds
     }
 });

@@ -1,24 +1,19 @@
-document.addEventListener('click', async (event) => {
-    console.log('aaaa');
-    // Check if the clicked element matches the logout link
-    const target = event.target.closest('a[href="/logout-confirmation"]');
-    if (target) {
-        event.preventDefault();
-        console.log('Logout link clicked');
-        try {
-            const response = await fetch('/api/auth/logout', {
-                method: 'POST',
-            });
-
-            if (response.ok) {
-                console.log('Logout successful, redirecting...');
-                window.location.href = '/logout-confirmation';
-            } else {
-                console.error('Failed to log out');
+document.addEventListener('DOMContentLoaded', () => {
+    const logoutButton = document.getElementById('logoutButton');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/auth/logout', { method: 'POST' });
+                if (response.ok) {
+                    window.location.href = '/logout-confirmation'; // Redirect to logout confirmation
+                } else {
+                    console.error('Logout failed');
+                }
+            } catch (error) {
+                console.error('Error logging out:', error);
             }
-        } catch (error) {
-            console.error('Error logging out:', error);
-        }
+        });
     }
 });
+
 
