@@ -6,7 +6,7 @@ const config = require('./config/config');  // Import your config file
 const routes = require('./routes');
 const  connectToDatabase = require('./config/db_conn.js');
 const logger = require('./services/logger');
-// const authMiddleware = require('./middleware/authMiddleware');
+const authMiddleware = require('./middleware/authMiddleware');
 require('./services/mqttService');
 require('./db');
 const path = require('path');
@@ -26,8 +26,7 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../frontend/pages'));
 app.use(expressLayouts);
 app.use(cookieParser());
-// Apply JWT auth globally
-// app.use(authMiddleware); // Protects all routes
+
 app.use('/api/auth', authRoutes); 
 // Serve static files from the frontend folder
 app.use(express.static(path.join(__dirname, '../frontend')));
@@ -54,6 +53,20 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
   res.render('index', { title: 'Lily-Bridge.online' });
 });
+
+// Route to render the registration page
+app.get('/register', (req, res) => {
+  res.render('register', { title: 'User Registration'});
+});
+
+// Route to render the login page
+app.get('/login', (req, res) => {
+  res.render('login', { title: 'Login'});
+});
+
+
+// Apply JWT auth globally
+// app.use(authMiddleware); // Protects all routes
 
 // Route to render the temperature messages page
 app.get('/temperature', (req, res) => {
@@ -85,16 +98,6 @@ app.get('/delete-error-messages', (req, res) => {
   res.render('deleteErrorMessages', { title: 'Delete Error Messages'});
 });
 
-// Route to render the registration page
-app.get('/register', (req, res) => {
-  res.render('register', { title: 'User Registration'});
-});
-
-// Route to render the login page
-app.get('/login', (req, res) => {
-  res.render('login', { title: 'Login'});
-});
-
 // Route to render the logout confirmation page
 app.get('/logout-confirmation', (req, res) => {
   const isAuthenticated = !!req.cookies.accessToken;
@@ -106,6 +109,11 @@ app.get('/logout-confirmation', (req, res) => {
 app.get('/login-confirmation', (req, res) => {
   res.render('loginConfirmation', { title: 'Logged Out' });
 });
+
+// Route to purge all messages
+const purgeMessagesRoutes = require('./routes/purgeMessages');
+app.use('/api/messages', purgeMessagesRoutes);
+
 
 
 // Middleware to parse incoming JSON requests
@@ -149,3 +157,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   logger.log(`Server is running on port ${PORT}`);
 });
+
+
