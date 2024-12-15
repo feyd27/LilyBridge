@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (response.ok) {
                     // Redirect to login confirmation page
-                    window.location.href = '/login-confirmation';
+                    window.location.href = 'protected/login-confirmation';
                 } else {
                     const errorData = await response.json();
                     alert(`Login failed: ${errorData.message}`);

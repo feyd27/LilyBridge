@@ -55,7 +55,6 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes);        // Authentication routes
 app.use('/api', publicRoutes);             // Public routes (no authentication required)
 app.use('/api/mqtt', mqttRoutes);       // MQTT API routes
-app.use('/api', mqttRoutes);            // API routes with /api prefix
 app.use('/protected', authMiddleware, protectedRoutes); // Protected routes with authentication
 app.use('/api/messages', authMiddleware, purgeMessagesRoutes); // Protect the route with the middleware
 app.use('/', viewsRoutes);
