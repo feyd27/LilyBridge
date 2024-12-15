@@ -10,6 +10,8 @@ const router = express.Router();
  *   delete:
  *     summary: Purge all messages from the database
  *     tags: [Messages]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: All messages deleted successfully
@@ -21,9 +23,14 @@ const router = express.Router();
  *                 message:
  *                   type: string
  *                   example: All messages purged successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
  *       500:
  *         description: Server error
  */
+
 router.delete('/purge', async (req, res) => {
     try {
         await Message.deleteMany({});
