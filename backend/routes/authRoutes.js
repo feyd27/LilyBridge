@@ -65,18 +65,12 @@ router.post('/register', async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        logger.log('Hashed password: ', hashedPassword);
-        const newUser = new User({
-            username,
-            password: hashedPassword,
-            devices,
-            role,
-        });
+        const newUser = new User({ username, password: hashedPassword, devices, role });
         await newUser.save();
 
         res.status(201).json({ message: 'User registered successfully' });
     } catch (error) {
-        console.error('Error registering user:', error);
+        logger.error('Error registering user:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
@@ -128,61 +122,45 @@ router.post('/login', async (req, res) => {
     const { username, password } = req.body;
 
     try {
-        // Find the user by username/email
         const user = await User.findOne({ username });
         if (!user) {
             return res.status(400).json({ message: 'Invalid username or password' });
         }
 
-        // Check if the provided password matches the stored password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid username or password' });
         }
 
-        // Generate the access token (short-lived)
+        // Generate Access Token and Refresh Token
         const accessToken = jwt.sign(
             { userId: user._id, role: user.role },
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRES_IN || '4h' }
         );
 
-        // Generate the refresh token (long-lived)
         const refreshToken = jwt.sign(
             { userId: user._id },
             process.env.JWT_REFRESH_SECRET,
             { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
         );
 
-        res.cookie('accessToken', accessToken, {
-            httpOnly: true,
-            secure: false, // Set to true in production with HTTPS
-            sameSite: 'Strict',
-            path: '/', // Ensure path is '/' for global access
-        });
+        // Send tokens in the response header
+        res.setHeader('Authorization', `Bearer ${accessToken}`);
+        res.setHeader('X-Refresh-Token', refreshToken); // Custom header for refresh token
 
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: false, // Set to true in production with HTTPS
-            sameSite: 'Strict',
-            path: '/', // Ensure path is '/' for global access
-        });
-
-
-        // Send the tokens to the client
         res.status(200).json({
             message: 'Login successful',
             accessToken,
-            refreshToken, // Return refresh token for client-side storage
+            refreshToken,
         });
         logger.log('Access Token:', accessToken);
         logger.log('Refresh Token:', refreshToken);
     } catch (error) {
-        console.error('Error logging in user:', error);
+        logger.error('Error logging in user:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
-// backend/routes/auth.js
 
 /**
  * @swagger
@@ -252,14 +230,18 @@ router.post('/logout', (req, res) => {
  *         description: Server error
  */
 router.get('/status', (req, res) => {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
     try {
-        const isAuthenticated = !!req.cookies.accessToken; // Check if accessToken is present in cookies
-        res.status(200).json({ isAuthenticated });
+        if (!token) {
+            return res.status(200).json({ isAuthenticated: false });
+        }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        res.status(200).json({ isAuthenticated: true, user: decoded });
     } catch (error) {
-        console.error('Error checking authentication status:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(200).json({ isAuthenticated: false });
     }
 });
+
 
 
 module.exports = router;
