@@ -183,29 +183,25 @@ router.post('/login', async (req, res) => {
  *       500:
  *         description: Server error
  */
+/**
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Logout a user
+ *     tags: [Auth]
+ *     description: Logout endpoint is not required as token is stored in local storage.
+ *     responses:
+ *       200:
+ *         description: User successfully logged out (no action needed on backend)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ */
 router.post('/logout', (req, res) => {
-    try {
-        // Clear the refresh token cookie
-        res.clearCookie('accessToken', {
-            httpOnly: true,
-            secure: false,
-            sameSite: 'Strict',
-            path: '/', // Match the path
-        });
-
-        // Clear the access token cookie
-        res.clearCookie('refreshToken', {
-            httpOnly: true,
-            secure: false,
-            sameSite: 'Strict',
-            path: '/', // Match the path
-        });
-
-        res.status(200).json({ message: 'User logged out successfully' });
-    } catch (error) {
-        console.error('Error logging out user:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
+    res.status(200).json({ message: 'User logged out successfully' }); 
 });
 
 /**
@@ -226,21 +222,31 @@ router.post('/logout', (req, res) => {
  *                   type: boolean
  *                   description: Whether the user is authenticated
  *                   example: true
- *       500:
- *         description: Server error
+ *                 user:
+ *                   type: object
+ *                   properties: 
+ *                     userId:
+ *                       type: string
+ *                       description: User ID from the decoded token
+ *                     role:
+ *                       type: string
+ *                       description: User's role
+ *       401:
+ *         description: Unauthorized - Token is missing or invalid
  */
 router.get('/status', (req, res) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     try {
         if (!token) {
-            return res.status(200).json({ isAuthenticated: false });
+            return res.status(401).json({ isAuthenticated: false, message: 'Token is missing' });
         }
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        res.status(200).json({ isAuthenticated: true, user: decoded });
+        res.status(200).json({ isAuthenticated: true, user: { userId: decoded.userId, role: decoded.role } });
     } catch (error) {
-        res.status(200).json({ isAuthenticated: false });
+        res.status(401).json({ isAuthenticated: false, message: 'Invalid token' });
     }
 });
+
 
 
 
