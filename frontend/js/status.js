@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch and display messages
     function fetchAndDisplayMessages() {
-        fetch(`/api/messages/status?page=${currentPage}&limit=${pageSize}`)
+        fetch(`/api/mqtt/api/messages/status?page=${currentPage}&limit=${pageSize}`)
             .then(response => response.json())
             .then(data => {
                 if (data.messages.length === 0) {

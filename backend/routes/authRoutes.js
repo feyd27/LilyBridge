@@ -168,27 +168,6 @@ router.post('/login', async (req, res) => {
  *   post:
  *     summary: Logout a user
  *     tags: [Auth]
- *     description: Logs out a user by clearing the refresh token stored in cookies.
- *     responses:
- *       200:
- *         description: User successfully logged out
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: User logged out successfully
- *       500:
- *         description: Server error
- */
-/**
- * @swagger
- * /api/auth/logout:
- *   post:
- *     summary: Logout a user
- *     tags: [Auth]
  *     description: Logout endpoint is not required as token is stored in local storage.
  *     responses:
  *       200:
@@ -199,6 +178,8 @@ router.post('/login', async (req, res) => {
  *               type: object
  *               properties:
  *                 message:
+ *                   type: string
+ *                   example: User logged out successfully
  */
 router.post('/logout', (req, res) => {
     res.status(200).json({ message: 'User logged out successfully' }); 

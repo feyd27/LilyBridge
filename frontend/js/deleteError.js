@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function fetchAndDisplayMessages() {
         console.log(`Fetching page ${currentPage} with page size ${pageSize}`);
         
-        fetch(`/api/messages/errors?page=${currentPage}&limit=${pageSize}`)
+        fetch(`/api/mqtt/api/messages/errors?page=${currentPage}&limit=${pageSize}`)
             .then(response => response.json())
             .then(data => {
                 displayErrorMessages(data.messages);
@@ -99,7 +99,7 @@ if (deleteButton) {
         }
 
         const ids = checkedBoxes.map(box => box.value);
-        fetch('/api/messages/errors', {
+        fetch('/api/mqtt/api/messages/errors', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ids })

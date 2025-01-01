@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let totalPages = 1;
 
     function fetchAndDisplayMessages() {
-        fetch(`/api/messages/errors?page=${currentPage}&limit=${pageSize}`)
+        fetch(`/api/mqtt/api/messages/errors?page=${currentPage}&limit=${pageSize}`)
             .then(response => response.json())
             .then(data => {
                 displayErrorMessages(data.messages);

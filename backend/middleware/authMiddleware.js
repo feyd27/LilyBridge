@@ -2,18 +2,7 @@
 
 const jwt = require('jsonwebtoken');
 
-// Define exempted routes
-const exemptedRoutes = [
-    '/api/auth/register',
-    '/api/messages/temperature/last50'
-];
-
 function authMiddleware(req, res, next) {
-    // Check if the current route is exempted
-    if (exemptedRoutes.includes(req.path)) {
-        return next(); // Skip authentication for these routes
-    }
-
     // Extract the token from the Authorization header
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) {
@@ -26,7 +15,7 @@ function authMiddleware(req, res, next) {
         req.user = decoded;
 
         // Check if user has admin privileges
-        if (req.user.role !== 'admin') {
+        if (req.user.role !== 'user') {
             return res.status(403).json({ message: 'Forbidden: Insufficient privileges' });
         }
 
@@ -37,4 +26,3 @@ function authMiddleware(req, res, next) {
 }
 
 module.exports = authMiddleware;
-

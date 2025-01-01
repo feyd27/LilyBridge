@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function fetchAndDisplayMessages() {
         console.log(`Fetching page ${currentPage} with page size ${pageSize}`);
         
-        fetch(`/api/messages/status?page=${currentPage}&limit=${pageSize}`)
+        fetch(`/api/mqtt/api/messages/status?page=${currentPage}&limit=${pageSize}`)
             .then(response => response.json())
             .then(data => {
                 displayStatusMessages(data.messages);
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const ids = checkedBoxes.map(box => box.value);
-            fetch('/api/messages/status', {
+            fetch('/api/mqtt/api/messages/status', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ids })

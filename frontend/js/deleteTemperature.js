@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function fetchAndDisplayMessages() {
         console.log(`Fetching page ${currentPage} with page size ${pageSize}`);
-        fetch(`/api/messages/temperature?page=${currentPage}&limit=${pageSize}`)
+        fetch(`/api/mqtt/api/messages/temperature?page=${currentPage}&limit=${pageSize}`)
             .then(response => response.json())
             .then(data => {
                 console.log(`Data received for page ${currentPage}:`, data);
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const ids = checkedBoxes.map(box => box.value);
             console.log(`Deleting selected messages with IDs: ${ids}`);
-            fetch('/api/messages/temperature', {
+            fetch('/api/mqtt/api/messages/temperature', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ids })

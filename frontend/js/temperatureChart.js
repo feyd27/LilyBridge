@@ -69,10 +69,20 @@ function createTemperatureChart(data) {
 
 // Fetch the last 50 temperature messages and create a chart
 document.addEventListener('DOMContentLoaded', () => {
-    fetch('/api/messages/temperature/last50')
+    const token = localStorage.getItem('accessToken'); 
+    fetch('/api/mqtt/api/messages/temperature/last50')
         .then(response => response.json())
         .then(data => {
-            if (!Array.isArray(data) || data.length === 0) return;
+            if (!Array.isArray(data) || data.length === 0)
+                {
+                    // Display "No saved messages" message
+                    const chartCanvas = document.getElementById('temperatureChart');
+                    const noDataMessage = document.createElement('p'); 
+                    noDataMessage.textContent = "No saved messages for temperature reading";
+                    noDataMessage.style.textAlign = 'center'; // Center the message
+                    chartCanvas.parentNode.insertBefore(noDataMessage, chartCanvas); // Insert before the canvas
+                    return; 
+                  }
 
             const labels = data.map(message => message.timestamp ? new Date(message.timestamp).toLocaleString() : '');
             const temperatures = data.map(message => message.temperature || 0);

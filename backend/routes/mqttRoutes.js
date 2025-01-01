@@ -7,9 +7,10 @@ const MqttMessage = require('../models/message');
 const logger = require('../services/logger');
 
 
+
 /**
  * @swagger
- * /api/messages/temperature:
+ * /api/mqtt/api/messages/temperature:
  *   get:
  *     summary: Get paginated messages from the "temperature" topic
  *     tags: [Messages]
@@ -68,7 +69,7 @@ const logger = require('../services/logger');
  *       500:
  *         description: Server error
  */
-router.get('/messages/temperature', async (req, res) => {
+router.get('/api/messages/temperature', async (req, res) => {
   try {
     const { limit = 25, page = 1 } = req.query;
     const limitNum = Math.min(Math.max(parseInt(limit), 1), 100);
@@ -113,7 +114,7 @@ router.get('/messages/temperature', async (req, res) => {
 
 /**
  * @swagger
- * /api/messages/temperature/last50:
+ * /api/mqtt/api/messages/temperature/last50:
  *   get:
  *     summary: Get the last 50 temperature messages
  *     tags: [Messages]
@@ -147,10 +148,12 @@ router.get('/messages/temperature', async (req, res) => {
  *                     type: string
  *                     format: date-time
  *                     description: The time the message was received by the server
+ *       403:
+ *         description: Forbidden - Insufficient privileges 
  *       500:
  *         description: Server error
  */
-router.get('/messages/temperature/last50', async (req, res) => {
+router.get('/api/messages/temperature/last50', async (req, res) => {
   try {
     const messages = await MqttMessage.find({ topic: 'temperature' })
       .sort({ receivedAt: -1 })
@@ -165,7 +168,7 @@ router.get('/messages/temperature/last50', async (req, res) => {
 
 /**
  * @swagger
- * /api/messages/temperature:
+ * /api/mqtt/api/messages/temperature:
  *   delete:
  *     summary: Delete multiple temperature messages by their IDs
  *     tags: [Messages]
@@ -253,7 +256,7 @@ router.get('/messages/temperature/last50', async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.delete('/messages/temperature', async (req, res) => {
+router.delete('/api/messages/temperature', async (req, res) => {
   try {
     const { ids } = req.body;
 
@@ -302,7 +305,7 @@ router.delete('/messages/temperature', async (req, res) => {
 
 /**
  * @swagger
- * /api/messages/status:
+ * /api/mqtt/api/messages/status:
  *   get:
  *     summary: Get paginated messages from the "status" topic
  *     tags: [Messages]
@@ -363,7 +366,7 @@ router.delete('/messages/temperature', async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.get('/messages/status', async (req, res) => {
+router.get('/api/messages/status', async (req, res) => {
   try {
     const { limit = 25, page = 1 } = req.query;
     const limitNum = Math.min(Math.max(parseInt(limit), 1), 100);
@@ -417,7 +420,7 @@ router.get('/messages/status', async (req, res) => {
 
 /**
  * @swagger
- * /api/messages/status/last:
+ * /api/mqtt/api/messages/status/last:
  *   get:
  *     summary: Get the last message from the "status" topic with the time since it was sent
  *     tags: [Messages]
@@ -450,7 +453,7 @@ router.get('/messages/status', async (req, res) => {
  *         description: Failed to retrieve last status message
  */
 
-router.get('/messages/status/last', async (req, res) => {
+router.get('/api/messages/status/last', async (req, res) => {
   try {
     const lastMessage = await MqttMessage.findOne({ topic: 'status' }).sort({ receivedAt: -1 });
 
@@ -490,7 +493,7 @@ router.get('/messages/status/last', async (req, res) => {
 });
 /**
  * @swagger
- * /api/messages/status:
+ * /api/mqtt/api/messages/status:
  *   delete:
  *     summary: Delete multiple status messages by their IDs
  *     tags: [Messages]
@@ -559,7 +562,7 @@ router.get('/messages/status/last', async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.delete('/messages/status', async (req, res) => {
+router.delete('/api/messages/status', async (req, res) => {
   try {
     const { ids } = req.body;
 
@@ -606,7 +609,7 @@ router.delete('/messages/status', async (req, res) => {
 
 /**
  * @swagger
- * /api/messages/errors:
+ * /api/mqtt/api/messages/errors:
  *   get:
  *     summary: Get paginated messages from the "errors" topic
  *     tags: [Messages]
@@ -661,7 +664,7 @@ router.delete('/messages/status', async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.get('/messages/errors', async (req, res) => {
+router.get('/api/messages/errors', async (req, res) => {
   try {
     const { limit = 25, page = 1 } = req.query;
     const limitNum = Math.min(Math.max(parseInt(limit), 1), 100);
@@ -694,7 +697,7 @@ router.get('/messages/errors', async (req, res) => {
 
 /**
  * @swagger
- * /api/messages/error/today:
+ * /api/mqtt/api/messages/error/today:
  *   get:
  *     summary: Get all error messages from today
  *     tags: [Messages]
@@ -716,7 +719,7 @@ router.get('/messages/errors', async (req, res) => {
  *                     type: string
  *                     format: date-time
  */
-router.get('/messages/error/today', async (req, res) => {
+router.get('/api/messages/error/today', async (req, res) => {
   try {
     const startOfDay = moment().startOf('day').toDate();
     const messages = await MqttMessage.find({
@@ -731,7 +734,7 @@ router.get('/messages/error/today', async (req, res) => {
 });
 /**
  * @swagger
- * /api/messages/errors:
+ * /api/mqtt/api/messages/errors:
  *   delete:
  *     summary: Delete multiple error messages by their IDs
  *     tags: [Messages]
@@ -812,7 +815,7 @@ router.get('/messages/error/today', async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.delete('/messages/errors', async (req, res) => {
+router.delete('/api/messages/errors', async (req, res) => {
   try {
     const { ids } = req.body;
 

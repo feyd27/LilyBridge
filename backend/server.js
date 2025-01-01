@@ -11,8 +11,9 @@ const purgeMessagesRoutes = require('./routes/purgeMessages');
 const mqttRoutes = require('./routes/mqttRoutes');
 const authRoutes = require('./routes/authRoutes');
 const viewsRoutes = require('./routes/viewsRoutes');
-const authMiddleware = require('./middleware/authMiddleware');
+// const authMiddleware = require('./middleware/authMiddleware');
 const expressLayouts = require('express-ejs-layouts');
+// onst jwt = require('jsonwebtoken'); // Make sure to import jsonwebtoken
 require('./services/mqttService');
 require('./db');
 
@@ -45,19 +46,16 @@ app.use((req, res, next) => {
   next();
 });
 
-// Pass authentication status to views
-app.use((req, res, next) => {
-  res.locals.isAuthenticated = !!req.cookies.accessToken;
-  next();
-});
+  
 
-// Routes
-app.use('/api/auth', authRoutes);        // Authentication routes
-app.use('/api', publicRoutes);             // Public routes (no authentication required)
-app.use('/api/mqtt', mqttRoutes);       // MQTT API routes
-app.use('/protected', authMiddleware, protectedRoutes); // Protected routes with authentication
-app.use('/api/messages', authMiddleware, purgeMessagesRoutes); // Protect the route with the middleware
-app.use('/', viewsRoutes);
+// Routes (without authentication)
+app.use('/', viewsRoutes); // Mount viewsRoutes at the root path
+app.use('/api/auth', authRoutes); // Authentication routes 
+app.use('/api', publicRoutes);  
+app.use('/api/mqtt', mqttRoutes);
+app.use('/api/protected', protectedRoutes); // These routes are now also public
+app.use('/api/messages', purgeMessagesRoutes);  // This route is now also public
+
 
 // Swagger configuration
 const swaggerOptions = {

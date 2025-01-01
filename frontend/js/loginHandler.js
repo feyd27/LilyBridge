@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     });
-    
+
 
 
     // Show or hide the password
@@ -38,8 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (response.ok) {
+                // Store tokens in local storage 
+                localStorage.setItem('accessToken', data.accessToken);
+                localStorage.setItem('refreshToken', data.refreshToken);
                 // Redirect to login confirmation page
-                window.location.href = '/login-confirmation';
+                window.location.href = 'login-confirmation';
             } else {
                 // Show error alert
                 showAlert(data.message || "Login failed. Please try again.", "alert");

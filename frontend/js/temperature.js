@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
   
 
-        fetch(`/api/messages/temperature?page=${currentPage}&limit=${pageSize}`)
+        fetch(`/api/mqtt/api/messages/temperature?page=${currentPage}&limit=${pageSize}`)
             .then(response => response.json())
             .then(data => {
                 displayTemperatureMessages(data.messages);

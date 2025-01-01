@@ -1,19 +1,11 @@
 const express = require('express');
-const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // Apply auth middleware to all protected routes
-router.use(authMiddleware);
+// router.use(authMiddleware);
 
-// Route to render the logout confirmation page
-router.get('/login-confirmation', (req, res) => {
-    res.render('loginConfirmation', { title: 'Logged Out' });
-  });
 
-// Route to render the temperature messages page
-router.get('/temperature', (req, res) => {
-    res.render('temperature', { title: 'Temperature messages overview' });
-});
+
 
 // Route to render the status messages page
 router.get('/status', (req, res) => {
