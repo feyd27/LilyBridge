@@ -59,7 +59,7 @@ unsigned long previousMillis = 0;   // Stores last time temperature was publishe
 const long interval = 600000;         // Interval at which to publish sensor readings
 
 unsigned long previousStatusCheckMillis = 0;
-const long statusCheckInterval = 60000;  // Check status every 60 seconds
+const long statusCheckInterval = 600000;  // Check status every 600 seconds
 
 int i = 0;
 

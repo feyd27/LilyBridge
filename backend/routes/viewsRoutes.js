@@ -58,5 +58,10 @@ router.get('/delete-error-messages', (req, res) => {
   res.render('deleteErrorMessages', { title: 'Delete Error Messages' });
 });
 
+// Route to render the page for email verification
+router.get('/verify-email', (req, res) => {
+  res.render('verifyEmail', { title: 'Verify Email' });
+});
+
 // Export
 module.exports = router;

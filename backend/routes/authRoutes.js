@@ -5,7 +5,13 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.js');
 const logger = require('../services/logger.js');
+const crypto = require('crypto');
 const router = express.Router();
+const { Resend } = require('resend');
+function generateVerificationToken() {
+    // Generate a random token using crypto
+    return crypto.randomBytes(32).toString('hex'); 
+  }
 
 /**
  * @swagger
@@ -28,12 +34,25 @@ const router = express.Router();
  *                 type: string
  *                 description: User password.
  *                 example: password123
- *               devices:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Array of device IDs the user has access to.
- *                 example: ["device1", "device2"]
+ *               mqttBroker:  # Add mqttBroker to the Swagger docs
+ *                 type: object
+ *                 properties:
+ *                   address:
+ *                     type: string
+ *                     description: Address of the MQTT broker
+ *                     example: "mqtt://broker.example.com"
+ *                   username:
+ *                     type: string
+ *                     description: Username for the MQTT broker
+ *                     example: "mqttuser"
+ *                   password:
+ *                     type: string
+ *                     description: Password for the MQTT broker
+ *                     example: "mqttpassword"
+ *                   isPrivate:
+ *                     type: boolean
+ *                     description: Whether the MQTT broker is private
+ *                     example: true
  *               role:
  *                 type: string
  *                 enum: [reader, user, admin]
@@ -41,7 +60,7 @@ const router = express.Router();
  *                 example: user
  *     responses:
  *       201:
- *         description: User registered successfully
+ *         description: User registered successfully. A verification email has been sent.
  *         content:
  *           application/json:
  *             schema:
@@ -49,14 +68,14 @@ const router = express.Router();
  *               properties:
  *                 message:
  *                   type: string
- *                   example: User registered successfully
+ *                   example: User registered successfully. A verification email has been sent to user@example.com.
  *       400:
- *         description: Username already taken
+ *         description: Username already taken or invalid input.
  *       500:
- *         description: Server error
+ *         description: Server error during registration.
  */
 router.post('/register', async (req, res) => {
-    const { username, password, devices, role } = req.body;
+    const { username, password, mqttBroker, role } = req.body;
 
     try {
         const existingUser = await User.findOne({ username });
@@ -65,8 +84,27 @@ router.post('/register', async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ username, password: hashedPassword, devices, role });
+        const verificationToken = generateVerificationToken(); 
+        const newUser = new User({ 
+            username, 
+            password: hashedPassword, 
+            mqttBroker, 
+            role,
+            verificationToken: verificationToken
+        });
         await newUser.save();
+        const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+
+         // Send verification email using Resend
+
+         const resend = new Resend('re_dumexutn_D5UT3QDk1yM7FjdigxD5xqRk');
+
+    await resend.emails.send({
+        from: 'verify@updates.lily-bridge.online', // Replace with your verified sender email
+        to: req.body.username, // Assuming username is the email
+        subject: 'Verify your email',
+        html: `Click this link to verify your email: <a href="${verificationLink}">${verificationLink}</a>`
+      });
 
         res.status(201).json({ message: 'User registered successfully' });
     } catch (error) {
@@ -229,7 +267,67 @@ router.get('/status', (req, res) => {
 });
 
 
-
+// backend/routes/authRoutes.js
+/**
+ * @swagger
+ * /api/auth/verify-email:
+ *   post:
+ *     summary: Verify user email
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 description: Verification token from the email link
+ *                 example: "your_verification_token" 
+ *     responses:
+ *       200:
+ *         description: Account verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Account verified successfully!"
+ *       400:
+ *         description: Invalid verification token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Invalid verification token."
+ *       500:
+ *         description: Server error during verification
+ */
+router.post('/verify-email', async (req, res) => {
+    const { token } = req.body;
+  
+    try {
+      const user = await User.findOne({ verificationToken: token });
+      if (!user) {
+        return res.status(400).json({ message: 'Invalid verification token.' });
+      }
+  
+      user.isVerified = true;
+      user.verificationToken = undefined; // Clear the token
+      await user.save();
+  
+      res.json({ message: 'Account verified successfully!' });
+    } catch (error) {
+      logger.error('Error verifying account:', error);
+      res.status(500).json({ message: 'Server error during verification.' });
+    }
+  });
 
 module.exports = router;
 

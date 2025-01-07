@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     function fetchStatusMessage() {
-        fetch('/api/mqtt/api/messages/status/last')
+        fetch('/api/public/api/messages/status/last')
             .then(response => response.json())
             .then(data => {
                 if (data && data.receivedAt) displayStatusMessage(data);

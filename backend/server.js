@@ -51,7 +51,7 @@ app.use((req, res, next) => {
 // Routes (without authentication)
 app.use('/', viewsRoutes); // Mount viewsRoutes at the root path
 app.use('/api/auth', authRoutes); // Authentication routes 
-app.use('/api', publicRoutes);  
+app.use('/api/public', publicRoutes);  
 app.use('/api/mqtt', mqttRoutes);
 app.use('/api/protected', protectedRoutes); // These routes are now also public
 app.use('/api/messages', purgeMessagesRoutes);  // This route is now also public

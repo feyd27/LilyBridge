@@ -13,16 +13,25 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    devices: {
-        type: [String], // Array of strings for device IDs or names
-        default: [],
+    mqttBroker: {
+        address: { type: String, required: false, default: null },
+        username: { type: String, required: false, default: null },
+        password: { type: String, required: false, default: null  },
+        isPrivate: { type: Boolean, required: true, default: true }
     },
     role: {
         type: String,
         enum: ['reader', 'user', 'admin'],
         default: 'user', // Default role
         required: true,
-    }
+    },
+    verificationToken: {
+        type: String
+    },
+    isVerified: {
+            type: Boolean,
+            default: false
+        }
 });
 
 
