@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(response => response.json())
         .then(data => {
             if (data.message === 'User registered successfully') {
-                showAlert("Registration successful!Check your email to verify your account.", "success");
+                showAlert("Registration successful! Check your email to verify your account.", "success");
                 setTimeout(() => {
                     window.location.href = '/login';
                 }, 5000);  // Redirect after 5 seconds

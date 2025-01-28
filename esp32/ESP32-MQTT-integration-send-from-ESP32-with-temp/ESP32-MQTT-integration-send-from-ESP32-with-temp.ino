@@ -176,8 +176,8 @@ void loop() {
 
   // Temperature in Celsius degrees
   float temperature = sensors.getTempCByIndex(0);
-  //  Serial.print(temperature);
-  //  Serial.println("°C");
+  // Serial.print(temperature);
+ // Serial.println("unit °C");
 
   // Get the current time
   struct tm timeinfo;

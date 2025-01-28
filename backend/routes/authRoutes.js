@@ -103,7 +103,31 @@ router.post('/register', async (req, res) => {
         from: 'verify@updates.lily-bridge.online', // Replace with your verified sender email
         to: req.body.username, // Assuming username is the email
         subject: 'Verify your email',
-        html: `Click this link to verify your email: <a href="${verificationLink}">${verificationLink}</a>`
+        html: `<!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Verify your email</title>
+      </head>
+      <body style="background-image: url('https://i.ibb.co/ymfL8XKf/app-header.png'); background-size: cover; background-repeat: no-repeat; margin: 0; padding: 0; background-position: center;">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td align="center">
+              <table border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td>
+                    <h1>Welcome to Lily-Bridge!</h1>
+                    <p>Please verify your email address by clicking the button below:</p>
+                    <a href="${verificationLink}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verify Email</a>
+                    <p>If you did not create an account, you can ignore this email.</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>`
       });
 
         res.status(201).json({ message: 'User registered successfully' });
