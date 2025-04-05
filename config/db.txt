@@ -1,4 +1,1 @@
-username = doadmin
-password = W8S046ds57O9jm1D
-host = mongodb+srv://db-mongodb-fra1-58726-9a5204ad.mongo.ondigitalocean.com
-database = admin
+nonce
