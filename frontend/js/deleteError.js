@@ -14,6 +14,30 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    function checkAuthentication() {
+        const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
+        // if (token) {
+        //   console.log('Access token:', token);
+        // } else {
+        //   console.log('Access token not found.');
+        // }
+        fetch('/api/auth/status', {
+            headers: {
+                'Authorization': `Bearer ${token}`  // Add Authorization header
+            }
+        })
+          .then(response => {
+            if (!response.ok) {
+              window.location.href = '/login';
+            }
+          })
+          .catch(error => {
+            console.error('Error checking authentication status:', error);
+            // Handle the error, e.g., show an error message or redirect to login
+          });
+      }
+    checkAuthentication();
+
     // Initialize `currentPage` once at the top-level scope
     let currentPage = 1;
     let pageSize = parseInt(pageSizeSelect.value);
@@ -21,8 +45,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function fetchAndDisplayMessages() {
         console.log(`Fetching page ${currentPage} with page size ${pageSize}`);
-        
-        fetch(`/api/mqtt/api/messages/errors?page=${currentPage}&limit=${pageSize}`)
+        const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
+            // if (token) {
+            // console.log('Access token:', token);
+            // } else {
+            // console.log('Access token not found.');
+            // }
+        fetch(`/api/mqtt/api/messages/errors?page=${currentPage}&limit=${pageSize}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`  // Add Authorization header
+            }
+        })
             .then(response => response.json())
             .then(data => {
                 displayErrorMessages(data.messages);
@@ -90,7 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
 if (deleteButton) {
     deleteButton.addEventListener('click', (event) => {
         event.preventDefault();
-
         const checkedBoxes = Array.from(document.querySelectorAll('#errorMessagesContainer input[name="selectMessage"]:checked'));
         if (checkedBoxes.length === 0) {
             showAlert("Please select at least one message to delete.", "alert");
@@ -99,9 +131,10 @@ if (deleteButton) {
         }
 
         const ids = checkedBoxes.map(box => box.value);
+        const token = localStorage.getItem('accessToken');
         fetch('/api/mqtt/api/messages/errors', {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
             body: JSON.stringify({ ids })
         })
             .then(response => response.json())

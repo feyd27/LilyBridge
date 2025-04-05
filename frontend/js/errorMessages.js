@@ -4,12 +4,47 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextPageBtn = document.getElementById('nextPage');
     const paginationInfo = document.getElementById('paginationInfo');
 
+    function checkAuthentication() {
+        const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
+        // if (token) {
+        //   console.log('Access token:', token);
+        // } else {
+        //   console.log('Access token not found.');
+        // }
+        fetch('/api/auth/status', {
+            headers: {
+                'Authorization': `Bearer ${token}`  // Add Authorization header
+            }
+        })
+          .then(response => {
+            if (!response.ok) {
+              window.location.href = '/login';
+            }
+          })
+          .catch(error => {
+            console.error('Error checking authentication status:', error);
+            // Handle the error, e.g., show an error message or redirect to login
+          });
+      }
+      
+    checkAuthentication();
+
     let currentPage = 1;
     let pageSize = parseInt(pageSizeSelect.value);
     let totalPages = 1;
 
     function fetchAndDisplayMessages() {
-        fetch(`/api/mqtt/api/messages/errors?page=${currentPage}&limit=${pageSize}`)
+        const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
+        // if (token) {
+        // console.log('Access token:', token);
+        // } else {
+        // console.log('Access token not found.');
+        // }
+        fetch(`/api/mqtt/api/messages/errors?page=${currentPage}&limit=${pageSize}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`  // Add Authorization header
+            }
+        })
             .then(response => response.json())
             .then(data => {
                 displayErrorMessages(data.messages);

@@ -13,6 +13,31 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Error: Container for temperature messages not found');
         return;
     }
+        
+    function checkAuthentication() {
+        const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
+            // if (token) {
+            //   console.log('Access token:', token);
+            // } else {
+            //   console.log('Access token not found.');
+            // }
+            fetch('/api/auth/status', {
+                headers: {
+                    'Authorization': `Bearer ${token}`  // Add Authorization header
+                }
+            })
+              .then(response => {
+                if (!response.ok) {
+                  window.location.href = '/login';
+                }
+              })
+              .catch(error => {
+                console.error('Error checking authentication status:', error);
+                // Handle the error, e.g., show an error message or redirect to login
+              });
+          }
+    checkAuthentication();
+
 
     let currentPage = 1;
     let pageSize = parseInt(pageSizeSelect.value, 10);
@@ -20,7 +45,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function fetchAndDisplayMessages() {
         console.log(`Fetching page ${currentPage} with page size ${pageSize}`);
-        fetch(`/api/mqtt/api/messages/temperature?page=${currentPage}&limit=${pageSize}`)
+        const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
+            // if (token) {
+            // console.log('Access token:', token);
+            // } else {
+            // console.log('Access token not found.');
+            // }
+        fetch(`/api/mqtt/api/messages/temperature?page=${currentPage}&limit=${pageSize}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`  // Add Authorization header
+            }
+        })
             .then(response => response.json())
             .then(data => {
                 console.log(`Data received for page ${currentPage}:`, data);
@@ -104,9 +139,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const ids = checkedBoxes.map(box => box.value);
             console.log(`Deleting selected messages with IDs: ${ids}`);
+            const token = localStorage.getItem('accessToken');
             fetch('/api/mqtt/api/messages/temperature', {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
                 body: JSON.stringify({ ids })
             })
                 .then(response => response.json())

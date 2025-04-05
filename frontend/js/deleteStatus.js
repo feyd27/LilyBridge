@@ -14,14 +14,48 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    function checkAuthentication() {
+        const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
+        // if (token) {
+        //   console.log('Access token:', token);
+        // } else {
+        //   console.log('Access token not found.');
+        // }
+        fetch('/api/auth/status', {
+            headers: {
+                'Authorization': `Bearer ${token}`  // Add Authorization header
+            }
+        })
+          .then(response => {
+            if (!response.ok) {
+              window.location.href = '/login';
+            }
+          })
+          .catch(error => {
+            console.error('Error checking authentication status:', error);
+            // Handle the error, e.g., show an error message or redirect to login
+          });
+      }
+    checkAuthentication();
+
+
     let currentPage = 1;
     let pageSize = parseInt(pageSizeSelect.value);
     let totalPages = 1;
 
     function fetchAndDisplayMessages() {
         console.log(`Fetching page ${currentPage} with page size ${pageSize}`);
-        
-        fetch(`/api/mqtt/api/messages/status?page=${currentPage}&limit=${pageSize}`)
+        const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
+            // if (token) {
+            // console.log('Access token:', token);
+            // } else {
+            // console.log('Access token not found.');
+            // }
+        fetch(`/api/mqtt/api/messages/status?page=${currentPage}&limit=${pageSize}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`  // Add Authorization header
+            }
+        })
             .then(response => response.json())
             .then(data => {
                 displayStatusMessages(data.messages);
@@ -100,9 +134,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const ids = checkedBoxes.map(box => box.value);
+            const token = localStorage.getItem('accessToken');
             fetch('/api/mqtt/api/messages/status', {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
                 body: JSON.stringify({ ids })
             })
                 .then(response => response.json())

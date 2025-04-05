@@ -5,8 +5,9 @@ const router = express.Router();
 const moment = require('moment');
 const MqttMessage = require('../models/message');
 const logger = require('../services/logger');
+const authMiddleware = require('../middleware/authMiddleware');
 
-
+router.use(authMiddleware);
 
 /**
  * @swagger

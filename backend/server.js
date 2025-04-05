@@ -49,7 +49,7 @@ app.use((req, res, next) => {
 app.use('/', viewsRoutes); 
 
 app.use((req, res, next) =>  {
-    console.log('Request path:',req.path);
+   // console.log('Request path:',req.path);
     const publicPaths = [
         '/',
         '/api/auth/login',
@@ -64,7 +64,7 @@ app.use((req, res, next) =>  {
     if (publicPaths.includes(req.path)) {
         return next();
     }
-    console.log(publicPaths);
+   //  console.log(publicPaths);
     if (publicPaths.some(route => route.endsWith('*') && req.path.startsWith(route.slice(0, route.length - 1)))) {
         return next();
     }

@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to update button visibility
     function updateButtonVisibility(isAuthenticated) {
-        console.log('Is authenticated', isAuthenticated);
+        // console.log('Is authenticated', isAuthenticated);
         if (isAuthenticated) {
             loginButton.style.display = 'none';
             logoutButton.style.display = 'block';
