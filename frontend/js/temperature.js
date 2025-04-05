@@ -21,15 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(response => response.json())
             .then(data => {
                 displayTemperatureMessages(data.messages);
-
-                
-
                 totalPages = data.totalPages;
                 updatePaginationDisplay(data.totalItems, totalPages, currentPage);
                 updateButtonStates();
-
-              
-
             })
             .catch(error => console.error('Error fetching temperature messages:', error));
     }

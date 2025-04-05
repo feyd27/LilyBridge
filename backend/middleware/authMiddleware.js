@@ -1,8 +1,9 @@
 // middleware/authMiddleware.js
 
 const jwt = require('jsonwebtoken');
+const User = require('../models/user'); // Import the User model
 
-function authMiddleware(req, res, next) {
+async function authMiddleware(req, res, next) {
   const token = req.header('Authorization')?.replace('Bearer ', '');
   if (!token) {
     return res.status(401).json({ message: 'Access denied. No token provided.' });
@@ -11,6 +12,12 @@ function authMiddleware(req, res, next) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
+
+    // Record login event
+    const user = await User.findById(req.user.userId);
+    user.loginHistory.push({ timestamp: new Date() });
+    await user.save();
+
     next();
   } catch (error) {
     // Token is invalid or expired, try to refresh it

@@ -31,7 +31,14 @@ const userSchema = new mongoose.Schema({
     isVerified: {
             type: Boolean,
             default: false
-        }
+    },
+    hasCompletedSetup: { type: Boolean, default: false }, // Add this field
+    loginHistory: [{ 
+      timestamp: { type: Date, default: Date.now } 
+    }],
+    passwordResetHistory: [{ 
+      timestamp: { type: Date, default: Date.now } 
+    }]
 });
 
 

@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${message.chipID}</td>
                 <td>${message.macAddress}</td>
                 <td>${message.status}</td>
-                <td>${new Date(message.timestamp).toLocaleString()}</td>
+                <td>${message.timestamp}</td>
                 <td>
                     <input type="checkbox" name="selectMessage" value="${message._id}">
                     <input type="hidden" name="messageId" value="${message._id}">

@@ -2,6 +2,11 @@
 
 function checkAuthentication() {
     const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
+    if (token) {
+      console.log('Access token:', token);
+    } else {
+      console.log('Access token not found.');
+    }
     fetch('/api/auth/status', {
         headers: {
             'Authorization': `Bearer ${token}`  // Add Authorization header

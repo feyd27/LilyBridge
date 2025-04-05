@@ -86,11 +86,14 @@ router.post('/register', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         const verificationToken = generateVerificationToken(); 
         const newUser = new User({ 
-            username, 
-            password: hashedPassword, 
-            mqttBroker, 
-            role,
-            verificationToken: verificationToken
+          username, 
+          password: hashedPassword, 
+          mqttBroker, 
+          role,
+          verificationToken: verificationToken,
+          hasCompletedSetup: false, 
+          loginHistory:[],        
+          passwordResetHistory:[] 
         });
         await newUser.save();
         const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;

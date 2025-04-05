@@ -11,9 +11,10 @@ const purgeMessagesRoutes = require('./routes/purgeMessages');
 const mqttRoutes = require('./routes/mqttRoutes');
 const authRoutes = require('./routes/authRoutes');
 const viewsRoutes = require('./routes/viewsRoutes');
-// const authMiddleware = require('./middleware/authMiddleware');
+const userSettingsRoutes = require('./routes/userSettingsRoutes');
+const authMiddleware = require('./middleware/authMiddleware');
 const expressLayouts = require('express-ejs-layouts');
-// onst jwt = require('jsonwebtoken'); // Make sure to import jsonwebtoken
+// const jwt = require('jsonwebtoken'); // Make sure to import jsonwebtoken
 require('./services/mqttService');
 require('./db');
 
@@ -45,16 +46,40 @@ app.use((req, res, next) => {
   );
   next();
 });
+app.use('/', viewsRoutes); 
 
-  
+app.use((req, res, next) =>  {
+    console.log('Request path:',req.path);
+    const publicPaths = [
+        '/',
+        '/api/auth/login',
+        '/api/auth/register',
+        '/api-docs',
+        '/api-docs/*',
+        '/api/public/*',
+        '/api/auth/status',
+        ...publicRoutes.stack.map(r => r.route.path),
+    ];
+
+    if (publicPaths.includes(req.path)) {
+        return next();
+    }
+    console.log(publicPaths);
+    if (publicPaths.some(route => route.endsWith('*') && req.path.startsWith(route.slice(0, route.length - 1)))) {
+        return next();
+    }
+
+    authMiddleware(req, res, next);
+});
 
 // Routes (without authentication)
-app.use('/', viewsRoutes); // Mount viewsRoutes at the root path
-app.use('/api/auth', authRoutes); // Authentication routes 
+
+app.use('/api/auth', authRoutes); 
 app.use('/api/public', publicRoutes);  
 app.use('/api/mqtt', mqttRoutes);
-app.use('/api/protected', protectedRoutes); // These routes are now also public
-app.use('/api/messages', purgeMessagesRoutes);  // This route is now also public
+app.use('/api/protected', protectedRoutes); 
+app.use('/api/messages', purgeMessagesRoutes);  
+app.use('/api/settings', userSettingsRoutes); 
 
 
 // Swagger configuration

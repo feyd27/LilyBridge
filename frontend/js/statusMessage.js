@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const macAddress = message.macAddress || 'Unknown';
         const status = message.status || 'Unknown';
         const timestamp = message.timestamp || 'Unknown';
-
         container.innerHTML = `
             <p><strong>Board ID:</strong> ${chipID} | <strong>MAC:</strong> ${macAddress}</p>
             <p><strong>Status:</strong> ${status}</p>

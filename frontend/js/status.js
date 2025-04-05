@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${message.chipID || 'N/A'}</td>
                 <td>${message.macAddress || 'N/A'}</td>
                 <td>${message.status || 'N/A'}</td>
-                <td>${new Date(message.timestamp).toLocaleString('en-GB')}</td>
+                <td>${message.timestamp}</td>
             `;
             container.appendChild(row);
         });

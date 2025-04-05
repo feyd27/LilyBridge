@@ -7,12 +7,18 @@ document.addEventListener('DOMContentLoaded', () => {
             event.preventDefault(); // Prevent default link behavior
 
             try {
+                const token = localStorage.getItem('accessToken');
                 const response = await fetch('/api/auth/logout', {
                     method: 'POST',
-                    credentials: 'include', // Ensure cookies are sent with the request
+                    headers: {
+                        'Authorization': token ? `Bearer ${token}` : '', // Add it to the header
+                        'Content-Type': 'application/json', // You might need this
+                      },
                 });
 
                 if (response.ok) {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken'); 
                     // Redirect to logout confirmation page
                     window.location.href = '/logout-confirmation';
                 } else {

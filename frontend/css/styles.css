@@ -1,8 +1,8 @@
 
-/* Font Face for Kanit */
+/* Font Face for Rubik */
 @font-face {
-  font-family: 'Kanit';
-  src: url('../font/Kanit-Bold.ttf') format('truetype');
+  font-family: 'Rubik';
+  src: url('../font/Rubik-Bold.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
@@ -12,15 +12,15 @@ html {
 scroll-behavior: smooth;
 }
 body {
-  font-family: 'Kanit', sans-serif;
+  font-family: 'Rubik', sans-serif;
   background: linear-gradient(135deg, #b342b3, #b1ecf8);
   background-attachment: fixed;
-  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-family: "Roboto", Arial, sans-serif;
 }
 
 /* Headings and Typography */
 h1, h2 {
-  font-family: 'Kanit', sans-serif;
+  font-family: 'Rubik', sans-serif;
   font-weight: bold;
 }
 h1 {
@@ -30,7 +30,7 @@ h2 {
   font-size: 18px;
 }
 p, td, th, span, div {
-  font-family: 'Kanit', sans-serif;
+  font-family: 'Rubik', sans-serif;
   font-weight: normal;
 }
 
@@ -250,7 +250,7 @@ p, td, th, span, div {
 /* Base text color */
 body, p, td, th, span, div {
   color: #1e3a5f; /* Dark blue */
-  font-family: 'Kanit', sans-serif; /* Optional: consistent font */
+  font-family: 'Rubik', sans-serif; /* Optional: consistent font */
 }
 
 /* Heading Styles with Drop Shadows */
