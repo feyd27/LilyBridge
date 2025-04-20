@@ -219,6 +219,10 @@ router.post('/login', async (req, res) => {
             accessToken,
             refreshToken,
         });
+         // Record login event
+        //  const user = await User.findById(req.user.userId);
+         user.loginHistory.push({ timestamp: new Date() });
+         await user.save();
         logger.log('Access Token:', accessToken);
         logger.log('Refresh Token:', refreshToken);
     } catch (error) {
@@ -355,6 +359,79 @@ router.post('/verify-email', async (req, res) => {
       res.status(500).json({ message: 'Server error during verification.' });
     }
   });
+
+// routes/authRoutes.js
+
+
+
+/**
+ * @swagger
+ * /api/auth/refresh:
+ *   post:
+ *     summary: Refresh access token
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 description: The refresh token
+ *                 example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *     responses:
+ *       '200':
+ *         description: Access token refreshed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                   description: The new access token
+ *                   example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       '403':
+ *         description: Invalid refresh token
+ *       '404':
+ *         description: User not found
+ *       '500':
+ *         description: Server error
+ */
+
+router.post('/refresh', async (req, res) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: 'Refresh token is required.' });
+  }
+
+  try {
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const user = await User.findById(decoded.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    // Generate a new access token
+    const accessToken = jwt.sign(
+      { userId: user._id, role: user.role }, // Include necessary user data
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '4h' } // Use your access token expiry
+    );
+
+    res.json({ accessToken }); // Send the new access token
+    logger.log('Access token refreshed for user:', user.username);
+
+  } catch (error) {
+    logger.error('Error refreshing token:', error);
+    return res.status(403).json({ message: 'Invalid refresh token.' });
+  }
+});
 
 module.exports = router;
 

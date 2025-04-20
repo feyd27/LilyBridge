@@ -45,27 +45,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function fetchAndDisplayMessages() {
         console.log(`Fetching page ${currentPage} with page size ${pageSize}`);
-        const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
-            // if (token) {
-            // console.log('Access token:', token);
-            // } else {
-            // console.log('Access token not found.');
-            // }
+        const token = localStorage.getItem('accessToken');
+    
         fetch(`/api/mqtt/api/messages/errors?page=${currentPage}&limit=${pageSize}`, {
             headers: {
-                'Authorization': `Bearer ${token}`  // Add Authorization header
+                'Authorization': `Bearer ${token}`
             }
         })
-            .then(response => response.json())
-            .then(data => {
-                displayErrorMessages(data.messages);
-                totalPages = data.totalPages;
-                updatePaginationDisplay(data.totalItems, totalPages, currentPage);
+        .then(async response => {
+            if (!response.ok) {
+                if (response.status === 404) {
+                    showAlert("The endpoint was not found (404).", "alert");
+                    throw new Error('Endpoint not found (404).');
+                }
+                const errorText = await response.text();
+                throw new Error(`HTTP error ${response.status}: ${errorText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data || !Array.isArray(data.messages) || data.messages.length === 0) {
+                console.log('No messages received.');
+                showAlert("No error messages found.", "alert");
+                displayErrorMessages([]); // Clear or update the UI with empty state
+                updatePaginationDisplay(0, 0, 1);
                 updateButtonStates();
-            })
-            .catch(error => console.error('Error fetching error messages:', error));
+                return;
+            }
+    
+            // Successful data load
+            displayErrorMessages(data.messages);
+            totalPages = data.totalPages;
+            updatePaginationDisplay(data.totalItems, totalPages, currentPage);
+            updateButtonStates();
+        })
+        .catch(error => {
+            console.error('Error fetching error messages:', error.message || error);
+            showAlert(`Error fetching error messages: ${error.message}`, "error");
+        });
     }
-
+    
     function displayErrorMessages(messages) {
         container.innerHTML = '';
         messages.forEach(message => {

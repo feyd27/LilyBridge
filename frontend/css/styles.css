@@ -40,7 +40,7 @@ p, td, th, span, div {
   color: #000;
   padding: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  width: 15%;
+  width: 20%;
 }
 
 /* Sidebar Links */
@@ -262,11 +262,11 @@ h1, h2 {
 
 /* Specific Font Sizes for Headings */
 h1 {
-  font-size: 28px; /* Adjust as needed */
+  font-size: 24px; /* Adjust as needed */
 }
 
 h2 {
-  font-size: 24px; /* Adjust as needed */
+  font-size: 18px; /* Adjust as needed */
 }
 
 /* Optional Link Styles to Match Dark Blue Theme */

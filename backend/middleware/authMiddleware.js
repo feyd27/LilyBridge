@@ -14,42 +14,46 @@ async function authMiddleware(req, res, next) {
     req.user = decoded;
 
     // Record login event
-    const user = await User.findById(req.user.userId);
-    user.loginHistory.push({ timestamp: new Date() });
-    await user.save();
+    // const user = await User.findById(req.user.userId);
+    // user.loginHistory.push({ timestamp: new Date() });
+    // await user.save();
 
     next();
   } catch (error) {
     // Token is invalid or expired, try to refresh it
     if (error.name === 'TokenExpiredError') {
-      const refreshToken = req.header('X-Refresh-Token'); // Get refresh token from header
+      const refreshToken = req.header('X--Refresh-Token');
       if (!refreshToken) {
         return res.status(401).json({ message: 'Refresh token missing.' });
       }
+      try {
+        const decodedRefreshToken = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+        const user = await User.findById(decodedRefreshToken.userId);
 
-      jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, user) => {
-        if (err) {
-          return res.status(403).json({ message: 'Invalid refresh token.' });
+        if (!user) {
+          return res.status(404).json({ message: 'User not found'}); 
         }
-
         // Generate new access token
         const newAccessToken = jwt.sign(
-          { userId: user.userId, role: user.role }, // Assuming userId and role are in the refresh token payload
+          { userId: user._id, role: user.role},
           process.env.JWT_SECRET,
-          { expiresIn: process.env.JWT_EXPIRES_IN || '4h' }
+          { expiresIn: process.env.JWT_EXPIRES_IN || '4h'}
         );
 
         // Send new access token in the response header
-        res.setHeader('Authorization', `Bearer ${newAccessToken}`); 
+        res.setHeader('Authorization', `Bearer ${newAccessToken}`);
 
-        // Continue with the original request using the new access token
-        req.headers['authorization'] = `Bearer ${newAccessToken}`;
-        req.user = user;
+        // COntinue with the original request using the new access token
+        req.headers['authorization'] =`Bearer ${newAccessToken}`;
+        req.user = { userId: user._id, role: user.role};
         next();
-      });
+      }
+      catch (refreshError) {
+        return res.status(403).json({ message: 'Invalid refresh token'});
+      }
     } else {
-      // Other token verification errors
-      return res.status(403).json({ message: 'Invalid token.' });
+      // Otter token verification errors
+      return res.status(403).json({ message: 'Invalid token'});
     }
   }
 }
