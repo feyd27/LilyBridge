@@ -27,12 +27,18 @@ DallasTemperature sensors(&oneWire);
 
 // Wi-Fi information
 
-#define WIFI_SSID "HUAWEI-B315-D4C8"
-#define WIFI_PASSWORD "T9DFD1H4RDJ"
+//#define WIFI_SSID "TerryNet"
+//#define WIFI_PASSWORD "Abulafi10081976"
+
+#define WIFI_SSID "ZTE_9AF407"
+#define WIFI_PASSWORD "2B32EX7237"
+
+//#define WIFI_SSID "moto g(60)_9853"
+//#define WIFI_PASSWORD "motopass"
 
 // Time server config
 
-const char* ntpServer = "pool.ntp.org";
+const char* ntpServer = "time.nist.gov";
 const long  gmtOffset_sec = 3600;
 const int   daylightOffset_sec = 3600;
 
@@ -56,10 +62,10 @@ TimerHandle_t mqttReconnectTimer;
 TimerHandle_t wifiReconnectTimer;
 
 unsigned long previousMillis = 0;   // Stores last time temperature was published
-const long interval = 600000;         // Interval at which to publish sensor readings
+const long interval = 60000;         // Interval at which to publish sensor readings
 
 unsigned long previousStatusCheckMillis = 0;
-const long statusCheckInterval = 600000;  // Check status every 600 seconds
+const long statusCheckInterval = 60000;  // Check status every 600 seconds
 
 int i = 0;
 

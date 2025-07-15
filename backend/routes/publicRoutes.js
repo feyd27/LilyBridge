@@ -4,6 +4,9 @@ const mongoose = require('mongoose');
 const moment = require('moment');
 const MqttMessage = require('../models/message');
 const logger = require('../services/logger');
+const jwt     = require('jsonwebtoken');
+const User    = require('../models/user');
+logger.log('🛣️  publicRoutes.js loaded');
 /**
  * @swagger
  * /api/public/api/messages/temperature/last50:
@@ -131,5 +134,99 @@ router.get('/api/messages/status/last', async (req, res) => {
 
 
 
-// Export
+/**
+ * @swagger
+ * /api/public/refresh:
+ *   post:
+ *     summary: Issue a new access token given a valid refresh token
+ *     tags:
+ *       - Public
+ *     description: |
+ *       Provide your refresh token (either in the `X-Refresh-Token` header
+ *       or in the JSON body) and receive a fresh access token (4h lifespan).
+ *       No Bearer header is required on this route.
+ *     parameters:
+ *       - in: header
+ *         name: X-Refresh-Token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Your current refresh token
+ *     requestBody:
+ *       description: |
+ *         Alternatively, send the refresh token in the JSON body, for example:
+ *         {"refreshToken":"<token>"}
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 description: Refresh token (if not using the header)
+ *     responses:
+ *       200:
+ *         description: New access token issued
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                   description: Fresh JWT access token (4h lifespan)
+ *       400:
+ *         description: Missing refresh token
+ *       403:
+ *         description: Invalid or expired refresh token
+ *       404:
+ *         description: User not found for that token payload
+ */
+router.post('/refresh', async (req, res) => {
+  // first check header, then body
+  logger.log('🔄  [publicRoutes] refresh route registered');
+
+  const incomingRefresh =
+    (req.header('X-Refresh-Token') || '').trim() ||
+    req.body.refreshToken;
+    logger.log(req)
+  if (!incomingRefresh) {
+    return res
+      .status(400)
+      .json({ message: 'Refresh token required' });
+  }
+
+  let payload;
+  try {
+    // only verify against the refresh secret
+    payload = jwt.verify(
+      incomingRefresh,
+      process.env.JWT_REFRESH_SECRET
+    );
+  } catch (err) {
+    return res
+      .status(403)
+      .json({ message: 'Invalid or expired refresh token' });
+  }
+
+  // 2️⃣ Lookup user and compare stored token
+  const user = await User.findById(payload.userId);
+  if (!user || user.refreshToken !== incomingRefresh) {
+    return res
+      .status(403)
+      .json({ message: 'Refresh token not recognized' });
+  }
+
+  // 3️⃣ Issue a new access token
+  const newAccessToken = jwt.sign(
+    { userId: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN || '4h' }
+  );
+
+  return res.json({ accessToken: newAccessToken });
+});
+
 module.exports = router;
+

@@ -1,6 +1,6 @@
 // temperature.js
 
-
+import { fetchWithAuth } from "./authFetch.js";
 document.addEventListener('DOMContentLoaded', () => {
     const pageSizeSelect = document.getElementById('pageSize');
     const prevPageBtn = document.getElementById('prevPage');
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // } else {
         //   console.log('Access token not found.');
         // }
-        fetch('/api/auth/status', {
+        fetchWithAuth('/api/auth/status', {
             headers: {
                 'Authorization': `Bearer ${token}`  // Add Authorization header
             }
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // } else {
             // console.log('Access token not found.');
             // }
-        fetch(`/api/mqtt/api/messages/temperature?page=${currentPage}&limit=${pageSize}`, {
+        fetchWithAuth(`/api/mqtt/api/messages/temperature?page=${currentPage}&limit=${pageSize}`, {
             headers: {
                 'Authorization': `Bearer ${token}`  // Add Authorization header
             }

@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
@@ -14,9 +15,11 @@ const viewsRoutes = require('./routes/viewsRoutes');
 const userSettingsRoutes = require('./routes/userSettingsRoutes');
 const authMiddleware = require('./middleware/authMiddleware');
 const expressLayouts = require('express-ejs-layouts');
+const cors = require('cors');
 // const jwt = require('jsonwebtoken'); // Make sure to import jsonwebtoken
 require('./services/mqttService');
 require('./db');
+
 
 // Connect to the database
 connectToDatabase();
@@ -28,6 +31,11 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
 app.use(cookieParser());
+app.use(cors()); 
+// Serve favicon.ico explicitly before auth middleware
+app.get('/frontend/images/favicon.ico', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/images/favicon.ico'));
+});
 
 
 // Serve static files
@@ -74,7 +82,7 @@ app.use((req, res, next) =>  {
 
 // Routes (without authentication)
 
-app.use('/api/auth', authRoutes); 
+app.use('/api/auth', cors(), authRoutes); 
 app.use('/api/public', publicRoutes);  
 app.use('/api/mqtt', mqttRoutes);
 app.use('/api/protected', protectedRoutes); 
@@ -115,7 +123,7 @@ const swaggerOptions = {
 };
 // Initialize Swagger docs
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, { deepLinking: false, explorer: true}));
 
 // Start the server
 const PORT = process.env.PORT || 3000;
