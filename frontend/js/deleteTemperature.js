@@ -1,5 +1,5 @@
 // deleteTemperature.js
-
+import { fetchWithAuth } from './authFetch.js';
 document.addEventListener('DOMContentLoaded', () => {
     const pageSizeSelect = document.getElementById('pageSize');
     const prevPageBtn = document.getElementById('prevPage');
@@ -16,12 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
     function checkAuthentication() {
         const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
-            // if (token) {
-            //   console.log('Access token:', token);
-            // } else {
-            //   console.log('Access token not found.');
-            // }
-            fetch('/api/auth/status', {
+            fetchWithAuth('/api/auth/status', {
                 headers: {
                     'Authorization': `Bearer ${token}`  // Add Authorization header
                 }
@@ -46,12 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function fetchAndDisplayMessages() {
         console.log(`Fetching page ${currentPage} with page size ${pageSize}`);
         const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
-            // if (token) {
-            // console.log('Access token:', token);
-            // } else {
-            // console.log('Access token not found.');
-            // }
-        fetch(`/api/mqtt/api/messages/temperature?page=${currentPage}&limit=${pageSize}`, {
+        fetchWithAuth(`/api/mqtt/api/messages/temperature?page=${currentPage}&limit=${pageSize}`, {
             headers: {
                 'Authorization': `Bearer ${token}`  // Add Authorization header
             }
@@ -140,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const ids = checkedBoxes.map(box => box.value);
             console.log(`Deleting selected messages with IDs: ${ids}`);
             const token = localStorage.getItem('accessToken');
-            fetch('/api/mqtt/api/messages/temperature', {
+            fetchWithAuth('/api/mqtt/api/messages/temperature', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
                 body: JSON.stringify({ ids })
