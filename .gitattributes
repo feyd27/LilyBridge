@@ -1,0 +1,2 @@
+# enforce LF in the repo; convert CRLF→LF on commit
+* text=auto eol=lf
