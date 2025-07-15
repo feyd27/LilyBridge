@@ -185,7 +185,7 @@ router.get('/api/messages/status/last', async (req, res) => {
  */
 router.post('/refresh', async (req, res) => {
   // first check header, then body
-  logger.log('🔄  [publicRoutes] refresh route registered');
+  // logger.log('🔄  [publicRoutes] refresh route registered');
 
   const incomingRefresh =
     (req.header('X-Refresh-Token') || '').trim() ||
