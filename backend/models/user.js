@@ -25,6 +25,10 @@ const userSchema = new mongoose.Schema({
         default: 'user', // Default role
         required: true,
     },
+    refreshToken: {
+        type: String,
+        default: null
+    },
     verificationToken: {
         type: String
     },
