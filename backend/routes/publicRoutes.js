@@ -187,7 +187,7 @@ router.post('/refresh', async (req, res) => {
    const incomingRefresh =
     (req.header('X-Refresh-Token') || '').trim() ||
     req.body.refreshToken;
-    logger.log(req)
+   //  logger.log(req)
   if (!incomingRefresh) {
     return res
       .status(400)
