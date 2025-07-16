@@ -5,25 +5,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextPageBtn = document.getElementById('nextPage');
     const paginationInfo = document.getElementById('paginationInfo');
 
-    function checkAuthentication() {
-        const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
-        fetchWithAuth('/api/auth/status', {
-            headers: {
-                'Authorization': `Bearer ${token}`  // Add Authorization header
-            }
-        })
-          .then(response => {
-            if (!response.ok) {
-              window.location.href = '/login';
-            }
-          })
-          .catch(error => {
-            console.error('Error checking authentication status:', error);
-            // Handle the error, e.g., show an error message or redirect to login
-          });
-      }
+    // function checkAuthentication() {
+    //     const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
+    //     fetchWithAuth('/api/auth/status', {
+    //         headers: {
+    //             'Authorization': `Bearer ${token}`  // Add Authorization header
+    //         }
+    //     })
+    //       .then(response => {
+    //         if (!response.ok) {
+    //           window.location.href = '/login';
+    //         }
+    //       })
+    //       .catch(error => {
+    //         console.error('Error checking authentication status:', error);
+    //         // Handle the error, e.g., show an error message or redirect to login
+    //       });
+    //   }
       
-    checkAuthentication();
+    // checkAuthentication();
 
     let currentPage = 1;
     let pageSize = parseInt(pageSizeSelect.value);

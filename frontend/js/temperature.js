@@ -8,24 +8,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const paginationInfo = document.getElementById('paginationInfo');
     const container = document.querySelector('#temperatureMessagesContainer tbody');
    
-    function checkAuthentication() {
-        const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
-        fetchWithAuth('/api/auth/status', {
-            headers: {
-                'Authorization': `Bearer ${token}`  // Add Authorization header
-            }
-        })
-          .then(response => {
-            if (!response.ok) {
-              window.location.href = '/login';
-            }
-          })
-          .catch(error => {
-            console.error('Error checking authentication status:', error);
-          });
-      }
+    // function checkAuthentication() {
+    //     const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
+    //     fetchWithAuth('/api/auth/status', {
+    //         headers: {
+    //             'Authorization': `Bearer ${token}`  // Add Authorization header
+    //         }
+    //     })
+    //       .then(response => {
+    //         if (!response.ok) {
+    //           window.location.href = '/login';
+    //         }
+    //       })
+    //       .catch(error => {
+    //         console.error('Error checking authentication status:', error);
+    //       });
+    //   }
       
-    checkAuthentication();
+    // checkAuthentication();
 
     let currentPage = 1;
     let pageSize = parseInt(pageSizeSelect.value);
