@@ -10,11 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
    
     function checkAuthentication() {
         const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
-        // if (token) {
-        //   console.log('Access token:', token);
-        // } else {
-        //   console.log('Access token not found.');
-        // }
         fetchWithAuth('/api/auth/status', {
             headers: {
                 'Authorization': `Bearer ${token}`  // Add Authorization header
@@ -27,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
           })
           .catch(error => {
             console.error('Error checking authentication status:', error);
-            // Handle the error, e.g., show an error message or redirect to login
           });
       }
       
@@ -39,11 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function fetchAndDisplayMessages() {
         const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
-            // if (token) {
-            // console.log('Access token:', token);
-            // } else {
-            // console.log('Access token not found.');
-            // }
         fetchWithAuth(`/api/mqtt/api/messages/temperature?page=${currentPage}&limit=${pageSize}`, {
             headers: {
                 'Authorization': `Bearer ${token}`  // Add Authorization header

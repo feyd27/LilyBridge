@@ -16,7 +16,6 @@ const userSettingsRoutes = require('./routes/userSettingsRoutes');
 const authMiddleware = require('./middleware/authMiddleware');
 const expressLayouts = require('express-ejs-layouts');
 const cors = require('cors');
-// const jwt = require('jsonwebtoken'); // Make sure to import jsonwebtoken
 require('./services/mqttService');
 require('./db');
 
@@ -57,7 +56,6 @@ app.use((req, res, next) => {
 app.use('/', viewsRoutes); 
 
 app.use((req, res, next) =>  {
-   // console.log('Request path:',req.path);
     const publicPaths = [
         '/',
         '/api/auth/login',

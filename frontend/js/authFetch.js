@@ -84,7 +84,4 @@ export async function fetchWithAuth(input, init = {}) {
   return res;
 }
 
-// OPTIONALLY, if you really want *all* fetch() calls to go through here,
-// uncomment the next line—but only after you’ve verified everything.
-//
-// window.fetch = fetchWithAuth;
+

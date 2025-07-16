@@ -184,10 +184,7 @@ router.get('/api/messages/status/last', async (req, res) => {
  *         description: User not found for that token payload
  */
 router.post('/refresh', async (req, res) => {
-  // first check header, then body
-  // logger.log('🔄  [publicRoutes] refresh route registered');
-
-  const incomingRefresh =
+   const incomingRefresh =
     (req.header('X-Refresh-Token') || '').trim() ||
     req.body.refreshToken;
     logger.log(req)
