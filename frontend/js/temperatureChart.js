@@ -1,3 +1,5 @@
+import { fetchWithAuth } from './authFetch.js';
+
 let temperatureChartInstance = null;
 
 // Function to create the temperature chart
@@ -70,7 +72,7 @@ function createTemperatureChart(data) {
 // Fetch the last 50 temperature messages and create a chart
 document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('accessToken'); 
-    fetch('/api/public/api/messages/temperature/last50')
+    fetchWithAuth('/api/public/api/messages/temperature/last50')
         .then(response => response.json())
         .then(data => {
             if (!Array.isArray(data) || data.length === 0)
