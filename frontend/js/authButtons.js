@@ -1,63 +1,50 @@
+// public/js/authButtons.js
+import { fetchWithAuth } from './authFetch.js';
+
 document.addEventListener('DOMContentLoaded', () => {
-    const loginButton = document.getElementById('loginButton');
-    const logoutButton = document.getElementById('logoutButton');
+  const loginButton  = document.getElementById('loginButton');
+  const logoutButton = document.getElementById('logoutButton');
+  
+  // If we’re on the login page, bail out immediately:
+  if (window.location.pathname === '/login') return;
 
-    // Function to update button visibility
-    function updateButtonVisibility(isAuthenticated) {
-        // console.log('Is authenticated', isAuthenticated);
-        if (isAuthenticated) {
-            loginButton.style.display = 'none';
-            logoutButton.style.display = 'block';
-        } else {
-            loginButton.style.display = 'block';
-            logoutButton.style.display = 'none';
-        }
-    }
-
-    // Fetch initial authentication state from the server
-  function fetchAuthStatus() {
-    const token = localStorage.getItem('accessToken'); // Get token
-    fetch('/api/auth/status', {
-      headers: {
-        'Authorization': token ? `Bearer ${token}` : '' // Add token if available
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      updateButtonVisibility(data.isAuthenticated);
-    })
-    .catch(error => console.error('Error checking authentication status:', error));
+  function updateButtonVisibility(isAuthenticated) {
+    loginButton.style.display  = isAuthenticated ? 'none'  : 'block';
+    logoutButton.style.display = isAuthenticated ? 'block' : 'none';
   }
 
-  fetchAuthStatus(); // Call it initially
+  async function fetchAuthStatus() {
+    try {
+      const res = await fetchWithAuth('/api/auth/status');
+      if (res.ok) {
+        const { isAuthenticated } = await res.json();
+        updateButtonVisibility(!!isAuthenticated);
+      } else {
+        updateButtonVisibility(false);
+      }
+    } catch (err) {
+      console.error('Auth check failed:', err);
+      updateButtonVisibility(false);
+    }
+  }
 
-    // Handle login button click
-    loginButton.addEventListener('click', () => {
-        window.location.href = '/login';
-    });
+  fetchAuthStatus();
 
-    // Handle logout button click
-    logoutButton.addEventListener('click', async () => {
-        try {
-            const token = localStorage.getItem('accessToken');
-            const response = await fetch('/api/auth/logout', { 
-                method: 'POST',
-                headers: {
-                    'Authorization': token ? `Bearer ${token}` : '', // Add it to the header
-                    'Content-Type': 'application/json', // You might need this
-                },
-             });
-            if (response.ok) {
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken'); 
-                // alert('You have been logged out.');
-                updateButtonVisibility(false);
-                window.location.href = '/logout-confirmation';
-            } else {
-                console.error('Logout failed');
-            }
-        } catch (error) {
-            console.error('Error during logout:', error);
-        }
-    });
+  loginButton.addEventListener('click', () => {
+    window.location.href = '/login';
+  });
+
+  logoutButton.addEventListener('click', async () => {
+    try {
+      const res = await fetchWithAuth('/api/auth/logout', { method: 'POST' });
+      if (res.ok) {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        updateButtonVisibility(false);
+        window.location.href = '/logout-confirmation';
+      }
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  });
 });

@@ -1,5 +1,5 @@
 // frontend/js/authCheck.js
-
+import { fetchWithAuth } from './authFetch.js';
 function checkAuthentication() {
     const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
     if (token) {
@@ -7,7 +7,7 @@ function checkAuthentication() {
     } else {
       console.log('Access token not found.');
     }
-    fetch('/api/auth/status', {
+    fetchWithAuth('/api/auth/status', {
         headers: {
             'Authorization': `Bearer ${token}`  // Add Authorization header
         }
