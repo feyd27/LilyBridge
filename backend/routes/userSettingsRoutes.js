@@ -43,6 +43,16 @@ const User = require('../models/user'); // Import the User model
  *                       type: boolean
  *                       description: Whether the MQTT broker is private
  *                       example: true
+ *                 iotaAddress:
+ *                   type: string
+ *                   nullable: true
+ *                   description: User’s IOTA on-chain address
+ *                   example: "atoi1qz0..."
+ *                 signumAddress:
+ *                   type: string
+ *                   nullable: true
+ *                   description: User’s Signum on-chain address
+ *                   example: "S-ABC1-DEF2-..."
  *                 loginHistory:
  *                   type: array
  *                   description: Login history of the user
@@ -66,87 +76,134 @@ const User = require('../models/user'); // Import the User model
  *       500:
  *         description: Error fetching user settings
  */
+router.get('/me', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const settings = {
+      username: user.username,
+      mqttBroker: user.mqttBroker,
+      iotaAddress: user.iotaAddress || null,
+      signumAddress: user.signumAddress || null,
+      loginHistory: user.loginHistory,
+      passwordResetHistory: user.passwordResetHistory
+    };
+    res.json(settings);
+  } catch (error) {
+    console.error('Error fetching user settings:', error);
+    res.status(500).json({ message: 'Error fetching user settings' });
+  }
+});
 
 /**
  * @swagger
  * /api/settings/me:
- *   put:
+ *   patch:
  *     summary: Update user settings
  *     tags: [Settings]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
+ *       description: Send any subset of the following fields to update just those parts of your settings.
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               username:
- *                 type: string
- *                 description: New username for the user
- *                 example: "newuser@example.com"
  *               mqttBroker:
  *                 type: object
+ *                 nullable: true
+ *                 description: MQTT broker configuration (omit or set to `null` to clear)
  *                 properties:
  *                   address:
  *                     type: string
- *                     description: New address of the MQTT broker
- *                     example: "mqtt://newbroker.example.com"
+ *                     example: "mqtt://broker.example.com"
  *                   username:
  *                     type: string
- *                     description: New username for the MQTT broker
- *                     example: "newmqttuser"
+ *                     example: "mqttuser"
  *                   password:
  *                     type: string
- *                     description: New password for the MQTT broker
- *                     example: "newmqttpassword"
+ *                     example: "mqttpassword"
  *                   isPrivate:
  *                     type: boolean
- *                     description: Whether the new MQTT broker is private
- *                     example: false
+ *                     example: true
+ *               iotaAddress:
+ *                 type: string
+ *                 nullable: true
+ *                 description: User's IOTA address (omit or set to `null` to clear)
+ *                 example: "atoi1qyqszqgpqy..."
+ *               signumAddress:
+ *                 type: string
+ *                 nullable: true
+ *                 description: User's Signum address (omit or set to `null` to clear)
+ *                 example: "S-ABCD-EFGH-IJKL-MNOP"
  *     responses:
  *       200:
- *         description: User settings updated successfully
+ *         description: Settings updated successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 message:
+ *                 mqttBroker:
+ *                   $ref: '#/components/schemas/MqttBroker'
+ *                 iotaAddress:
  *                   type: string
- *                   example: "User settings updated successfully"
+ *                   nullable: true
+ *                 signumAddress:
+ *                   type: string
+ *                   nullable: true
  *       400:
- *         description: Invalid input data
+ *         description: Invalid request payload
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
  *       500:
- *         description: Error updating user settings
+ *         description: Server error while updating settings
  */
 
-// Get user settings
-router.get('/me', authMiddleware, async (req, res) => {
-    try {
-        const user = await User.findById(req.user.userId);
-        // Select the data you want to send to the frontend
-        const settings = {
-            username: user.username,
-            mqttBroker: user.mqttBroker,
-            loginHistory: user.loginHistory,
-            passwordResetHistory: user.passwordResetHistory
-        };
-        res.json(settings);
-    } catch (error) {
-        console.error('Error fetching user settings:', error);
-        res.status(500).json({ message: 'Error fetching user settings' });
-    }
-});
 
-// Update user settings (you'll need to implement this based on your settings structure)
-router.put('/me', authMiddleware, async (req, res) => {
-    try {
-        //... logic to update user settings...
-    } catch (error) {
-        //... error handling...
+router.patch('/me', authMiddleware, async (req, res) => {
+  try {
+    const updates = {};
+    // Only pick allowed fields if present
+    if (req.body.mqttBroker !== undefined) {
+      updates.mqttBroker = req.body.mqttBroker;
     }
+    if (req.body.iotaAddress !== undefined) {
+      updates.iotaAddress = req.body.iotaAddress;
+    }
+    if (req.body.signumAddress !== undefined) {
+      updates.signumAddress = req.body.signumAddress;
+    }
+
+    // If nothing to update, 400
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: 'No valid fields provided for update' });
+    }
+
+    // Find-and-update
+    const user = await User.findByIdAndUpdate(
+      req.user.userId,
+      { $set: updates },
+      { new: true, runValidators: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Respond with the new settings subset
+    res.json({
+      mqttBroker:   user.mqttBroker,
+      iotaAddress:  user.iotaAddress,
+      signumAddress:user.signumAddress
+    });
+  } catch (err) {
+    console.error('Error updating settings:', err);
+    res.status(500).json({ message: 'Error updating settings' });
+  }
 });
 
 module.exports = router;

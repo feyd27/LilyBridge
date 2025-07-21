@@ -42,9 +42,13 @@ const userSchema = new mongoose.Schema({
     }],
     passwordResetHistory: [{ 
       timestamp: { type: Date, default: Date.now } 
-    }]
+    }],
+    // ← NEW FIELDS →
+  iotaAddress:        { type: String, default: null },
+  signumAddress:      { type: String, default: null },
+  encryptedPassphrase:{ type: String, default: null },   
+  passphraseSalt:     { type: String, default: null }    
+}, {
+  timestamps: true
 });
-
-
-
 module.exports = mongoose.model('User', userSchema);
