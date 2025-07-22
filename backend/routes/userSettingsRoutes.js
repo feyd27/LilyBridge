@@ -24,8 +24,13 @@ const User = require('../models/user'); // Import the User model
  *                   type: string
  *                   description: Username of the user
  *                   example: user@example.com
+ *                 role:
+ *                   type: string
+ *                   description: Role assigned to the user
+ *                   example: user
  *                 mqttBroker:
  *                   type: object
+ *                   description: MQTT broker configuration
  *                   properties:
  *                     address:
  *                       type: string
@@ -43,16 +48,6 @@ const User = require('../models/user'); // Import the User model
  *                       type: boolean
  *                       description: Whether the MQTT broker is private
  *                       example: true
- *                 iotaAddress:
- *                   type: string
- *                   nullable: true
- *                   description: User’s IOTA on-chain address
- *                   example: "atoi1qz0..."
- *                 signumAddress:
- *                   type: string
- *                   nullable: true
- *                   description: User’s Signum on-chain address
- *                   example: "S-ABC1-DEF2-..."
  *                 loginHistory:
  *                   type: array
  *                   description: Login history of the user
@@ -79,14 +74,15 @@ const User = require('../models/user'); // Import the User model
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId);
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
     const settings = {
-      username: user.username,
-      mqttBroker: user.mqttBroker,
-      iotaAddress: user.iotaAddress || null,
-      signumAddress: user.signumAddress || null,
-      loginHistory: user.loginHistory,
+      username:             user.username,
+      role:                 user.role,              
+      mqttBroker:           user.mqttBroker,
+      loginHistory:         user.loginHistory,
       passwordResetHistory: user.passwordResetHistory
     };
     res.json(settings);
@@ -95,6 +91,7 @@ router.get('/me', authMiddleware, async (req, res) => {
     res.status(500).json({ message: 'Error fetching user settings' });
   }
 });
+
 
 /**
  * @swagger
