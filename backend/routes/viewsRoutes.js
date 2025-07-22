@@ -63,5 +63,9 @@ router.get('/verify-email', (req, res) => {
   res.render('verifyEmail', { title: 'Verify Email' });
 });
 
+// Route to render user settings page
+router.get('/user-settings', (req, res) => {
+  res.render('userSettings', { title: 'User Settings'});
+});
 // Export
 module.exports = router;

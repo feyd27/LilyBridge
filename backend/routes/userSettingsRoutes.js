@@ -97,12 +97,11 @@ router.get('/me', authMiddleware, async (req, res) => {
  * @swagger
  * /api/settings/me:
  *   patch:
- *     summary: Update user settings
+ *     summary: Update the authenticated user’s settings
  *     tags: [Settings]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
- *       description: Send any subset of the following fields to update just those parts of your settings.
  *       required: true
  *       content:
  *         application/json:
@@ -111,96 +110,56 @@ router.get('/me', authMiddleware, async (req, res) => {
  *             properties:
  *               mqttBroker:
  *                 type: object
- *                 nullable: true
- *                 description: MQTT broker configuration (omit or set to `null` to clear)
  *                 properties:
- *                   address:
- *                     type: string
- *                     example: "mqtt://broker.example.com"
- *                   username:
- *                     type: string
- *                     example: "mqttuser"
- *                   password:
- *                     type: string
- *                     example: "mqttpassword"
- *                   isPrivate:
- *                     type: boolean
- *                     example: true
+ *                   address:   { type: string }
+ *                   username:  { type: string, nullable: true }
+ *                   password:  { type: string, nullable: true }
+ *                   isPrivate: { type: boolean }
  *               iotaAddress:
  *                 type: string
  *                 nullable: true
- *                 description: User's IOTA address (omit or set to `null` to clear)
- *                 example: "atoi1qyqszqgpqy..."
  *               signumAddress:
  *                 type: string
  *                 nullable: true
- *                 description: User's Signum address (omit or set to `null` to clear)
- *                 example: "S-ABCD-EFGH-IJKL-MNOP"
+ *             example:
+ *               mqttBroker:
+ *                 address: "mqtt://broker.example.com"
+ *                 username: "mqttuser"
+ *                 password: "mqttpass"
+ *                 isPrivate: true
+ *               iotaAddress: "atoi1qxyz..."
+ *               signumAddress: "S-ABCDE-12345"
  *     responses:
  *       200:
- *         description: Settings updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 mqttBroker:
- *                   $ref: '#/components/schemas/MqttBroker'
- *                 iotaAddress:
- *                   type: string
- *                   nullable: true
- *                 signumAddress:
- *                   type: string
- *                   nullable: true
+ *         description: Settings updated
  *       400:
- *         description: Invalid request payload
+ *         description: Bad payload
  *       401:
- *         $ref: '#/components/responses/Unauthorized'
+ *         description: Not authenticated
  *       500:
- *         description: Server error while updating settings
+ *         description: Server error
  */
-
-
-router.patch('/me', authMiddleware, async (req, res) => {
-  try {
+router.patch(
+  '/me',
+  authMiddleware,
+  async (req, res) => {
     const updates = {};
-    // Only pick allowed fields if present
-    if (req.body.mqttBroker !== undefined) {
-      updates.mqttBroker = req.body.mqttBroker;
+    if (req.body.mqttBroker)   updates.mqttBroker   = req.body.mqttBroker;
+    if (req.body.iotaAddress)  updates.iotaAddress  = req.body.iotaAddress;
+    if (req.body.signumAddress)updates.signumAddress= req.body.signumAddress;
+    try {
+      const user = await User.findByIdAndUpdate(
+        req.user.userId,
+        { $set: updates },
+        { new: true, runValidators: true }
+      );
+      return res.json({ message: 'Settings saved', user });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: 'Unable to update settings' });
     }
-    if (req.body.iotaAddress !== undefined) {
-      updates.iotaAddress = req.body.iotaAddress;
-    }
-    if (req.body.signumAddress !== undefined) {
-      updates.signumAddress = req.body.signumAddress;
-    }
-
-    // If nothing to update, 400
-    if (Object.keys(updates).length === 0) {
-      return res.status(400).json({ message: 'No valid fields provided for update' });
-    }
-
-    // Find-and-update
-    const user = await User.findByIdAndUpdate(
-      req.user.userId,
-      { $set: updates },
-      { new: true, runValidators: true }
-    );
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Respond with the new settings subset
-    res.json({
-      mqttBroker:   user.mqttBroker,
-      iotaAddress:  user.iotaAddress,
-      signumAddress:user.signumAddress
-    });
-  } catch (err) {
-    console.error('Error updating settings:', err);
-    res.status(500).json({ message: 'Error updating settings' });
   }
-});
+);
+
 
 module.exports = router;
