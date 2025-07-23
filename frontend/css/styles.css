@@ -372,3 +372,81 @@ footer {
   width: 100%; /* Full width */
   z-index: 10; /* Ensure it stays above other elements if necessary */
 }
+/* ─── User Settings Form ─────────────────────────────────────────────────── */
+
+/* Container around the entire form */
+#settingsForm {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+  margin: 2rem auto; /* center & give breathing room */
+}
+
+/* Each fieldset section */
+#settingsForm fieldset {
+  border: 1px solid #e1e4e8;       /* matches table border */
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  background-color: #fdfdfe;       /* very light off-white */
+}
+
+/* Legend styling */
+#settingsForm legend {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e3a5f;                   /* your dark-blue heading color */
+  padding: 0 0.5rem;
+}
+
+/* Labels & inputs */
+#settingsForm label {
+  display: block;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  color: #1e3a5f;
+}
+
+/* Text, URL & password inputs */
+#settingsForm label input[type="text"],
+#settingsForm label input[type="url"],
+#settingsForm label input[type="password"] {
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  color: #333333;
+}
+
+/* Checkbox spacing */
+#settingsForm label input[type="checkbox"] {
+  margin-right: 0.5rem;
+  transform: scale(1.2);
+}
+
+/* Make the submit button full-width and spaced */
+#settingsForm button[type="submit"] {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+/* Responsive two-column layout on larger screens */
+@media (min-width: 768px) {
+  #settingsForm fieldset {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  /* by default each label/input pair takes ~45% of width */
+  #settingsForm label {
+    flex: 1 1 45%;
+  }
+  /* if you need a field to span the full width, add .full-width to its <label> */
+  #settingsForm label.full-width {
+    flex: 1 1 100%;
+  }
+}
