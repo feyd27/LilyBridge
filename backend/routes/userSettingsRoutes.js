@@ -28,6 +28,14 @@ const User = require('../models/user'); // Import the User model
  *                   type: string
  *                   description: Role assigned to the user
  *                   example: user
+ *                 iotaAddress:
+ *                   type: string
+ *                   description: User's IOTA wallet address
+ *                   example: "atoi1qz0h5...k2dj4"
+ *                 signumAddress:
+ *                   type: string
+ *                   description: User's Signum wallet address
+ *                   example: "S-abcdef1234567890"
  *                 mqttBroker:
  *                   type: object
  *                   description: MQTT broker configuration
@@ -68,6 +76,8 @@ const User = require('../models/user'); // Import the User model
  *                         type: string
  *                         format: date-time
  *                         description: Timestamp of the password reset event
+ *       404:
+ *         description: User not found
  *       500:
  *         description: Error fetching user settings
  */
@@ -80,17 +90,21 @@ router.get('/me', authMiddleware, async (req, res) => {
 
     const settings = {
       username:             user.username,
-      role:                 user.role,              
+      role:                 user.role,
+      iotaAddress:          user.iotaAddress || null,
+      signumAddress:        user.signumAddress || null,
       mqttBroker:           user.mqttBroker,
       loginHistory:         user.loginHistory,
       passwordResetHistory: user.passwordResetHistory
     };
+
     res.json(settings);
   } catch (error) {
     console.error('Error fetching user settings:', error);
     res.status(500).json({ message: 'Error fetching user settings' });
   }
 });
+
 
 
 /**
