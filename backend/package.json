@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@iota/http-client": "^1.0.0-beta.30",
     "cookie-parser": "^1.4.7",
     "dotenv": "^16.6.1",
     "express": "^4.21.0",
