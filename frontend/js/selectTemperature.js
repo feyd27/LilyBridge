@@ -1,4 +1,6 @@
-import { fetchWithAuth } from './authFetch.js';
+// selectTemperature.js
+
+import { fetchWithAuth } from "./authFetch.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     const pageSizeSelect = document.getElementById('pageSize');
@@ -6,12 +8,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextPageBtn = document.getElementById('nextPage');
     const paginationInfo = document.getElementById('paginationInfo');
     const container = document.getElementById('temperatureMessagesContainer');
-    const deleteButton = document.getElementById('deleteSelectedTemperature');
-    const alertContainer = document.getElementById('alertContainer');
+    const batchUploadCheckbox = document.getElementById('batchUpload');
+    const uploadToIotaBtn = document.getElementById('uploadToIotaBtn');
+    const batchStatus = document.getElementById('batchStatus');
     const selectedCount = document.getElementById('selectedCount');
+    const alertContainer = document.getElementById('alertContainer');
 
     let currentPage = 1;
-    let pageSize = parseInt(pageSizeSelect.value, 10);
+    let pageSize = parseInt(pageSizeSelect.value);
     let totalPages = 1;
     let selectedMessages = new Set();
 
@@ -37,10 +41,11 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(response => response.json())
         .then(data => {
             displayTemperatureMessages(data.messages);
-            totalPages = data.totalPages || Math.ceil(data.totalItems / pageSize);
+            totalPages = data.totalPages;
             updatePaginationDisplay(data.totalItems, totalPages, currentPage);
             updateButtonStates();
-            updateDeleteButtonState();
+            updateUploadButtonState();
+            updateSelectedCount();
         })
         .catch(error => console.error('Error fetching temperature messages:', error));
     }
@@ -49,25 +54,29 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = '';
         messages.forEach(message => {
             const row = document.createElement('tr');
+            const isChecked = selectedMessages.has(message._id);
+
             row.innerHTML = `
                 <td>${message.chipID}</td>
                 <td>${message.macAddress}</td>
                 <td>${message.temperature}°C</td>
                 <td>${new Date(message.timestamp).toLocaleString()}</td>
-                <td><input type="checkbox" class="message-checkbox" data-id="${message._id}"></td>
+                <td>
+                    <input type="checkbox" class="message-checkbox" data-id="${message._id}" ${isChecked ? 'checked' : ''} ${batchUploadCheckbox.checked ? 'disabled' : ''}>
+                </td>
             `;
             container.appendChild(row);
         });
 
         container.querySelectorAll('.message-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', (e) => {
-                const id = e.target.dataset.id;
-                if (e.target.checked) selectedMessages.add(id);
-                else selectedMessages.delete(id);
-                updateDeleteButtonState();
+                const messageId = e.target.dataset.id;
+                if (e.target.checked) selectedMessages.add(messageId);
+                else selectedMessages.delete(messageId);
+                updateUploadButtonState();
+                updateSelectedCount();
             });
         });
-        updateSelectedCount();
     }
 
     function updatePaginationDisplay(totalItems, totalPages, currentPage) {
@@ -79,44 +88,63 @@ document.addEventListener('DOMContentLoaded', () => {
         nextPageBtn.disabled = currentPage === totalPages;
     }
 
-    function updateDeleteButtonState() {
-        deleteButton.disabled = selectedMessages.size === 0;
-        updateSelectedCount();
+    function updateUploadButtonState() {
+        const mode = batchUploadCheckbox.checked ? 'batch' : 'selected';
+        const hasSelection = selectedMessages.size > 0;
+        uploadToIotaBtn.disabled = (mode === 'selected' && !hasSelection);
     }
 
     function updateSelectedCount() {
         selectedCount.textContent = `Selected: ${selectedMessages.size} message${selectedMessages.size !== 1 ? 's' : ''}`;
     }
 
-    deleteButton.addEventListener('click', async (event) => {
-        event.preventDefault();
+    batchUploadCheckbox.addEventListener('change', () => {
+        const allRowCheckboxes = container.querySelectorAll('.message-checkbox');
+        if (batchUploadCheckbox.checked) {
+            allRowCheckboxes.forEach(cb => cb.disabled = true);
+            batchStatus.style.display = 'inline';
+        } else {
+            allRowCheckboxes.forEach(cb => cb.disabled = false);
+            batchStatus.style.display = 'none';
+        }
+        updateUploadButtonState();
+        updateSelectedCount();
+    });
+
+    uploadToIotaBtn.addEventListener('click', async () => {
         smoothScrollToTop();
+        const mode = batchUploadCheckbox.checked ? 'batch' : 'selected';
+        const messageIds = mode === 'selected' ? Array.from(selectedMessages) : [];
 
-        if (selectedMessages.size === 0) return;
-        const ids = Array.from(selectedMessages);
+        if (mode === 'selected' && messageIds.length === 0) {
+            showTimedAlert(alertContainer, 'Please select at least one message or enable batch upload.', 'alert');
+            return;
+        }
 
-        const token = localStorage.getItem('accessToken');
         try {
-            const response = await fetchWithAuth('/api/mqtt/api/messages/temperature', {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ ids })
+            const token = localStorage.getItem('accessToken');
+            const response = await fetchWithAuth('/api/upload/iota', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ mode, messageIds })
             });
-            const data = await response.json();
-            if (data.message === 'Temperature messages deleted successfully') {
-                showTimedAlert(alertContainer, "Selected messages deleted successfully.", "success");
-                selectedMessages.clear();
-            } else {
-                showTimedAlert(alertContainer, "Failed to delete messages", "alert");
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            showTimedAlert(alertContainer, "An error occurred while deleting messages.", "alert");
+
+            if (!response.ok) throw new Error(`Upload failed: ${response.statusText}`);
+
+            const result = await response.json();
+            showTimedAlert(alertContainer, `Upload successful! Batches: ${result.batches.length}`, 'success');
+            selectedMessages.clear();
+        } catch (err) {
+            console.error('Upload error:', err);
+            showTimedAlert(alertContainer, 'Upload failed. Please try again.', 'alert');
         }
     });
 
     pageSizeSelect.addEventListener('change', () => {
-        pageSize = parseInt(pageSizeSelect.value, 10);
+        pageSize = parseInt(pageSizeSelect.value);
         currentPage = 1;
         fetchAndDisplayMessages();
     });
