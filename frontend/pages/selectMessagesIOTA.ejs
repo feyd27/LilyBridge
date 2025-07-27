@@ -19,23 +19,32 @@
 </head>
 
 <body>
-  <h1 class="title-align">Delete Status Data</h1>
+  <h1 class="title-align">Sensor Messages - IOTA Upload</h1>
   <br>
 
-  <div id="alertContainer" class="callout success" style="display: none;"></div>
-  <form id="statusForm">
+  <!-- Batch upload option -->
+  <div class="batch-upload-option">
+    <label>
+      <input type="checkbox" id="batchUpload" />
+      Upload all unuploaded messages (batch upload)
+    </label>
+    <span id="batchStatus" class="batch-status" style="display:none;">Batch mode active</span>
+  </div>
+  <br>
+
+  <form id="temperatureUploadForm">
     <table class="custom-table">
       <thead>
         <tr>
           <th>Device ID</th>
-          <th>Address</th>
-          <th>Status</th>
+          <th>MAC</th>
+          <th>Sensor data</th>
           <th>Timestamp</th>
           <th>Select</th>
         </tr>
       </thead>
-      <tbody id="statusMessagesContainer">
-        <!-- Status messages will be dynamically inserted here -->
+      <tbody id="temperatureMessagesContainer">
+        <!-- Temperature messages will be dynamically inserted here -->
       </tbody>
     </table>
 
@@ -57,17 +66,15 @@
 
     <div class="upload-controls text-right" style="margin-top: 1em;">
       <span id="selectedCount" style="margin-right: 10px; font-weight: 500;">Selected: 0 messages</span>
-      <button class="button alert radius" id="deleteSelectedStatus" type="button" disabled>
-        <i class="fas fa-trash-alt"></i> Delete Selected
+      <button class="button success radius" id="uploadToIotaBtn" type="button" disabled>
+        <i class="fas fa-upload"></i> Upload to IOTA
       </button>
     </div>
   </form>
 
+  <script type="module" src="/js/selectTemperature.js"></script>
+  <script src="/js/statusMessage.js"></script>
   <script src="/js/jquery.min.js"></script>
   <script src="/js/foundation.min.js"></script>
-  <script type="module" src="/js/deleteStatus.js"></script>
-  <script src="/js/statusMessage.js"></script>
-  <script src="/js/foundationInit.js"></script>
 </body>
-
 </html>

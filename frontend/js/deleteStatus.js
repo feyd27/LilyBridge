@@ -1,180 +1,137 @@
-// // deleteStatus.js
 import { fetchWithAuth } from "./authFetch.js";
+
 document.addEventListener('DOMContentLoaded', () => {
-    const pageSizeSelect = document.getElementById('pageSize');
-    const prevPageBtn = document.getElementById('prevPage');
-    const nextPageBtn = document.getElementById('nextPage');
-    const paginationInfo = document.getElementById('paginationInfo');
-    const container = document.getElementById('statusMessagesContainer');
-    const deleteButton = document.getElementById('deleteSelectedStatus');
-    const alertContainer = document.getElementById('alertContainer');
+  const pageSizeSelect = document.getElementById('pageSize');
+  const prevPageBtn = document.getElementById('prevPage');
+  const nextPageBtn = document.getElementById('nextPage');
+  const paginationInfo = document.getElementById('paginationInfo');
+  const container = document.getElementById('statusMessagesContainer');
+  const deleteButton = document.getElementById('deleteSelectedStatus');
+  const alertContainer = document.getElementById('alertContainer');
+  const selectedCount = document.getElementById('selectedCount');
 
-    if (!container) {
-        console.error('Error: Container for status messages not found');
-        return;
-    }
+  let currentPage = 1;
+  let pageSize = parseInt(pageSizeSelect.value);
+  let totalPages = 1;
+  let selectedMessages = new Set();
 
-    function checkAuthentication() {
-        const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
-        if (token) {
-          console.log('Access token:', token);
-        } else {
-          console.log('Access token not found.');
-        }
-        fetch('/api/auth/status', {
-            headers: {
-                'Authorization': `Bearer ${token}`  // Add Authorization header
-            }
-        })
-          .then(response => {
-            if (!response.ok) {
-              window.location.href = '/login';
-            }
-          })
-          .catch(error => {
-            console.error('Error checking authentication status:', error);
-            // Handle the error, e.g., show an error message or redirect to login
-          });
+  function smoothScrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function showTimedAlert(container, message, type = 'success') {
+    container.className = `callout ${type} show`;
+    container.textContent = message;
+    container.style.display = 'block';
+    setTimeout(() => {
+      container.style.display = 'none';
+      location.reload();
+    }, 3000);
+  }
+
+  function fetchAndDisplayMessages() {
+    const token = localStorage.getItem('accessToken');
+    fetchWithAuth(`/api/mqtt/api/messages/status?page=${currentPage}&limit=${pageSize}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(response => response.json())
+      .then(data => {
+        displayStatusMessages(data.messages);
+        totalPages = data.totalPages;
+        updatePaginationDisplay(data.totalItems, totalPages, currentPage);
+        updateButtonStates();
+        updateDeleteButtonState();
+      })
+      .catch(error => console.error('Error fetching status messages:', error));
+  }
+
+  function displayStatusMessages(messages) {
+    container.innerHTML = '';
+    messages.forEach(message => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${message.chipID}</td>
+        <td>${message.macAddress}</td>
+        <td>${message.status}</td>
+        <td>${message.timestamp}</td>
+        <td><input type="checkbox" class="message-checkbox" data-id="${message._id}"></td>
+      `;
+      container.appendChild(row);
+    });
+
+    container.querySelectorAll('.message-checkbox').forEach(checkbox => {
+      checkbox.addEventListener('change', e => {
+        const id = e.target.dataset.id;
+        if (e.target.checked) selectedMessages.add(id);
+        else selectedMessages.delete(id);
+        updateDeleteButtonState();
+      });
+    });
+    updateSelectedCount();
+  }
+
+  function updatePaginationDisplay(totalItems, totalPages, currentPage) {
+    paginationInfo.textContent = `Page ${currentPage} of ${totalPages} - Displaying ${Math.min(pageSize, totalItems)} of ${totalItems} messages`;
+  }
+
+  function updateButtonStates() {
+    prevPageBtn.disabled = currentPage === 1;
+    nextPageBtn.disabled = currentPage === totalPages;
+  }
+
+  function updateDeleteButtonState() {
+    deleteButton.disabled = selectedMessages.size === 0;
+    updateSelectedCount();
+  }
+
+  function updateSelectedCount() {
+    selectedCount.textContent = `Selected: ${selectedMessages.size} message${selectedMessages.size !== 1 ? 's' : ''}`;
+  }
+
+  deleteButton.addEventListener('click', async () => {
+    smoothScrollToTop();
+    if (selectedMessages.size === 0) return;
+
+    const ids = Array.from(selectedMessages);
+    const token = localStorage.getItem('accessToken');
+    try {
+      const response = await fetchWithAuth('/api/mqtt/api/messages/status', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ ids })
+      });
+      const data = await response.json();
+      if (data.message === 'Status messages deleted successfully') {
+        showTimedAlert(alertContainer, "Selected messages deleted successfully.", "success");
+        selectedMessages.clear();
+      } else {
+        showTimedAlert(alertContainer, "Failed to delete messages", "alert");
       }
-    checkAuthentication();
-
-
-    let currentPage = 1;
-    let pageSize = parseInt(pageSizeSelect.value);
-    let totalPages = 1;
-
-    function fetchAndDisplayMessages() {
-        console.log(`Fetching page ${currentPage} with page size ${pageSize}`);
-        const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
-            if (token) {
-            console.log('Access token:', token);
-            } else {
-            console.log('Access token not found.');
-            }
-        fetchWithAuth(`/api/mqtt/api/messages/status?page=${currentPage}&limit=${pageSize}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`  // Add Authorization header
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                displayStatusMessages(data.messages);
-                totalPages = data.totalPages;
-                updatePaginationDisplay(data.totalItems, totalPages, currentPage);
-                updateButtonStates();
-            })
-            .catch(error => console.error('Error fetching status messages:', error));
+    } catch (error) {
+      console.error('Error:', error);
+      showTimedAlert(alertContainer, "An error occurred while deleting messages.", "alert");
     }
+  });
 
-    function displayStatusMessages(messages) {
-        container.innerHTML = '';
-        messages.forEach(message => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${message.chipID}</td>
-                <td>${message.macAddress}</td>
-                <td>${message.status}</td>
-                <td>${message.timestamp}</td>
-                <td>
-                    <input type="checkbox" name="selectMessage" value="${message._id}">
-                    <input type="hidden" name="messageId" value="${message._id}">
-                </td>
-            `;
-            container.appendChild(row);
-        });
-    }
-
-    function updatePaginationDisplay(totalItems, totalPages, currentPage) {
-        paginationInfo.textContent = `Page ${currentPage} of ${totalPages} - Displaying ${Math.min(pageSize, totalItems)} of ${totalItems} messages`;
-    }
-
-    function updateButtonStates() {
-        prevPageBtn.disabled = currentPage === 1;
-        nextPageBtn.disabled = currentPage === totalPages;
-    }
-
-    pageSizeSelect.addEventListener('change', () => {
-        pageSize = parseInt(pageSizeSelect.value);
-        currentPage = 1; // Reset to first page when page size changes
-        fetchAndDisplayMessages();
-    });
-
-    // Event listeners for pagination buttons with debug logs
-    nextPageBtn.addEventListener('click', (event) => {
-        event.preventDefault(); // Prevent form submission if inside a form
-        if (currentPage < totalPages) {
-            currentPage++;
-            console.log(`Next page clicked. New currentPage is ${currentPage}`);
-            fetchAndDisplayMessages();
-        }
-    });
-
-    prevPageBtn.addEventListener('click', (event) => {
-        event.preventDefault(); // Prevent form submission if inside a form
-        if (currentPage > 1) {
-            currentPage--;
-            console.log(`Previous page clicked. New currentPage is ${currentPage}`);
-            fetchAndDisplayMessages();
-        }
-    });
-
-    // Initial fetch
+  pageSizeSelect.addEventListener('change', () => {
+    pageSize = parseInt(pageSizeSelect.value);
+    currentPage = 1;
     fetchAndDisplayMessages();
+  });
 
-    if (deleteButton) {
-        deleteButton.addEventListener('click', (event) => {
-            event.preventDefault();
-
-            const checkedBoxes = Array.from(document.querySelectorAll('#statusMessagesContainer input[name="selectMessage"]:checked'));
-            if (checkedBoxes.length === 0) {
-                showAlert("Please select at least one message to delete.", "alert");
-                setTimeout(() => location.reload(), 2500);
-                smoothScrollToTop();
-                return;
-            }
-
-            const ids = checkedBoxes.map(box => box.value);
-            const token = localStorage.getItem('accessToken');
-            fetchWithAuth('/api/mqtt/api/messages/status', {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
-                body: JSON.stringify({ ids })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message === 'Status messages deleted successfully') {
-                        showAlert("Selected messages deleted successfully.", "success");
-                        smoothScrollToTop();
-                        setTimeout(() => location.reload(), 2500);
-                    } else {
-                        showAlert("Failed to delete messages", "alert");
-                        smoothScrollToTop();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showAlert("An error occurred while deleting messages.", "alert");
-                });
-        });
-    } else {
-        console.error("Delete button with ID 'deleteSelectedStatus' not found");
+  nextPageBtn.addEventListener('click', () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      fetchAndDisplayMessages();
     }
+  });
 
-    // Smooth scroll to the top of the page
-function smoothScrollToTop() {
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-    });
-}
-    function showAlert(message, type) {
-        if (!alertContainer) {
-            console.error('Alert container not found');
-            return;
-        }
-        alertContainer.className = `callout ${type} show`;
-        alertContainer.textContent = message;
-        alertContainer.style.display = 'block';
-        console.log('Alert displayed:', message);
+  prevPageBtn.addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      fetchAndDisplayMessages();
     }
+  });
+
+  fetchAndDisplayMessages();
 });

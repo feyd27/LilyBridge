@@ -67,5 +67,10 @@ router.get('/verify-email', (req, res) => {
 router.get('/user-settings', (req, res) => {
   res.render('userSettings', { title: 'User Settings'});
 });
+
+// Route to render selection page
+router.get('/select-messages-iota', (req, res) => {
+  res.render('selectMessagesIOTA', { title: 'Select Messages For Upload'});
+});
 // Export
 module.exports = router;

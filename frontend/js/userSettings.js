@@ -3,6 +3,8 @@ import { fetchWithAuth } from './authFetch.js';
 document.addEventListener('DOMContentLoaded', () => {
   const form  = document.getElementById('settingsForm');
   const alert = document.getElementById('alertContainer');
+  const iotaInput   = form.querySelector('input[name="iotaAddress"]');
+  const signumInput = form.querySelector('input[name="signumAddress"]');
 
   function showAlert(msg, type = 'success') {
     alert.className = `callout ${type}`;
