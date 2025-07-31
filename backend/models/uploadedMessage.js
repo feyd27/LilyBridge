@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 const uploadedMessageSchema = new mongoose.Schema({
   batchId:      { type: String, required: true, unique: true, index: true },
   blockchain:   { type: String, enum: ['IOTA','SIGNUM'], required: true },
