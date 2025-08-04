@@ -1,11 +1,15 @@
 // routes/iotaRoutes.js
-const express         = require('express');
-const router          = express.Router();
-const authMiddleware  = require('../middleware/authMiddleware');
-const User            = require('../models/user');
-const logger          = require('../services/logger');
+const express = require('express');
+const router  = express.Router();
+const crypto  = require('crypto');
+const { URL } = require('url');
 
-// default if user hasn’t set one:
+const authMiddleware     = require('../middleware/authMiddleware');
+const logger             = require('../services/logger');
+const User               = require('../models/user');
+const MqttMessage        = require('../models/message');
+const UploadedMessage    = require('../models/uploadedMessage');
+
 const DEFAULT_IOTA_NODE = 'https://api.shimmer.network';
 
 /**
@@ -18,43 +22,30 @@ const DEFAULT_IOTA_NODE = 'https://api.shimmer.network';
  *     security:
  *       - bearerAuth: []
  *     requestBody:
- *       description: JSON payload to store.  
- *                    The indexation tag is auto-generated from the user’s settings
+ *       description: JSON object containing a tag and data payload.  
+ *                    Node URL is taken from user settings or default.
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             required:
- *               - data
+ *               - mode
  *             properties:
- *               data:
- *                 type: object
- *                 description: The JSON payload to store.
+ *               mode:
+ *                 type: string
+ *                 description: "selected = specific messageIds, batch = 50 oldest unsent"
+ *                 enum: [selected, batch]
+ *               messageIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Required when mode=selected
  *             example:
- *               data:
- *                 sensorId: "TEMP-001"
- *                 temperature: 21.5
+ *               mode: "batch"
  *     responses:
  *       201:
  *         description: Data uploaded successfully.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 blockId:
- *                   type: string
- *                   description: The returned block ID on the Tangle
- *                 dataSizeBytes:
- *                   type: integer
- *                 elapsedTime:
- *                   type: integer
- *                   description: Time in ms taken to submit
- *                 explorerUrl:
- *                   type: string
  *       400:
  *         description: Bad request (missing/invalid body or node URL)
  *       502:
@@ -62,88 +53,259 @@ const DEFAULT_IOTA_NODE = 'https://api.shimmer.network';
  *       500:
  *         description: Internal server error
  */
-router.post('/upload', authMiddleware, async (req, res) => {
-  const { data } = req.body;
-  if (!data || typeof data !== 'object') {
-    return res.status(400).json({
-      error: 'Request body must include "data" (object).'
-    });
-  }
 
-  // 1️⃣ pick node URL
-  let nodeUrl = DEFAULT_IOTA_NODE;
-  let user;
+
+
+router.post('/upload', authMiddleware, async (req, res) => {
+  const { messageIds } = req.body;
+
+  // 1️⃣ Validate input
+  if (!Array.isArray(messageIds) || messageIds.length === 0) {
+    return res.status(400).json({ error: 'You must supply an array of messageIds to upload.' });
+  }
+  logger.log('IOTA › upload request received', { userId: req.user.userId, messageIds });
+
+  // 2️⃣ Load user & node URL
+  let user, nodeUrl;
   try {
     user = await User.findById(req.user.userId).lean();
-    if (user?.iotaNodeAddress) nodeUrl = user.iotaNodeAddress.trim();
-  } catch (err) {
-    logger.error('IOTA › could not load user settings', {
-      userId: req.user.userId,
-      error: err.message
-    });
-  }
-
-  // 2️⃣ validate node URL
-  try {
+    nodeUrl = (user?.iotaNodeAddress?.trim() || DEFAULT_IOTA_NODE);
     nodeUrl = new URL(nodeUrl).href;
-  } catch {
-    return res.status(400).json({
-      error: `Configured IOTA node URL is invalid: "${nodeUrl}".`
-    });
+  } catch (err) {
+    logger.error('IOTA › invalid node URL or user load failed', { error: err.message });
+    return res.status(400).json({ error: `Bad IOTA node URL: "${nodeUrl}"` });
   }
-  logger.log('IOTA › using node URL', { nodeUrl, userId: req.user.userId });
+  logger.log('IOTA › using node URL', { nodeUrl });
 
-  // 3️⃣ build indexation tag
-  let prefix = user?.iotaTagPrefix || user._id.toString();
-  const d = new Date();
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const yyyy = d.getFullYear();
-  const dateStr = `${dd}${mm}${yyyy}`;
-  const tag = `${prefix}@lilybridge_${dateStr}`;
+  // 3️⃣ Build indexation tag
+  const rawPrefix = user.iotaTagPrefix
+    ? user.iotaTagPrefix.slice(0,16).replace(/\W/g,'')
+    : user._id.toString();
+  const today = new Date().toISOString().slice(0,10).split('-').reverse().join('');
+  const tag = `${rawPrefix}@lilybridge_${today}`;
   logger.log('IOTA › using indexation tag', { tag });
 
+  // 4️⃣ Fetch exactly those messages
+  let messages;
   try {
-    // 4️⃣ import SDK & prepare client
+    messages = await MqttMessage.find({
+      _id:         { $in: messageIds },
+      uploadedBy:  { $ne: req.user.userId }
+    })
+    .select('chipID macAddress temperature timestamp')
+    .sort({ timestamp: 1 })
+    .lean();
+
+    if (!messages.length) {
+      return res.status(400).json({ error: 'No matching messages found (or already uploaded).' });
+    }
+  } catch (err) {
+    logger.error('IOTA › failed loading messages', { error: err.message });
+    return res.status(500).json({ error: 'Could not load messages.' });
+  }
+  logger.log('IOTA › loaded messages', { count: messages.length });
+
+  // 5️⃣ Prepare payload
+  const payload = {
+    chipID:     messages[0].chipID,
+    macAddress: messages[0].macAddress,
+    readings:   messages.map(m => ({
+      temperature: m.temperature,
+      timestamp:   m.timestamp?.toISOString() ?? null
+    }))
+  };
+  logger.log('IOTA › raw payload', { payload });
+
+  // 6️⃣ Submit to IOTA
+  try {
     const { Client, utf8ToHex } = await import('@iota/sdk');
     const client = new Client({ nodes: [nodeUrl] });
 
-    // 5️⃣ prepare payload
-    const hexTag      = utf8ToHex(tag);
-    const payloadStr  = JSON.stringify(data);
-    const hexData     = utf8ToHex(payloadStr);
-    const dataSizeBytes = (hexData.length - 2) / 2;
-    logger.log('IOTA › payload prepared', { tag, dataSizeBytes });
+    const hexTag     = utf8ToHex(tag);
+    const payloadStr = JSON.stringify(payload);
+    const hexData    = utf8ToHex(payloadStr);
+    const dataSize   = (hexData.length - 2) / 2;
+    logger.log('IOTA › payload prepared', { dataSize });
 
-    // 6️⃣ submit & time it
-    const startTime = Date.now();
-    let blockId;
+    const start   = Date.now();
+    let [blockId] = [];
     try {
       [blockId] = await client.buildAndPostBlock(undefined, { tag: hexTag, data: hexData });
-    } catch (err) {
-      logger.error('IOTA › network error submitting block', { error: err.message });
-      return res.status(502).json({
-        error: `Failed to connect to IOTA node: ${err.message}`
-      });
+    } catch (netErr) {
+      logger.error('IOTA › network error', { error: netErr.message });
+      return res.status(502).json({ error: `Node connection failed: ${netErr.message}` });
     }
-    const elapsedTime = Date.now() - startTime;
-    const explorerUrl = `https://explorer.shimmer.network/shimmer/block/${blockId}`;
-    logger.log('IOTA › upload succeeded', { blockId, elapsedTime });
+    const elapsedMs = Date.now() - start;
+    const explorer  = `https://explorer.shimmer.network/shimmer/block/${blockId}`;
+    logger.log('IOTA › upload succeeded', { blockId, elapsedMs });
 
+    // 7️⃣ Persist in DB & mark messages
+    const batchId = `${req.user.userId}_${Date.now()}`;
+    await UploadedMessage.create({
+      user:         req.user.userId,
+      batchId,
+      blockchain:   'IOTA',
+      txId:         blockId,
+      index:        tag,
+      nodeUrl,
+      payloadHash:  crypto.createHash('sha256').update(payloadStr).digest('hex'),
+      payloadSize:  dataSize,
+      elapsedTime:  elapsedMs,
+      sentAt:       new Date(),
+      readingCount: payload.readings.length,
+      readings:     messages.map(m => m._id),
+      status:       'SENT',
+      explorerUrl:  explorer,
+      partIndex:    1,
+      totalParts:   1,
+      network:      'mainnet'
+    });
+
+    await MqttMessage.updateMany(
+      { _id: { $in: messages.map(m => m._id) } },
+      { $push: { uploadedBy: req.user.userId } }
+    );
+
+    // 8️⃣ Return success
     return res.status(201).json({
-      message:      'Data uploaded successfully!',
+      message:       'Data uploaded successfully!',
       blockId,
-      dataSizeBytes,
-      elapsedTime,
-      explorerUrl
+      dataSizeBytes: dataSize,
+      elapsedTime:   elapsedMs,
+      explorerUrl:   explorer
     });
   } catch (err) {
     logger.error('IOTA › upload endpoint error', { error: err.stack });
-    return res.status(500).json({
-      error: `Internal error: ${err.message}`
-    });
+    return res.status(500).json({ error: `Internal error: ${err.message}` });
   }
 });
+
+/**
+ * @swagger
+ * /iota/temperature-extended:
+ *   get:
+ *     summary: Get paginated temperature messages with upload‐to‐IOTA flag
+ *     tags: [IOTA]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           enum: [25, 50, 100]
+ *           default: 25
+ *         description: Number of messages per page
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *     responses:
+ *       200:
+ *         description: Page of temperature messages, each with `uploadedToIOTA` flag
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalItems:
+ *                   type: integer
+ *                   description: Total number of messages
+ *                 totalPages:
+ *                   type: integer
+ *                   description: Total number of pages
+ *                 currentPage:
+ *                   type: integer
+ *                   description: Current page number
+ *                 messages:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       topic:
+ *                         type: string
+ *                       chipID:
+ *                         type: string
+ *                       macAddress:
+ *                         type: string
+ *                       temperature:
+ *                         type: number
+ *                       timestamp:
+ *                         type: string
+ *                         format: date-time
+ *                       receivedAt:
+ *                         type: string
+ *                         format: date-time
+ *                       uploadedToIOTA:
+ *                         type: boolean
+ *                         description: Whether this message has been uploaded by you to IOTA
+ *       404:
+ *         description: No temperature messages found
+ *       500:
+ *         description: Server error
+ */
+router.get(
+  '/temperature-extended',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      // 1️⃣ Pagination
+      const limitNum = Math.min(
+        Math.max(parseInt(req.query.limit) || 25, 1),
+        100
+      );
+      const pageNum = Math.max(parseInt(req.query.page) || 1, 1);
+
+      // 2️⃣ Only temperature topic
+      const query = { topic: 'temperature' };
+      const totalItems = await MqttMessage.countDocuments(query);
+      if (!totalItems) {
+        return res.status(404).json({ error: 'No temperature messages found' });
+      }
+
+      // 3️⃣ Fetch messages
+      const messages = await MqttMessage.find(query)
+        .sort({ receivedAt: -1 })
+        .skip((pageNum - 1) * limitNum)
+        .limit(limitNum)
+        .lean();
+      logger.log(`Fetched ${messages.length}/${totalItems} temperature messages`);
+
+      // 4️⃣ Find which of these have been uploaded by this user to IOTA
+      const msgIds = messages.map(m => m._id);
+      const uploads = await UploadedMessage.find({
+        user:       req.user.userId,
+        blockchain: 'IOTA',
+        readings:  { $in: msgIds }
+      })
+      .select('readings')
+      .lean();
+
+      const uploadedSet = new Set(
+        uploads.flatMap(u => u.readings.map(id => id.toString()))
+      );
+
+      // 5️⃣ Attach flag
+      const enriched = messages.map(m => ({
+        ...m,
+        uploadedToIOTA: uploadedSet.has(m._id.toString())
+      }));
+
+      // 6️⃣ Return
+      res.json({
+        totalItems,
+        totalPages:  Math.ceil(totalItems / limitNum),
+        currentPage: pageNum,
+        messages:    enriched
+      });
+    } catch (err) {
+      logger.error('Error in /iota/temperature-extended', err);
+      res.status(500).json({ error: 'Failed to retrieve temperature messages' });
+    }
+  }
+);
 
 /**
  * @swagger

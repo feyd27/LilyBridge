@@ -4,7 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %></title>
+  <title>
+    <%= title %>
+  </title>
   <link rel="icon" type="image/png" href="images/favicon.png">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="css/foundation.min.css">
@@ -21,16 +23,7 @@
   <h1 class="title-align">Sensor Messages - IOTA Upload</h1>
   <br>
 
-  <!-- Batch upload option -->
-  <div class="batch-upload-option">
-    <label>
-      <input type="checkbox" id="batchUpload" />
-      Upload all unuploaded messages (batch upload)
-    </label>
-    <span id="batchStatus" class="batch-status" style="display:none;">Batch mode active</span>
-  </div>
-  <br>
-
+   <div id="alertContainer" class="callout" style="display: none;"></div>
   <form id="temperatureUploadForm">
     <table class="custom-table">
       <thead>
@@ -39,6 +32,7 @@
           <th>MAC</th>
           <th>Sensor data</th>
           <th>Timestamp</th>
+          <th>Uploaded</th>
           <th>Select</th>
         </tr>
       </thead>
@@ -76,4 +70,5 @@
   <script src="/js/jquery.min.js"></script>
   <script src="/js/foundation.min.js"></script>
 </body>
+
 </html>
