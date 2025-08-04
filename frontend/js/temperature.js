@@ -7,29 +7,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextPageBtn = document.getElementById('nextPage');
     const paginationInfo = document.getElementById('paginationInfo');
     const container = document.querySelector('#temperatureMessagesContainer tbody');
-   
-    // function checkAuthentication() {
-    //     const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
-    //     fetchWithAuth('/api/auth/status', {
-    //         headers: {
-    //             'Authorization': `Bearer ${token}`  // Add Authorization header
-    //         }
-    //     })
-    //       .then(response => {
-    //         if (!response.ok) {
-    //           window.location.href = '/login';
-    //         }
-    //       })
-    //       .catch(error => {
-    //         console.error('Error checking authentication status:', error);
-    //       });
-    //   }
-      
-    // checkAuthentication();
 
     let currentPage = 1;
     let pageSize = parseInt(pageSizeSelect.value);
     let totalPages = 1;
+
+    function formatTimestamp(ts) {
+        const d = new Date(ts);
+        // locale date, e.g. “8/4/2025” or “04.08.2025” depending on user locale
+        const datePart = d.toLocaleDateString();
+        // force 24-hour time with seconds
+        const timePart = d.toLocaleTimeString([], {
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        return `${datePart} ${timePart}`;
+    }
 
     function fetchAndDisplayMessages() {
         const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
@@ -53,15 +48,14 @@ document.addEventListener('DOMContentLoaded', () => {
         messages.forEach(message => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${message.chipID}</td>
-                <td>${message.macAddress}</td>
-                <td>${message.temperature}°C</td>
-                <td>${new Date(message.timestamp).toLocaleString()}</td>
-            `;
+        <td>${message.chipID}</td>
+        <td>${message.macAddress}</td>
+        <td>${message.temperature}°C</td>
+        <td>${formatTimestamp(message.timestamp)}</td>
+      `;
             container.appendChild(row);
         });
     }
-
     function updatePaginationDisplay(totalItems, totalPages, currentPage) {
         paginationInfo.textContent = `Page ${currentPage} of ${totalPages} - Displaying ${Math.min(pageSize, totalItems)} of ${totalItems} messages`;
     }

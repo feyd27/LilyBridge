@@ -29,20 +29,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     }
 
+    function formatTimestamp(ts) {
+        const d = new Date(ts);
+        // locale date (e.g. "8/4/2025" or "04.08.2025")
+        const datePart = d.toLocaleDateString();
+        // force 24-hour time with seconds
+        const timePart = d.toLocaleTimeString([], {
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        return `${datePart} ${timePart}`;
+    }
+
     function fetchAndDisplayMessages() {
         const token = localStorage.getItem('accessToken');
         fetchWithAuth(`/api/mqtt/api/messages/temperature?page=${currentPage}&limit=${pageSize}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         })
-        .then(response => response.json())
-        .then(data => {
-            displayTemperatureMessages(data.messages);
-            totalPages = data.totalPages || Math.ceil(data.totalItems / pageSize);
-            updatePaginationDisplay(data.totalItems, totalPages, currentPage);
-            updateButtonStates();
-            updateDeleteButtonState();
-        })
-        .catch(error => console.error('Error fetching temperature messages:', error));
+            .then(response => response.json())
+            .then(data => {
+                displayTemperatureMessages(data.messages);
+                totalPages = data.totalPages || Math.ceil(data.totalItems / pageSize);
+                updatePaginationDisplay(data.totalItems, totalPages, currentPage);
+                updateButtonStates();
+                updateDeleteButtonState();
+            })
+            .catch(error => console.error('Error fetching temperature messages:', error));
     }
 
     function displayTemperatureMessages(messages) {
@@ -53,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${message.chipID}</td>
                 <td>${message.macAddress}</td>
                 <td>${message.temperature}°C</td>
-                <td>${new Date(message.timestamp).toLocaleString()}</td>
+                <td>${formatTimestamp(message.timestamp)}</td>
                 <td><input type="checkbox" class="message-checkbox" data-id="${message._id}"></td>
             `;
             container.appendChild(row);

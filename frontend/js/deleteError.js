@@ -28,6 +28,20 @@ document.addEventListener('DOMContentLoaded', () => {
       location.reload();
     }, 3000);
   }
+ 
+  function formatTimestamp(ts) {
+    const d = new Date(ts);
+    // locale date (e.g. "8/4/2025" or "04.08.2025")
+    const datePart = d.toLocaleDateString();
+    // force 24-hour time with seconds
+    const timePart = d.toLocaleTimeString([], {
+      hour12: false,
+      hour:   '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+    return `${datePart} ${timePart}`;
+  }
 
   async function fetchAndDisplayMessages() {
     try {
@@ -51,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>${msg.message}</td>
-        <td>${new Date(msg.receivedAt).toLocaleString()}</td>
+        <td>${formatTimestamp(msg.receivedAt)}</td>
         <td><input type="checkbox" class="message-checkbox" data-id="${msg._id}"></td>
       `;
       container.appendChild(row);

@@ -99,10 +99,10 @@ p, td, th, span, div {
 
 /* Table Column Widths */
 .custom-table th.board, .custom-table td.board {
-  width: 15%;
+  width: 25%;
 }
 .custom-table th.macAddress, .custom-table td.macAddress {
-  width: 25%;
+  width: 20%;
 }
 .custom-table th.temperature, .custom-table td.temperature {
   width: 20%;
@@ -110,6 +110,8 @@ p, td, th, span, div {
 .custom-table th.timestamp, .custom-table td.timestamp {
   width: 35%;
 }
+
+
 /* Callout for Status Messages */
 .sticky {
   position: -webkit-sticky;
@@ -372,7 +374,7 @@ footer {
   width: 100%; /* Full width */
   z-index: 10; /* Ensure it stays above other elements if necessary */
 }
-/* ─── User Settings Form ─────────────────────────────────────────────────── */
+
 
 /* Container around the entire form */
 #settingsForm {
@@ -450,36 +452,6 @@ footer {
     flex: 1 1 100%;
   }
 }
-.batch-upload-option {
-  background-color: #f7f7f7;
-  border: 2px solid #4cafef;
-  border-radius: 6px;
-  padding: 10px 15px;
-  margin-bottom: 15px;
-  display: inline-block;
-  font-weight: 500;
-  color: #333;
-  transition: box-shadow 0.2s ease-in-out;
-}
-
-.batch-upload-option:hover {
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  background-color: #f0f9ff;
-}
-
-.batch-upload-option input[type="checkbox"] {
-  transform: scale(1.3);
-  margin-right: 8px;
-  cursor: pointer;
-}
-
-.batch-status {
-  margin-left: 10px;
-  color: #2c7be5;
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
 #selectedCount {
   color: #555;
 }

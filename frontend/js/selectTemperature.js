@@ -1,161 +1,155 @@
-// selectTemperature.js
-
 import { fetchWithAuth } from "./authFetch.js";
 
 document.addEventListener('DOMContentLoaded', () => {
-    const pageSizeSelect = document.getElementById('pageSize');
-    const prevPageBtn = document.getElementById('prevPage');
-    const nextPageBtn = document.getElementById('nextPage');
-    const paginationInfo = document.getElementById('paginationInfo');
-    const container = document.getElementById('temperatureMessagesContainer');
-    const batchUploadCheckbox = document.getElementById('batchUpload');
-    const uploadToIotaBtn = document.getElementById('uploadToIotaBtn');
-    const batchStatus = document.getElementById('batchStatus');
-    const selectedCount = document.getElementById('selectedCount');
-    const alertContainer = document.getElementById('alertContainer');
+    const pageSizeSelect   = document.getElementById('pageSize');
+    const prevPageBtn      = document.getElementById('prevPage');
+    const nextPageBtn      = document.getElementById('nextPage');
+    const paginationInfo   = document.getElementById('paginationInfo');
+    const container        = document.getElementById('temperatureMessagesContainer');
+    const uploadToIotaBtn  = document.getElementById('uploadToIotaBtn');
+    const alertContainer   = document.getElementById('alertContainer');
+    const selectedCount    = document.getElementById('selectedCount');
 
     let currentPage = 1;
-    let pageSize = parseInt(pageSizeSelect.value);
-    let totalPages = 1;
+    let pageSize    = parseInt(pageSizeSelect.value, 10);
+    let totalPages  = 1;
     let selectedMessages = new Set();
 
     function smoothScrollToTop() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function showTimedAlert(container, message, type = 'success') {
-        container.className = `callout ${type} show`;
-        container.textContent = message;
-        container.style.display = 'block';
-        setTimeout(() => {
-            container.style.display = 'none';
-            location.reload();
-        }, 3000);
+    function showTimedAlert(message, type = 'success') {
+        alertContainer.className = `callout ${type}`;
+        alertContainer.textContent = message;
+        alertContainer.style.display = 'block';
+        setTimeout(() => alertContainer.style.display = 'none', 3000);
     }
 
-    function fetchAndDisplayMessages() {
-        const token = localStorage.getItem('accessToken');
-        fetchWithAuth(`/api/mqtt/api/messages/temperature?page=${currentPage}&limit=${pageSize}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        })
-        .then(response => response.json())
-        .then(data => {
-            displayTemperatureMessages(data.messages);
-            totalPages = data.totalPages;
-            updatePaginationDisplay(data.totalItems, totalPages, currentPage);
-            updateButtonStates();
-            updateUploadButtonState();
-            updateSelectedCount();
-        })
-        .catch(error => console.error('Error fetching temperature messages:', error));
+    function formatTimestamp(ts) {
+        const d = new Date(ts);
+        const datePart = d.toLocaleDateString();
+        const timePart = d.toLocaleTimeString([], {
+            hour12: false,
+            hour:   '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        return `${datePart} ${timePart}`;
+    }
+
+    function updateSelectedCount() {
+        selectedCount.textContent = `Selected: ${selectedMessages.size}`;
+    }
+
+    function updateUploadButtonState() {
+        uploadToIotaBtn.disabled = selectedMessages.size === 0;
+    }
+
+    function updatePaginationDisplay(totalItems, totalPages, currentPage) {
+        paginationInfo.textContent =
+            `Page ${currentPage} of ${totalPages} — Showing ${Math.min(pageSize, totalItems)} of ${totalItems}`;
+    }
+
+    function updateButtonStates() {
+        prevPageBtn.disabled = currentPage <= 1;
+        nextPageBtn.disabled = currentPage >= totalPages;
     }
 
     function displayTemperatureMessages(messages) {
         container.innerHTML = '';
-        messages.forEach(message => {
-            const row = document.createElement('tr');
-            const isChecked = selectedMessages.has(message._id);
+        messages.forEach(msg => {
+            const isChecked   = selectedMessages.has(msg._id) ? 'checked' : '';
+            const uploadIcon  = msg.uploadedToIOTA
+                ? `<span style="color: green;">&#10004;</span>`
+                : `<span style="color: red;">&#10060;</span>`;
 
+            const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${message.chipID}</td>
-                <td>${message.macAddress}</td>
-                <td>${message.temperature}°C</td>
-                <td>${new Date(message.timestamp).toLocaleString()}</td>
+                <td>${msg.chipID}</td>
+                <td>${msg.macAddress}</td>
+                <td>${msg.temperature}°C</td>
+                <td>${formatTimestamp(msg.timestamp)}</td>
+                <td>${uploadIcon}</td>
                 <td>
-                    <input type="checkbox" class="message-checkbox" data-id="${message._id}" ${isChecked ? 'checked' : ''} ${batchUploadCheckbox.checked ? 'disabled' : ''}>
+                  <input
+                    type="checkbox"
+                    class="message-checkbox"
+                    data-id="${msg._id}"
+                    ${isChecked}
+                  >
                 </td>
             `;
             container.appendChild(row);
         });
 
-        container.querySelectorAll('.message-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', (e) => {
-                const messageId = e.target.dataset.id;
-                if (e.target.checked) selectedMessages.add(messageId);
-                else selectedMessages.delete(messageId);
+        // wire up the checkboxes
+        container.querySelectorAll('.message-checkbox').forEach(cb => {
+            cb.addEventListener('change', e => {
+                const id = e.target.dataset.id;
+                if (e.target.checked) selectedMessages.add(id);
+                else selectedMessages.delete(id);
+
                 updateUploadButtonState();
                 updateSelectedCount();
             });
         });
-    }
 
-    function updatePaginationDisplay(totalItems, totalPages, currentPage) {
-        paginationInfo.textContent = `Page ${currentPage} of ${totalPages} - Displaying ${Math.min(pageSize, totalItems)} of ${totalItems} messages`;
-    }
-
-    function updateButtonStates() {
-        prevPageBtn.disabled = currentPage === 1;
-        nextPageBtn.disabled = currentPage === totalPages;
-    }
-
-    function updateUploadButtonState() {
-        const mode = batchUploadCheckbox.checked ? 'batch' : 'selected';
-        const hasSelection = selectedMessages.size > 0;
-        uploadToIotaBtn.disabled = (mode === 'selected' && !hasSelection);
-    }
-
-    function updateSelectedCount() {
-        selectedCount.textContent = `Selected: ${selectedMessages.size} message${selectedMessages.size !== 1 ? 's' : ''}`;
-    }
-
-    batchUploadCheckbox.addEventListener('change', () => {
-        const allRowCheckboxes = container.querySelectorAll('.message-checkbox');
-        if (batchUploadCheckbox.checked) {
-            allRowCheckboxes.forEach(cb => cb.disabled = true);
-            batchStatus.style.display = 'inline';
-        } else {
-            allRowCheckboxes.forEach(cb => cb.disabled = false);
-            batchStatus.style.display = 'none';
-        }
+        // after redraw, make sure button + count are correct
         updateUploadButtonState();
         updateSelectedCount();
-    });
+    }
+
+    async function fetchAndDisplayMessages() {
+        try {
+            const res  = await fetchWithAuth(
+                `/iota/temperature-extended?page=${currentPage}&limit=${pageSize}`
+            );
+            const data = await res.json();
+            displayTemperatureMessages(data.messages);
+            totalPages = data.totalPages;
+            updatePaginationDisplay(data.totalItems, totalPages, currentPage);
+            updateButtonStates();
+        } catch (err) {
+            console.error('Error fetching temperature messages:', err);
+        }
+    }
 
     uploadToIotaBtn.addEventListener('click', async () => {
-        smoothScrollToTop();
-        const mode = batchUploadCheckbox.checked ? 'batch' : 'selected';
-        const messageIds = mode === 'selected' ? Array.from(selectedMessages) : [];
-
-        if (mode === 'selected' && messageIds.length === 0) {
-            showTimedAlert(alertContainer, 'Please select at least one message or enable batch upload.', 'alert');
+        if (selectedMessages.size === 0) {
+            showTimedAlert('Please select at least one message to upload.', 'alert');
             return;
         }
-
         try {
-            const token = localStorage.getItem('accessToken');
-            const response = await fetchWithAuth('/api/upload/iota', {
+            const body = { messageIds: Array.from(selectedMessages) };
+            const res  = await fetchWithAuth('/iota/upload', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ mode, messageIds })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
             });
-
-            if (!response.ok) throw new Error(`Upload failed: ${response.statusText}`);
-
-            const result = await response.json();
-            showTimedAlert(alertContainer, `Upload successful! Batches: ${result.batches.length}`, 'success');
+            if (!res.ok) throw new Error(await res.text());
+            const json = await res.json();
+            smoothScrollToTop();
+            showTimedAlert(`Upload successful! Block ID: ${json.blockId}`);
             selectedMessages.clear();
+            fetchAndDisplayMessages();
         } catch (err) {
             console.error('Upload error:', err);
-            showTimedAlert(alertContainer, 'Upload failed. Please try again.', 'alert');
+            showTimedAlert('Upload failed. Please try again.', 'alert');
         }
     });
-
+    
     pageSizeSelect.addEventListener('change', () => {
-        pageSize = parseInt(pageSizeSelect.value);
+        pageSize    = parseInt(pageSizeSelect.value, 10);
         currentPage = 1;
         fetchAndDisplayMessages();
     });
-
     nextPageBtn.addEventListener('click', () => {
         if (currentPage < totalPages) {
             currentPage++;
             fetchAndDisplayMessages();
         }
     });
-
     prevPageBtn.addEventListener('click', () => {
         if (currentPage > 1) {
             currentPage--;
@@ -163,5 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // initialize
+    updateSelectedCount();
     fetchAndDisplayMessages();
 });
