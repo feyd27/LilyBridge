@@ -1,47 +1,53 @@
 import { fetchWithAuth } from './authFetch.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-  const form  = document.getElementById('settingsForm');
-  const alert = document.getElementById('alertContainer');
+  const form         = document.getElementById('settingsForm');
+  const alertCon     = document.getElementById('alertContainer');
+  const iotaInput    = form.querySelector('input[name="iotaNodeAddress"]');
+  const signumInput  = form.querySelector('input[name="signumNodeAddress"]');
+  const tagPrefixIn  = form.querySelector('input[name="iotaTagPrefix"]'); // ← new
 
   function showAlert(msg, type = 'success') {
-    alert.className = `callout ${type}`;
-    alert.textContent = msg;
-    alert.style.display = 'block';
-    setTimeout(() => alert.style.display = 'none', 3000);
+    alertCon.className = `callout ${type}`;
+    alertCon.textContent = msg;
+    alertCon.style.display = 'block';
+    setTimeout(() => alertCon.style.display = 'none', 3000);
   }
 
-  // 1️⃣ Load only IOTA & Signum
-  async function load() {
+  // 1️⃣ Load saved settings (including tag prefix)
+  async function loadSettings() {
     try {
       const res  = await fetchWithAuth('/api/settings/me');
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || res.statusText);
 
-      form.elements['iotaAddress'].value   = json.iotaAddress   || '';
-      form.elements['signumAddress'].value = json.signumAddress || '';
+      form.elements['iotaNodeAddress'].value   = json.iotaNodeAddress   || '';
+      form.elements['signumNodeAddress'].value = json.signumNodeAddress || '';
+      form.elements['iotaTagPrefix'].value     = json.iotaTagPrefix     || '';  // ← new
     } catch (err) {
       console.error('Failed to load settings', err);
       showAlert('Could not load settings', 'alert');
     }
   }
 
-  // 2️⃣ PATCH only the two fields
+  // 2️⃣ Save updated settings (including tag prefix)
   form.addEventListener('submit', async e => {
     e.preventDefault();
 
     const payload = {
-      iotaAddress:   form.elements['iotaAddress'].value   || null,
-      signumAddress: form.elements['signumAddress'].value || null
+      iotaNodeAddress:   form.elements['iotaNodeAddress'].value   || null,
+      signumNodeAddress: form.elements['signumNodeAddress'].value || null,
+      iotaTagPrefix:     form.elements['iotaTagPrefix'].value     || null  // ← new
     };
 
     try {
-      const res = await fetchWithAuth('/api/settings/me', {
+      const res  = await fetchWithAuth('/api/settings/me', {
         method: 'PATCH',
-        body: JSON.stringify(payload)
+        body:   JSON.stringify(payload)
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || res.statusText);
+
       showAlert('Settings saved!');
     } catch (err) {
       console.error('Save failed', err);
@@ -49,5 +55,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  load();
+  loadSettings();
 });

@@ -8,7 +8,9 @@ const messageSchema = new mongoose.Schema({
   temperature: Number,
   timestamp: Date,
   message: String,
-  receivedAt: { type: Date, default: Date.now }
+  receivedAt: { type: Date, default: Date.now },
+  uploadBatches: [{ type: mongoose.Schema.Types.ObjectId, ref: 'UploadedMessage' }],
+  hash: { type: String }  
 });
 
 module.exports = mongoose.model('MqttMessage', messageSchema);

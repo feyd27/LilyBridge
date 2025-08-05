@@ -5,13 +5,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title %></title>
-  <!-- Add other CSS files -->
-  <!-- Add the favicon link below -->
-  <link rel="icon" type="image/png" href="images/favicon.png"> <!-- for .png files -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="images/favicon.png">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="css/foundation.min.css">
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/batch-upload.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,52 +19,55 @@
 </head>
 
 <body>
-    
-    <h1 class="title-align">Delete Status Data</h1>
-    <br>
-   
-      <div id="alertContainer" class="callout success" style="display: none;"></div>
-      <form id="statusForm">
-        <table class="custom-table">
-          <thead>
-            <tr>
-              <th>Device ID</th>
-              <th>Address</th>
-              <th>Status</th>
-              <th>Timestamp</th>
-              <th>Select</th>
-            </tr>
-          </thead>
-          <tbody id="statusMessagesContainer">
-            <!-- Status messages will be dynamically inserted here -->
-          </tbody>
-        </table>
-        <div id="paginationControls" class="grid-x grid-padding-x">
-          <div class="cell small-6 medium-4">
-            <label for="pageSize">Rows per page:</label>
-            <select id="pageSize">
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select>
-          </div>
-          <div class="cell small-6 medium-8 text-right">
-            <button class="button small primary radius small-radius" id="prevPage">Previous</button>
-            <button class="button small primary radius small-radius" id="nextPage">Next</button>
-          </div>
-          <div id="paginationInfo" class="cell small-12 text-right"></div>
-        </div>
-        <button class="button alert radius" id="deleteSelectedStatus" type="button">Delete Selected</button>
-      </form>
-   
- 
+  <h1 class="title-align">Delete Status Data</h1>
+  <br>
+
+  <div id="alertContainer" class="callout success" style="display: none;"></div>
+  <form id="statusForm">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Device ID</th>
+          <th>Address</th>
+          <th>Status</th>
+          <th>Timestamp</th>
+          <th>Select</th>
+        </tr>
+      </thead>
+      <tbody id="statusMessagesContainer">
+        <!-- Status messages will be dynamically inserted here -->
+      </tbody>
+    </table>
+
+    <div id="paginationControls" class="grid-x grid-padding-x">
+      <div class="cell small-6 medium-4">
+        <label for="pageSize">Rows per page:</label>
+        <select id="pageSize">
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+      <div class="cell small-6 medium-8 text-right">
+        <button class="button small primary radius small-radius" id="prevPage" type="button">Previous</button>
+        <button class="button small primary radius small-radius" id="nextPage" type="button">Next</button>
+      </div>
+      <div id="paginationInfo" class="cell small-12 text-right"></div>
+    </div>
+
+    <div class="upload-controls text-right" style="margin-top: 1em;">
+      <span id="selectedCount" style="margin-right: 10px; font-weight: 500;">Selected: 0 messages</span>
+      <button class="button alert radius" id="deleteSelectedStatus" type="button" disabled>
+        <i class="fas fa-trash-alt"></i> Delete Selected
+      </button>
+    </div>
+  </form>
 
   <script src="/js/jquery.min.js"></script>
   <script src="/js/foundation.min.js"></script>
   <script type="module" src="/js/deleteStatus.js"></script>
   <script src="/js/statusMessage.js"></script>
   <script src="/js/foundationInit.js"></script>
-
 </body>
 
 </html>

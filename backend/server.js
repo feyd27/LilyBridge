@@ -14,9 +14,8 @@ const authRoutes = require('./routes/authRoutes');
 const viewsRoutes = require('./routes/viewsRoutes');
 const userSettingsRoutes = require('./routes/userSettingsRoutes');
 
+
 const iotaRoutes = require('./routes/iotaRoutes.js');
-
-
 const authMiddleware = require('./middleware/authMiddleware');
 const expressLayouts = require('express-ejs-layouts');
 const cors = require('cors');
@@ -95,7 +94,6 @@ app.use('/api/mqtt', mqttRoutes);
 app.use('/api/protected', protectedRoutes); 
 app.use('/api/messages', purgeMessagesRoutes);  
 app.use('/api/settings', userSettingsRoutes); 
-
 app.use('/iota', iotaRoutes);
 app.use('/signum', signumRoutes);
 

@@ -1,8 +1,8 @@
 // routes/userSettingsRoutes.js
-const express = require('express');
-const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware'); // Import authentication middleware
-const User = require('../models/user'); // Import the User model
+const express        = require('express');
+const router         = express.Router();
+const authMiddleware = require('../middleware/authMiddleware');
+const User           = require('../models/user');
 
 /**
  * @swagger
@@ -22,60 +22,54 @@ const User = require('../models/user'); // Import the User model
  *               properties:
  *                 username:
  *                   type: string
- *                   description: Username of the user
  *                   example: user@example.com
  *                 role:
  *                   type: string
- *                   description: Role assigned to the user
  *                   example: user
- *                 iotaAddress:
+ *                 iotaNodeAddress:
  *                   type: string
- *                   description: User's IOTA wallet address
- *                   example: "atoi1qz0h5...k2dj4"
- *                 signumAddress:
+ *                   description: The IOTA node URL to which data will be uploaded
+ *                   example: https://api.shimmer.network
+ *                 signumNodeAddress:
  *                   type: string
- *                   description: User's Signum wallet address
- *                   example: "S-abcdef1234567890"
+ *                   description: The Signum node URL to which data will be uploaded
+ *                   example: https://nodes.signum.network
+ *                 iotaTagPrefix:
+ *                   type: string
+ *                   nullable: true
+ *                   description: Optional alphanumeric (max 16 chars) prefix used in IOTA indexation tags
+ *                   example: MYTAG123
  *                 mqttBroker:
  *                   type: object
- *                   description: MQTT broker configuration
  *                   properties:
  *                     address:
  *                       type: string
- *                       description: Address of the MQTT broker
- *                       example: "mqtt://broker.example.com"
+ *                       example: mqtt://broker.example.com
  *                     username:
  *                       type: string
- *                       description: Username for the MQTT broker
- *                       example: "mqttuser"
+ *                       example: mqttuser
  *                     password:
  *                       type: string
- *                       description: Password for the MQTT broker
- *                       example: "mqttpassword"
+ *                       example: mqttpassword
  *                     isPrivate:
  *                       type: boolean
- *                       description: Whether the MQTT broker is private
  *                       example: true
  *                 loginHistory:
  *                   type: array
- *                   description: Login history of the user
  *                   items:
  *                     type: object
  *                     properties:
  *                       timestamp:
  *                         type: string
  *                         format: date-time
- *                         description: Timestamp of the login event
  *                 passwordResetHistory:
  *                   type: array
- *                   description: Password reset history of the user
  *                   items:
  *                     type: object
  *                     properties:
  *                       timestamp:
  *                         type: string
  *                         format: date-time
- *                         description: Timestamp of the password reset event
  *       404:
  *         description: User not found
  *       500:
@@ -83,7 +77,7 @@ const User = require('../models/user'); // Import the User model
  */
 router.get('/me', authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId);
+    const user = await User.findById(req.user.userId).lean();
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -91,8 +85,9 @@ router.get('/me', authMiddleware, async (req, res) => {
     const settings = {
       username:             user.username,
       role:                 user.role,
-      iotaAddress:          user.iotaAddress || null,
-      signumAddress:        user.signumAddress || null,
+      iotaNodeAddress:      user.iotaNodeAddress   || 'https://api.shimmer.network',
+      signumNodeAddress:    user.signumNodeAddress || null,
+      iotaTagPrefix:        user.iotaTagPrefix     || null,
       mqttBroker:           user.mqttBroker,
       loginHistory:         user.loginHistory,
       passwordResetHistory: user.passwordResetHistory
@@ -104,8 +99,6 @@ router.get('/me', authMiddleware, async (req, res) => {
     res.status(500).json({ message: 'Error fetching user settings' });
   }
 });
-
-
 
 /**
  * @swagger
@@ -125,27 +118,52 @@ router.get('/me', authMiddleware, async (req, res) => {
  *               mqttBroker:
  *                 type: object
  *                 properties:
- *                   address:   { type: string }
- *                   username:  { type: string, nullable: true }
- *                   password:  { type: string, nullable: true }
- *                   isPrivate: { type: boolean }
- *               iotaAddress:
+ *                   address:
+ *                     type: string
+ *                   username:
+ *                     type: string
+ *                     nullable: true
+ *                   password:
+ *                     type: string
+ *                     nullable: true
+ *                   isPrivate:
+ *                     type: boolean
+ *               iotaNodeAddress:
+ *                 type: string
+ *                 nullable: false
+ *                 description: URL of the IOTA node for uploads
+ *                 example: https://api.shimmer.network
+ *               signumNodeAddress:
  *                 type: string
  *                 nullable: true
- *               signumAddress:
+ *                 description: URL of the Signum node for uploads
+ *               iotaTagPrefix:
  *                 type: string
  *                 nullable: true
+ *                 description: Optional alphanumeric (max 16 chars) prefix for IOTA indexation tags
+ *                 example: MYTAG123
  *             example:
  *               mqttBroker:
- *                 address: "mqtt://broker.example.com"
- *                 username: "mqttuser"
- *                 password: "mqttpass"
+ *                 address: mqtt://broker.example.com
+ *                 username: mqttuser
+ *                 password: mqttpass
  *                 isPrivate: true
- *               iotaAddress: "atoi1qxyz..."
- *               signumAddress: "S-ABCDE-12345"
+ *               iotaNodeAddress: https://api.shimmer.network
+ *               signumNodeAddress: https://nodes.signum.network
+ *               iotaTagPrefix: MYTAG123
  *     responses:
  *       200:
  *         description: Settings updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Settings saved
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
  *       400:
  *         description: Bad payload
  *       401:
@@ -153,27 +171,25 @@ router.get('/me', authMiddleware, async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.patch(
-  '/me',
-  authMiddleware,
-  async (req, res) => {
-    const updates = {};
-    if (req.body.mqttBroker)   updates.mqttBroker   = req.body.mqttBroker;
-    if (req.body.iotaAddress)  updates.iotaAddress  = req.body.iotaAddress;
-    if (req.body.signumAddress)updates.signumAddress= req.body.signumAddress;
-    try {
-      const user = await User.findByIdAndUpdate(
-        req.user.userId,
-        { $set: updates },
-        { new: true, runValidators: true }
-      );
-      return res.json({ message: 'Settings saved', user });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: 'Unable to update settings' });
-    }
-  }
-);
+router.patch('/me', authMiddleware, async (req, res) => {
+  const updates = {};
+  if (req.body.mqttBroker)          updates.mqttBroker        = req.body.mqttBroker;
+  if (req.body.iotaNodeAddress)     updates.iotaNodeAddress   = req.body.iotaNodeAddress;
+  if (req.body.signumNodeAddress)   updates.signumNodeAddress = req.body.signumNodeAddress;
+  if ('iotaTagPrefix' in req.body)  updates.iotaTagPrefix     = req.body.iotaTagPrefix;
 
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user.userId,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).lean();
+
+    return res.json({ message: 'Settings saved', user });
+  } catch (err) {
+    console.error('Error updating user settings:', err);
+    return res.status(500).json({ message: 'Unable to update settings' });
+  }
+});
 
 module.exports = router;
