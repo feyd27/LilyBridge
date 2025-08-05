@@ -17,6 +17,9 @@ const userSettingsRoutes = require('./routes/userSettingsRoutes');
 =======
 const iotaRoutes = require('./routes/iotaRoutes.js');
 
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 const authMiddleware = require('./middleware/authMiddleware');
 const expressLayouts = require('express-ejs-layouts');
@@ -99,6 +102,9 @@ app.use('/api/settings', userSettingsRoutes);
 =======
 app.use('/iota', iotaRoutes);
 app.use('/signum', signumRoutes);
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
 
