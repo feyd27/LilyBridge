@@ -13,18 +13,27 @@ const mqttRoutes = require('./routes/mqttRoutes');
 const authRoutes = require('./routes/authRoutes');
 const viewsRoutes = require('./routes/viewsRoutes');
 const userSettingsRoutes = require('./routes/userSettingsRoutes');
+<<<<<<< Updated upstream
+=======
+const iotaRoutes = require('./routes/iotaRoutes.js');
+
+>>>>>>> Stashed changes
 const authMiddleware = require('./middleware/authMiddleware');
 const expressLayouts = require('express-ejs-layouts');
 const cors = require('cors');
 require('./services/mqttService');
 require('./db');
-
-
+// 1️⃣ Import and initialize SignumJS crypto
+const { Crypto } = require('@signumjs/crypto');
+const { NodeJSCryptoAdapter } = require('@signumjs/crypto/adapters');
+Crypto.init(new NodeJSCryptoAdapter());
+console.log('[Signum] Crypto module initialized.');
 // Connect to the database
 connectToDatabase();
 
 // Initialize Express app
 const app = express();
+const signumRoutes = require('./routes/signumRoutes.js');
 
 // Middleware
 app.use(express.json());
@@ -86,6 +95,11 @@ app.use('/api/mqtt', mqttRoutes);
 app.use('/api/protected', protectedRoutes); 
 app.use('/api/messages', purgeMessagesRoutes);  
 app.use('/api/settings', userSettingsRoutes); 
+<<<<<<< Updated upstream
+=======
+app.use('/iota', iotaRoutes);
+app.use('/signum', signumRoutes);
+>>>>>>> Stashed changes
 
 
 // Swagger configuration
