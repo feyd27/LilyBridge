@@ -12,17 +12,13 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-<<<<<<< Updated upstream
-=======
+
     "@iota/http-client": "^1.0.0-beta.30",
     "@iota/sdk": "^1.1.6",
     "@signumjs/core": "^2.0.8",
     "@signumjs/crypto": "^2.0.8",
     "@signumjs/http": "^2.0.8",
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+
     "cookie-parser": "^1.4.7",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",

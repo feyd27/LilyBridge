@@ -13,14 +13,10 @@ const mqttRoutes = require('./routes/mqttRoutes');
 const authRoutes = require('./routes/authRoutes');
 const viewsRoutes = require('./routes/viewsRoutes');
 const userSettingsRoutes = require('./routes/userSettingsRoutes');
-<<<<<<< Updated upstream
-=======
+
 const iotaRoutes = require('./routes/iotaRoutes.js');
 
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+
 const authMiddleware = require('./middleware/authMiddleware');
 const expressLayouts = require('express-ejs-layouts');
 const cors = require('cors');
@@ -37,6 +33,7 @@ connectToDatabase();
 // Initialize Express app
 const app = express();
 const signumRoutes = require('./routes/signumRoutes.js');
+
 
 // Middleware
 app.use(express.json());
@@ -98,14 +95,10 @@ app.use('/api/mqtt', mqttRoutes);
 app.use('/api/protected', protectedRoutes); 
 app.use('/api/messages', purgeMessagesRoutes);  
 app.use('/api/settings', userSettingsRoutes); 
-<<<<<<< Updated upstream
-=======
+
 app.use('/iota', iotaRoutes);
 app.use('/signum', signumRoutes);
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+
 
 
 // Swagger configuration
