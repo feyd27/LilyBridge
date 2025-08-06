@@ -1,8 +1,8 @@
 // routes/userSettingsRoutes.js
-const express        = require('express');
-const router         = express.Router();
+const express = require('express');
+const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
-const User           = require('../models/user');
+const User = require('../models/user');
 
 /**
  * @swagger
@@ -83,13 +83,14 @@ router.get('/me', authMiddleware, async (req, res) => {
     }
 
     const settings = {
-      username:             user.username,
-      role:                 user.role,
-      iotaNodeAddress:      user.iotaNodeAddress   || 'https://api.shimmer.network',
-      signumNodeAddress:    user.signumNodeAddress || null,
-      iotaTagPrefix:        user.iotaTagPrefix     || null,
-      mqttBroker:           user.mqttBroker,
-      loginHistory:         user.loginHistory,
+      username: user.username,
+      role: user.role,
+      iotaNodeAddress: user.iotaNodeAddress || 'https://api.shimmer.network',
+      signumNodeAddress: user.signumNodeAddress || 'https://europe.signum.network',
+      iotaTagPrefix: user.iotaTagPrefix || null,
+      signumTagPrefix: user.signumTagPrefix || null,
+      mqttBroker: user.mqttBroker,
+      loginHistory: user.loginHistory,
       passwordResetHistory: user.passwordResetHistory
     };
 
@@ -173,10 +174,12 @@ router.get('/me', authMiddleware, async (req, res) => {
  */
 router.patch('/me', authMiddleware, async (req, res) => {
   const updates = {};
-  if (req.body.mqttBroker)          updates.mqttBroker        = req.body.mqttBroker;
-  if (req.body.iotaNodeAddress)     updates.iotaNodeAddress   = req.body.iotaNodeAddress;
-  if (req.body.signumNodeAddress)   updates.signumNodeAddress = req.body.signumNodeAddress;
-  if ('iotaTagPrefix' in req.body)  updates.iotaTagPrefix     = req.body.iotaTagPrefix;
+  if (req.body.mqttBroker) updates.mqttBroker = req.body.mqttBroker;
+  if (req.body.iotaNodeAddress) updates.iotaNodeAddress = req.body.iotaNodeAddress;
+  if (req.body.signumNodeAddress) updates.signumNodeAddress = req.body.signumNodeAddress;
+  if ('iotaTagPrefix' in req.body) updates.iotaTagPrefix = req.body.iotaTagPrefix;
+  if ('signumTagPrefix' in req.body) updates.signumTagPrefix = req.body.signumTagPrefix;
+
 
   try {
     const user = await User.findByIdAndUpdate(

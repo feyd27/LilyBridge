@@ -49,10 +49,19 @@ const userSchema = new mongoose.Schema({
   }],
 
   iotaNodeAddress:   { type: String, required: false, default: 'https://api.shimmer.network' },
-  signumNodeAddress: { type: String, required: false, default: 'blabla' },
+  signumNodeAddress: { type: String, required: false, default: 'https://europe.signum.network' },
 
   // ← NEW FIELD →
   iotaTagPrefix: {
+    type: String,
+    required: false,
+    default: null,
+    maxlength: 16,
+    match: /^[A-Za-z0-9]+$/   // only alphanumeric
+  },
+
+  // ← NEW FIELD →
+  signumTagPrefix: {
     type: String,
     required: false,
     default: null,

@@ -70,7 +70,11 @@ router.get('/user-settings', (req, res) => {
 
 // Route to render selection page
 router.get('/select-messages-iota', (req, res) => {
-  res.render('selectMessagesIOTA', { title: 'Select Messages For Upload'});
+  res.render('selectMessagesIota', { title: 'Select Messages For Upload'});
+});
+// Route to render selection page
+router.get('/select-messages-signum', (req, res) => {
+  res.render('selectMessagesSignum', { title: 'Select Messages For Upload'});
 });
 // Export
 module.exports = router;
