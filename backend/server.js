@@ -14,6 +14,7 @@ const authRoutes = require('./routes/authRoutes');
 const viewsRoutes = require('./routes/viewsRoutes');
 const userSettingsRoutes = require('./routes/userSettingsRoutes');
 
+
 const iotaRoutes = require('./routes/iotaRoutes.js');
 
 

@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 
 const uploadedMessageSchema = new mongoose.Schema({
-  // ◀— WHO did this upload?
+  
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -57,3 +57,4 @@ uploadedMessageSchema.index(
 );
 
 module.exports = mongoose.model('UploadedMessage', uploadedMessageSchema);
+
