@@ -9,6 +9,7 @@ const logger             = require('../services/logger');
 const User               = require('../models/user');
 const MqttMessage        = require('../models/message');
 const UploadedMessage    = require('../models/uploadedMessage');
+const { data } = require('jquery');
 
 const DEFAULT_IOTA_NODE = 'https://api.shimmer.network';
 // ─── Swagger JSDoc ────────────────────────────────────────────────────────────
@@ -132,7 +133,15 @@ router.post('/upload', authMiddleware, async (req, res) => {
     const hexData    = utf8ToHex(payloadStr);
     const dataSize   = (hexData.length - 2) / 2;
     logger.log('IOTA › payload prepared', { dataSize });
-
+    const MAX_BYTES = 32 * 1024;
+    if (dataSize > MAX_BYTES) {
+      console.error('IOTA > Paylod too big0, { dataSize}');
+      return res.status(400).json({
+        error: 'Payload too big, update the selection',
+        dataSizeBytes: dataSize, 
+        maxAllowed: MAX_BYTES
+      });
+    }
     const start   = Date.now();
     let [blockId] = [];
     try {
@@ -161,6 +170,7 @@ router.post('/upload', authMiddleware, async (req, res) => {
       readingCount: payload.readings.length,
       readings:     messages.map(m => m._id),
       status:       'SENT',
+      confirmed:    true,
       explorerUrl:  explorer,
       partIndex:    1,
       totalParts:   1,

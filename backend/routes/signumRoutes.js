@@ -8,6 +8,7 @@ const MqttMessage = require('../models/message');
 const UploadedMessage = require('../models/uploadedMessage');
 const User = require('../models/user');
 const logger = require('../services/logger');
+const { composeApi } = require('@signumjs/core');
 
 const { LedgerClientFactory } = require('@signumjs/core');
 const { generateSignKeys } = require('@signumjs/crypto');
@@ -16,9 +17,16 @@ const { generateSignKeys } = require('@signumjs/crypto');
 const nodeHost = process.env.SIGNUM_NODE_HOST || 'https://europe.signum.network';
 const SIGNUM_PASSPHRASE = process.env.SIGNUM_PASSPHRASE;
 const SIGNUM_NUMERIC_ID = process.env.SIGNUM_NUMERIC_ID;
+const SIGNUM_GENESIS_TIMESTAMP = Date.parse('2014-08-11T02:00:00Z'); 
 
 if (!SIGNUM_PASSPHRASE) console.error('[Signum] ERROR: SIGNUM_PASSPHRASE not set');
 if (!SIGNUM_NUMERIC_ID) console.error('[Signum] ERROR: SIGNUM_NUMERIC_ID not set');
+
+// Initialize SignumJS client
+const signumClient = composeApi({
+  nodeHost: process.env.SIGNUM_NODE_HOST,
+  network: process.env.SIGNUM_NETWORK || 'mainnet'
+});
 
 const ledger = LedgerClientFactory.createClient({ nodeHost });
 logger.log(`[Signum] Ledger client initialized for node: ${nodeHost}`);
@@ -155,9 +163,9 @@ router.post(
     const suggestedFees = await ledger.network.getSuggestedFees();
     logger.log('[Signum] suggestedFees:', suggestedFees);
     const key = feeType.toLowerCase();
-    const feePlanck = suggestedFees[key] != null ? suggestedFees[key]  : suggestedFees.standard;
+    const feePlanck = suggestedFees[key] != null ? suggestedFees[key] : suggestedFees.standard;
     logger.log(`[Signum] Using suggestedFees.${key}:`, feePlanck);
-   
+
 
     // 5️⃣ Submit to Signum
     logger.log('[Signum] Sending transaction to Signum...');
@@ -202,8 +210,10 @@ router.post(
       nodeHost,
       payloadHash: crypto.createHash('sha256').update(payloadStr).digest('hex'),
       payloadSize,
+      startTime: new Date(start),
       elapsedTime,
       fee: Number(feePlanck),
+      status: 'PENDING',
       readingCount: messages.length,
       readings: messages.map(m => m._id),
       explorerUrl,
@@ -299,12 +309,12 @@ router.post('/simple-upload', async (req, res) => {
     const suggestedFees = await ledger.network.getSuggestedFees();
     logger.log('[Signum] suggestedFees:', suggestedFees);
     const key = feeType.toLowerCase();
-    const feePlanck = suggestedFees[key] != null ? suggestedFees[key]  : suggestedFees.standard;
+    const feePlanck = suggestedFees[key] != null ? suggestedFees[key] : suggestedFees.standard;
     logger.log(`[Signum] Using suggestedFees.${key}:`, feePlanck);
 
     // 3️⃣ Derive keys from passphrase
     console.log('[Signum] Generating sign keys from passphrase...');
-    const { publicKey, signPrivateKey } = generateSignKeys(SIGNUM_PASSPHRASE); 
+    const { publicKey, signPrivateKey } = generateSignKeys(SIGNUM_PASSPHRASE);
     console.log('[Signum] publicKey:', publicKey);
     console.log('[Signum] signPrivateKey:', Boolean(signPrivateKey));
 
@@ -457,6 +467,110 @@ router.get(
   }
 );
 
+/**
+ * @swagger
+ * /signum/confirm:
+ *   post:
+ *     summary: Confirm inclusion of a Signum transaction and update database record
+ *     tags:
+ *       - Signum
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - txId
+ *             properties:
+ *               txId:
+ *                 type: string
+ *                 description: Numeric ID of the Signum transaction to confirm
+ *     responses:
+ *       200:
+ *         description: Transaction confirmed and database updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required:
+ *                 - success
+ *                 - txId
+ *                 - confirmedAt
+ *                 - blockIndex
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   description: Operation success indicator
+ *                 txId:
+ *                   type: string
+ *                   description: Transaction ID
+ *                 confirmedAt:
+ *                   type: string
+ *                   format: date-time
+ *                   description: Timestamp when transaction was included in a block
+ *                 blockIndex:
+ *                   type: integer
+ *                   description: Height of the block containing the transaction
+ *       400:
+ *         description: Bad request (e.g. missing or invalid txId)
+ *       404:
+ *         description: Transaction not yet included or record not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/confirm', authMiddleware, async (req, res) => {
+  const { txId } = req.body;
+  if (!txId || typeof txId !== 'string') {
+    return res.status(400).json({ error: 'txId (string) is required' });
+  }
+
+  try {
+    // ← uses GET under the hood, with full baseURL from nodeHost
+    const txInfo = await ledger.transaction.getTransaction(txId);
+    logger.log('📬 Signum getTransaction raw response:', JSON.stringify(txInfo, null, 2));
+    logger.log('🔢 raw blockTimestamp value:', txInfo.blockTimestamp);
+    
+    if (txInfo.height == null || txInfo.blockTimestamp == null) {
+      return res.status(404).json({
+        error: 'Transaction not yet included in a block'
+      });
+    }
+
+    const blockIndex = txInfo.height;
+    const confirmedAt = new Date(SIGNUM_GENESIS_TIMESTAMP + txInfo.blockTimestamp * 1000);
+
+    const updated = await UploadedMessage.findOneAndUpdate(
+      { user: req.user.userId, blockchain: 'SIGNUM', txId },
+      { confirmed: true, confirmedAt, blockIndex, status: 'SENT' },
+      { new: true },
+    );
+
+    if (!updated) {
+      return res.status(404).json({
+        error: 'No matching upload record found for this txId'
+      });
+    }
+
+    return res.json({
+      success: true,
+      txId: updated.txId,
+      confirmedAt: updated.confirmedAt,
+      blockIndex: updated.blockIndex
+    });
+  } catch (err) {
+    console.error('Error in /signum/confirm:', err);
+    // differentiate between malformed txId vs other errors
+    if (err.name === 'HttpError' && err.status === 400) {
+      return res.status(400).json({ error: 'Invalid transaction ID' });
+    }
+    return res.status(500).json({
+      error: 'Failed to confirm transaction inclusion'
+    });
+  }
+});
 module.exports = router;
 
 

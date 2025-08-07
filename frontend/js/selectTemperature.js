@@ -127,6 +127,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
+            if (res.status === 400) {
+                const errPayload = await res.json().catch(() => ({}));
+                const errMsg = errPayload.error || 'Bad request. Please check your selection';
+                showTimedAlert(errMsg, 'alert');
+                return;
+            }
             if (!res.ok) throw new Error(await res.text());
             const json = await res.json();
             smoothScrollToTop();

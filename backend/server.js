@@ -13,7 +13,7 @@ const mqttRoutes = require('./routes/mqttRoutes');
 const authRoutes = require('./routes/authRoutes');
 const viewsRoutes = require('./routes/viewsRoutes');
 const userSettingsRoutes = require('./routes/userSettingsRoutes');
-
+const statsRoutes = require('./routes/statsRoutes.js');
 
 const iotaRoutes = require('./routes/iotaRoutes.js');
 
@@ -99,6 +99,7 @@ app.use('/api/settings', userSettingsRoutes);
 
 app.use('/iota', iotaRoutes);
 app.use('/signum', signumRoutes);
+app.use('/stats', statsRoutes);
 
 
 

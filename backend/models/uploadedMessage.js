@@ -22,6 +22,7 @@ const uploadedMessageSchema = new mongoose.Schema({
   // ◀— analytics fields
   payloadSize:    { type: Number, required: true }, // bytes
   elapsedTime:    { type: Number, required: true }, // ms taken to submit
+  startTime:      { type: Number }, // for Signum uploads
 
   fee:            { type: Number },                // on-chain fee (if any)
   sentAt:         { type: Date,   default: Date.now },
@@ -51,7 +52,6 @@ const uploadedMessageSchema = new mongoose.Schema({
 uploadedMessageSchema.index(
   { user: 1, blockchain: 1, readings: 1 },
   {
-    unique: true,
     partialFilterExpression: { readings: { $exists: true } }
   }
 );
