@@ -152,15 +152,12 @@ router.post(
 
     // 4️⃣ Compute feePlanck
     logger.log('[Signum] Fetching suggested fees...');
-    const fees = await ledger.network.getSuggestedFees();
-    const plancks = {
-      cheap: fees.cheap,
-      standard: fees.standard,
-      priority: fees.priority,
-      minimum: fees.minimum
-    };
-    const feePlanck = plancks[feeType] ?? fees.standard;
-    logger.log('[Signum] Selected feePlanck:', feePlanck);
+    const suggestedFees = await ledger.network.getSuggestedFees();
+    logger.log('[Signum] suggestedFees:', suggestedFees);
+    const key = feeType.toLowerCase();
+    const feePlanck = suggestedFees[key] != null ? suggestedFees[key]  : suggestedFees.standard;
+    logger.log(`[Signum] Using suggestedFees.${key}:`, feePlanck);
+   
 
     // 5️⃣ Submit to Signum
     logger.log('[Signum] Sending transaction to Signum...');
@@ -282,9 +279,9 @@ router.post(
  */
 
 
-router.post('/upload', async (req, res) => {
+router.post('/simple-upload', async (req, res) => {
   logger.log('[Signum] /upload hit, body:', req.body);
-  const { message, feeType = 'standard' } = req.body;
+  const { message, feeType = 'cheap' } = req.body;
 
   // 1️⃣ Validate inputs & env
   if (!message) {
@@ -299,10 +296,11 @@ router.post('/upload', async (req, res) => {
   try {
     // 2️⃣ Select feePlanck
     logger.log('[Signum] Fetching suggested fees...');
-    const { cheap, standard, priority, minimum } = await ledger.network.getSuggestedFees();
-    const plancks = { cheap, standard, priority, minimum };
-    const feePlanck = String(plancks[feeType] || standard);
-    logger.log('[Signum] Selected feePlanck:', feePlanck);
+    const suggestedFees = await ledger.network.getSuggestedFees();
+    logger.log('[Signum] suggestedFees:', suggestedFees);
+    const key = feeType.toLowerCase();
+    const feePlanck = suggestedFees[key] != null ? suggestedFees[key]  : suggestedFees.standard;
+    logger.log(`[Signum] Using suggestedFees.${key}:`, feePlanck);
 
     // 3️⃣ Derive keys from passphrase
     console.log('[Signum] Generating sign keys from passphrase...');

@@ -11,7 +11,13 @@ const MqttMessage        = require('../models/message');
 const UploadedMessage    = require('../models/uploadedMessage');
 
 const DEFAULT_IOTA_NODE = 'https://api.shimmer.network';
-
+// ─── Swagger JSDoc ────────────────────────────────────────────────────────────
+/**
+ * @swagger
+ * tags:
+ *   - name: IOTA
+ *     description: IOTA Tangle operations
+ */
 /**
  * @swagger
  * /iota/upload:
