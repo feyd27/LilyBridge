@@ -22,7 +22,7 @@ const uploadedMessageSchema = new mongoose.Schema({
   // ◀— analytics fields
   payloadSize:    { type: Number, required: true }, // bytes
   elapsedTime:    { type: Number, required: true }, // ms taken to submit
-  startTime:      { type: Number }, // for Signum uploads
+  startTime:      { type: Date }, // for Signum uploads
 
   fee:            { type: Number },                // on-chain fee (if any)
   sentAt:         { type: Date,   default: Date.now },

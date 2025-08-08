@@ -17,7 +17,8 @@ const { generateSignKeys } = require('@signumjs/crypto');
 const nodeHost = process.env.SIGNUM_NODE_HOST || 'https://europe.signum.network';
 const SIGNUM_PASSPHRASE = process.env.SIGNUM_PASSPHRASE;
 const SIGNUM_NUMERIC_ID = process.env.SIGNUM_NUMERIC_ID;
-const SIGNUM_GENESIS_TIMESTAMP = Date.parse('2014-08-11T02:00:00Z'); 
+const SIGNUM_GENESIS_TIMESTAMP = Date.parse('2014-08-11T02:00:00Z');
+const INTERNAL_JOB_KEY = process.env.INTERNAL_JOB_KEY;
 
 if (!SIGNUM_PASSPHRASE) console.error('[Signum] ERROR: SIGNUM_PASSPHRASE not set');
 if (!SIGNUM_NUMERIC_ID) console.error('[Signum] ERROR: SIGNUM_NUMERIC_ID not set');
@@ -28,8 +29,22 @@ const signumClient = composeApi({
   network: process.env.SIGNUM_NETWORK || 'mainnet'
 });
 
+
 const ledger = LedgerClientFactory.createClient({ nodeHost });
 logger.log(`[Signum] Ledger client initialized for node: ${nodeHost}`);
+
+
+// Let internal jobs through with x-internal-key; otherwise require JWT
+const internalOrAuth = (req, res, next) => {
+  const hdr = req.get('x-internal-key') || req.get('x-inernal-key'); // accept common typo too
+  if (INTERNAL_JOB_KEY && hdr === INTERNAL_JOB_KEY) {
+    req.isInternalJob = true;
+    return next();
+  }
+  return authMiddleware(req, res, next);
+};
+
+
 /**
  * @swagger
  * /signum/upload:
@@ -159,12 +174,18 @@ router.post(
     }
 
     // 4️⃣ Compute feePlanck
-    logger.log('[Signum] Fetching suggested fees...');
-    const suggestedFees = await ledger.network.getSuggestedFees();
-    logger.log('[Signum] suggestedFees:', suggestedFees);
-    const key = feeType.toLowerCase();
-    const feePlanck = suggestedFees[key] != null ? suggestedFees[key] : suggestedFees.standard;
-    logger.log(`[Signum] Using suggestedFees.${key}:`, feePlanck);
+    // Rule: Split 0–1000 bytes into 6 equal buckets (X = 1000/6 bytes).
+    // Fee = bucketIndex * 1,000,000 Planck, capped at 6,000,000.
+
+    logger.log('[Signum] Calculating fee from payload size…');
+    const MAX_BYTES = 1000;                // already enforced above
+    const buckets = 6;
+    const bucketIdx = Math.min(
+      buckets,
+      Math.max(1, Math.ceil((payloadSize * buckets) / MAX_BYTES))
+    );
+    const feePlanck = bucketIdx * 1000000; // 1–6 million Planck
+    logger.log(`[Signum] payloadSize=${payloadSize}B → bucket=${bucketIdx}/6 → feePlanck=${feePlanck}`);
 
 
     // 5️⃣ Submit to Signum
@@ -467,110 +488,6 @@ router.get(
   }
 );
 
-/**
- * @swagger
- * /signum/confirm:
- *   post:
- *     summary: Confirm inclusion of a Signum transaction and update database record
- *     tags:
- *       - Signum
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - txId
- *             properties:
- *               txId:
- *                 type: string
- *                 description: Numeric ID of the Signum transaction to confirm
- *     responses:
- *       200:
- *         description: Transaction confirmed and database updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               required:
- *                 - success
- *                 - txId
- *                 - confirmedAt
- *                 - blockIndex
- *               properties:
- *                 success:
- *                   type: boolean
- *                   description: Operation success indicator
- *                 txId:
- *                   type: string
- *                   description: Transaction ID
- *                 confirmedAt:
- *                   type: string
- *                   format: date-time
- *                   description: Timestamp when transaction was included in a block
- *                 blockIndex:
- *                   type: integer
- *                   description: Height of the block containing the transaction
- *       400:
- *         description: Bad request (e.g. missing or invalid txId)
- *       404:
- *         description: Transaction not yet included or record not found
- *       500:
- *         description: Server error
- */
-router.post('/confirm', authMiddleware, async (req, res) => {
-  const { txId } = req.body;
-  if (!txId || typeof txId !== 'string') {
-    return res.status(400).json({ error: 'txId (string) is required' });
-  }
-
-  try {
-    // ← uses GET under the hood, with full baseURL from nodeHost
-    const txInfo = await ledger.transaction.getTransaction(txId);
-    logger.log('📬 Signum getTransaction raw response:', JSON.stringify(txInfo, null, 2));
-    logger.log('🔢 raw blockTimestamp value:', txInfo.blockTimestamp);
-    
-    if (txInfo.height == null || txInfo.blockTimestamp == null) {
-      return res.status(404).json({
-        error: 'Transaction not yet included in a block'
-      });
-    }
-
-    const blockIndex = txInfo.height;
-    const confirmedAt = new Date(SIGNUM_GENESIS_TIMESTAMP + txInfo.blockTimestamp * 1000);
-
-    const updated = await UploadedMessage.findOneAndUpdate(
-      { user: req.user.userId, blockchain: 'SIGNUM', txId },
-      { confirmed: true, confirmedAt, blockIndex, status: 'SENT' },
-      { new: true },
-    );
-
-    if (!updated) {
-      return res.status(404).json({
-        error: 'No matching upload record found for this txId'
-      });
-    }
-
-    return res.json({
-      success: true,
-      txId: updated.txId,
-      confirmedAt: updated.confirmedAt,
-      blockIndex: updated.blockIndex
-    });
-  } catch (err) {
-    console.error('Error in /signum/confirm:', err);
-    // differentiate between malformed txId vs other errors
-    if (err.name === 'HttpError' && err.status === 400) {
-      return res.status(400).json({ error: 'Invalid transaction ID' });
-    }
-    return res.status(500).json({
-      error: 'Failed to confirm transaction inclusion'
-    });
-  }
-});
 module.exports = router;
 
 

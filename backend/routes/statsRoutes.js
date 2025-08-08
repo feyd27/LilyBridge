@@ -54,12 +54,55 @@ router.get('/signum/uploads', authMiddleware, async (req, res) => {
       {
         $group: {
           _id: null,
-          totalBytes:        { $sum: '$payloadSize'     },
-          totalReadings:     { $sum: '$readingCount'    },
-          avgReadings:       { $avg: '$readingCount'    },
-          avgTimeToConfirm:  { $avg: { $subtract: ['$confirmedAt', '$startTime'] } },
-          totalCost:         { $sum: '$fee'             },
-          durations:         { $push: '$elapsedTime'     }
+          // existing metrics
+          totalBytes:    { $sum: '$payloadSize'  },
+          totalReadings: { $sum: '$readingCount' },
+          avgReadings:   { $avg: '$readingCount' },
+          totalCost:     { $sum: '$fee'          },
+          durations:     { $push: '$elapsedTime' },
+
+          // average time from submission to confirmation (ms) – only for confirmed rows
+          avgTimeToConfirm: {
+            $avg: {
+              $cond: [
+                { $and: [
+                  { $ne: ['$confirmedAt', null] },
+                  { $ne: ['$sentAt', null] }
+                ]},
+                { $subtract: ['$confirmedAt', '$sentAt'] },
+                null // ignored by $avg
+              ]
+            }
+          },
+
+          // NEW: counts by state
+          pendingCount: {
+            $sum: {
+              $cond: [
+                // prefer boolean flag if present; otherwise fall back to status text
+                {
+                  $or: [
+                    { $eq: ['$confirmed', false] },
+                    { $in: ['$status', ['pending', 'PENDING', 'Sent', 'SENT']] }
+                  ]
+                },
+                1, 0
+              ]
+            }
+          },
+          confirmedCount: {
+            $sum: {
+              $cond: [
+                {
+                  $or: [
+                    { $eq: ['$confirmed', true] },
+                    { $in: ['$status', ['confirmed', 'CONFIRMED']] }
+                  ]
+                },
+                1, 0
+              ]
+            }
+          }
         }
       },
       {
@@ -77,12 +120,14 @@ router.get('/signum/uploads', authMiddleware, async (req, res) => {
               0
             ]
           },
-          durations: 1
+          durations: 1,
+          // NEW: expose the counts
+          pendingCount:   1,
+          confirmedCount: 1
         }
       }
     ]);
 
-    // If no records yet, return zeros/empty
     if (!stats) {
       return res.json({
         totalDataKB: 0,
@@ -91,7 +136,9 @@ router.get('/signum/uploads', authMiddleware, async (req, res) => {
         avgTimeToConfirmMs: 0,
         totalCost: 0,
         avgCostPerReading: 0,
-        durations: []
+        durations: [],
+        pendingCount: 0,
+        confirmedCount: 0
       });
     }
 
@@ -102,4 +149,105 @@ router.get('/signum/uploads', authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /stats/iota/uploads:
+ *   get:
+ *     summary: Retrieve upload statistics for IOTA
+ *     tags:
+ *       - Stats
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: IOTA upload statistics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalDataKB:
+ *                   type: number
+ *                   description: Total uploaded data in kilobytes
+ *                 totalReadings:
+ *                   type: integer
+ *                   description: Total number of readings uploaded
+ *                 avgReadingsPerUpload:
+ *                   type: number
+ *                   description: Average number of readings per upload
+ *                 avgTimeToConfirmMs:
+ *                   type: number
+ *                   description: Average upload elapsed time in milliseconds
+ *                 totalCost:
+ *                   type: number
+ *                   description: Always 0 for IOTA (fees not tracked)
+ *                 avgCostPerReading:
+ *                   type: number
+ *                   description: Always 0 for IOTA (fees not tracked)
+ *                 durations:
+ *                   type: array
+ *                   items:
+ *                     type: number
+ *                   description: Array of upload durations (elapsedTime) in milliseconds
+ *                 pendingCount:
+ *                   type: integer
+ *                   description: Always 0 for IOTA (no pending concept)
+ *                 confirmedCount:
+ *                   type: integer
+ *                   description: Number of IOTA upload records
+ *       500:
+ *         description: Server error
+ */
+router.get('/iota/uploads', authMiddleware, async (req, res) => {
+  try {
+    const [stats] = await UploadedMessage.aggregate([
+      { $match: { blockchain: 'IOTA' } },
+      {
+        $group: {
+          _id: null,
+          uploadsCount: { $sum: 1 },
+          totalBytes:   { $sum: '$payloadSize'  },
+          totalReadings:{ $sum: '$readingCount' },
+          avgReadings:  { $avg: '$readingCount' },
+          durations:    { $push: '$elapsedTime' },
+          avgElapsed:   { $avg: '$elapsedTime' } // use stored elapsedTime as “confirm time”
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          totalDataKB:          { $divide: ['$totalBytes', 1024] },
+          totalReadings:        1,
+          avgReadingsPerUpload: '$avgReadings',
+          avgTimeToConfirmMs:   '$avgElapsed',
+          durations:            1,
+          // Fees/pending are always zero for IOTA to keep parity with Signum response shape
+          totalCost:            { $literal: 0 },
+          avgCostPerReading:    { $literal: 0 },
+          pendingCount:         { $literal: 0 },
+          confirmedCount:       '$uploadsCount'
+        }
+      }
+    ]);
+
+    if (!stats) {
+      return res.json({
+        totalDataKB: 0,
+        totalReadings: 0,
+        avgReadingsPerUpload: 0,
+        avgTimeToConfirmMs: 0,
+        totalCost: 0,
+        avgCostPerReading: 0,
+        durations: [],
+        pendingCount: 0,
+        confirmedCount: 0
+      });
+    }
+
+    res.json(stats);
+  } catch (err) {
+    console.error('[Stats] Error computing IOTA upload stats:', err);
+    res.status(500).json({ error: 'Failed to fetch IOTA upload statistics' });
+  }
+});
 module.exports = router;

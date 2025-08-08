@@ -226,12 +226,14 @@ p, td, th, span, div {
 #alertContainer.success {
   background-color: #28a745; /* More intense green */
   border: 1px solid #218838;
+  text-align: center;
 }
 
 /* Error alert style */
 #alertContainer.alert {
   background-color: #dc3545; /* More intense red */
   border: 1px solid #c82333;
+  text-align: center;
 }
 
 /* Transition for smooth fade-in effect */
@@ -499,4 +501,18 @@ footer {
 .button[disabled] {
   opacity: 0.6;
   cursor: not-allowed;
+}
+/* Bulk actions container: 50% width, buttons aligned right with spacing */
+.cell-btn.text-right {
+  width: 40%;
+  margin-left: auto;              /* push to the right if it's in a row */
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;                   /* space between buttons */
+}
+
+/* (Optional fallback if you don't want to rely on flex gap) */
+.cell.text-right .button + .button {
+  margin-left: 0.75rem;
 }

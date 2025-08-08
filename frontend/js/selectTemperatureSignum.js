@@ -1,18 +1,20 @@
 import { fetchWithAuth } from "./authFetch.js";
 
 document.addEventListener('DOMContentLoaded', () => {
-    const pageSizeSelect   = document.getElementById('pageSize');
-    const prevPageBtn      = document.getElementById('prevPage');
-    const nextPageBtn      = document.getElementById('nextPage');
-    const paginationInfo   = document.getElementById('paginationInfo');
-    const container        = document.getElementById('temperatureMessagesContainer');
-    const uploadToIotaBtn  = document.getElementById('uploadToSignumBtn');
-    const alertContainer   = document.getElementById('alertContainer');
-    const selectedCount    = document.getElementById('selectedCount');
+    const pageSizeSelect = document.getElementById('pageSize');
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+    const paginationInfo = document.getElementById('paginationInfo');
+    const container = document.getElementById('temperatureMessagesContainer');
+    const uploadToSignumBtn = document.getElementById('uploadToSignumBtn');
+    const alertContainer = document.getElementById('alertContainer');
+    const selectedCount = document.getElementById('selectedCount');
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    const deselectAllBtn = document.getElementById('deselectAllBtn');
 
     let currentPage = 1;
-    let pageSize    = parseInt(pageSizeSelect.value, 10);
-    let totalPages  = 1;
+    let pageSize = parseInt(pageSizeSelect.value, 10);
+    let totalPages = 1;
     let selectedMessages = new Set();
 
     function smoothScrollToTop() {
@@ -31,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const datePart = d.toLocaleDateString();
         const timePart = d.toLocaleTimeString([], {
             hour12: false,
-            hour:   '2-digit',
+            hour: '2-digit',
             minute: '2-digit',
             second: '2-digit'
         });
@@ -56,11 +58,17 @@ document.addEventListener('DOMContentLoaded', () => {
         nextPageBtn.disabled = currentPage >= totalPages;
     }
 
+    function updateBulkButtons() {
+        deselectAllBtn.disabled = selectedMessages.size === 0;
+        const hasRows = container.querySelectorAll('tr').length > 0;
+        selectAllBtn.disabled = !hasRows;
+    }
+
     function displayTemperatureMessages(messages) {
         container.innerHTML = '';
         messages.forEach(msg => {
-            const isChecked   = selectedMessages.has(msg._id) ? 'checked' : '';
-            const uploadIcon  = msg.uploadedToSignum
+            const isChecked = selectedMessages.has(msg._id) ? 'checked' : '';
+            const uploadIcon = msg.uploadedToSignum
                 ? `<span style="color: green;">&#10004;</span>`
                 : `<span style="color: red;">&#10060;</span>`;
 
@@ -92,17 +100,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 updateUploadButtonState();
                 updateSelectedCount();
+                updateBulkButtons();
             });
         });
 
         // after redraw, make sure button + count are correct
         updateUploadButtonState();
         updateSelectedCount();
+        updateBulkButtons();
     }
 
     async function fetchAndDisplayMessages() {
         try {
-            const res  = await fetchWithAuth(
+            const res = await fetchWithAuth(
                 `/signum/temperature-extended?page=${currentPage}&limit=${pageSize}`
             );
             const data = await res.json();
@@ -110,10 +120,39 @@ document.addEventListener('DOMContentLoaded', () => {
             totalPages = data.totalPages;
             updatePaginationDisplay(data.totalItems, totalPages, currentPage);
             updateButtonStates();
+            updateBulkButtons();
         } catch (err) {
             console.error('Error fetching temperature messages:', err);
         }
     }
+    // Select all on current page
+    selectAllBtn.addEventListener('click', () => {
+        const checkboxes = container.querySelectorAll('.message-checkbox');
+        checkboxes.forEach(cb => {
+            if (!cb.checked) {
+                cb.checked = true;
+                selectedMessages.add(cb.dataset.id);
+            }
+        });
+        updateUploadButtonState();
+        updateSelectedCount();
+        updateBulkButtons();
+    });
+
+    // Deselect all on current page
+    deselectAllBtn.addEventListener('click', () => {
+        const checkboxes = container.querySelectorAll('.message-checkbox');
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                cb.checked = false;
+                selectedMessages.delete(cb.dataset.id);
+            }
+        });
+        updateUploadButtonState();
+        updateSelectedCount();
+        updateBulkButtons();
+    });
+
 
     uploadToSignumBtn.addEventListener('click', async () => {
         if (selectedMessages.size === 0) {
@@ -122,15 +161,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         try {
             const body = { messageIds: Array.from(selectedMessages) };
-            const res  = await fetchWithAuth('/signum/upload', {
+            const res = await fetchWithAuth('/signum/upload', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
-            if (!res.ok) throw new Error(await res.text());
+            if (!res.ok) {
+                let msg = 'Upload failed. Please try again.';
+                try {
+                    const err = await res.json();
+                    if (res.status === 400 && err && err.error) {
+                        msg = err.error;
+                    }
+                } catch (_) {
+                    msg = await res.text().catch(() => msg);
+                }
+                smoothScrollToTop();
+                showTimedAlert(msg, 'alert');
+                return;
+            }
             const json = await res.json();
             smoothScrollToTop();
-            showTimedAlert(`Upload successful! Block ID: ${json.blockId}`);
+            showTimedAlert(`Upload successful! Transaction ID: ${json.blockId}`);
             selectedMessages.clear();
             fetchAndDisplayMessages();
         } catch (err) {
@@ -138,9 +190,9 @@ document.addEventListener('DOMContentLoaded', () => {
             showTimedAlert('Upload failed. Please try again.', 'alert');
         }
     });
-    
+
     pageSizeSelect.addEventListener('change', () => {
-        pageSize    = parseInt(pageSizeSelect.value, 10);
+        pageSize = parseInt(pageSizeSelect.value, 10);
         currentPage = 1;
         fetchAndDisplayMessages();
     });
