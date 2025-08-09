@@ -9,7 +9,7 @@ const UploadedMessage = require('../models/uploadedMessage');
 const User = require('../models/user');
 const logger = require('../services/logger');
 const { composeApi } = require('@signumjs/core');
-
+const { recordAttempt } = require('../services/recordAttempt');
 const { LedgerClientFactory } = require('@signumjs/core');
 const { generateSignKeys } = require('@signumjs/crypto');
 
@@ -20,8 +20,8 @@ const SIGNUM_NUMERIC_ID = process.env.SIGNUM_NUMERIC_ID;
 const SIGNUM_GENESIS_TIMESTAMP = Date.parse('2014-08-11T02:00:00Z');
 const INTERNAL_JOB_KEY = process.env.INTERNAL_JOB_KEY;
 
-if (!SIGNUM_PASSPHRASE) console.error('[Signum] ERROR: SIGNUM_PASSPHRASE not set');
-if (!SIGNUM_NUMERIC_ID) console.error('[Signum] ERROR: SIGNUM_NUMERIC_ID not set');
+if (!SIGNUM_PASSPHRASE) logger.error('[Signum] ERROR: SIGNUM_PASSPHRASE not set');
+if (!SIGNUM_NUMERIC_ID) logger.error('[Signum] ERROR: SIGNUM_NUMERIC_ID not set');
 
 // Initialize SignumJS client
 const signumClient = composeApi({
@@ -109,7 +109,7 @@ router.post(
     logger.log('[Signum] messageIds:', messageIds, 'feeType:', feeType);
 
     if (!Array.isArray(messageIds) || messageIds.length === 0) {
-      console.error('[Signum] messageIds array missing or empty');
+      logger.error('[Signum] messageIds array missing or empty');
       return res.status(400).json({ error: 'messageIds array required' });
     }
     // 1️⃣ Fetch user & tag prefix
@@ -119,7 +119,7 @@ router.post(
       user = await User.findById(req.user.userId).lean();
       logger.log('[Signum] Loaded user:', user._id);
     } catch (err) {
-      console.error('[Signum] Error loading user:', err);
+      logger.error('[Signum] Error loading user:', err);
       return res.status(500).json({ error: 'Failed to load user' });
     }
     const rawPrefix = user.signumTagPrefix
@@ -142,11 +142,11 @@ router.post(
         .lean();
       logger.log(`[Signum] Found ${messages.length} messages to upload`);
       if (!messages.length) {
-        console.warn('[Signum] No matching or unuploaded messages found');
+        logger.warn('[Signum] No matching or unuploaded messages found');
         return res.status(400).json({ error: 'No matching or already-uploaded messages' });
       }
     } catch (err) {
-      console.error('[Signum] Error loading messages:', err);
+      logger.error('[Signum] Error loading messages:', err);
       return res.status(500).json({ error: 'Failed to load messages' });
     }
 
@@ -166,7 +166,18 @@ router.post(
     logger.log('[Signum] Payload built:', payloadObj);
     logger.log('[Signum] Payload size:', payloadSize, 'bytes');
     if (payloadSize > 1000) {
-      console.error('[Signum] Payload too large:', payloadSize);
+      await recordAttempt({
+        userId: req.user.userId,
+        blockchain: 'SIGNUM',
+        tag,
+        nodeHost,                // from your file
+        payloadSize,
+        payloadHash: crypto.createHash('sha256').update(payloadStr).digest('hex'),
+        readingIds: messages.map(m => m._id),
+        httpStatusReturned: 400,
+        err: new Error('Payload too large')
+      });
+      logger.error('[Signum] Payload too large:', payloadSize);
       return res.status(400).json({
         error: 'Payload too large',
         payloadSize
@@ -207,9 +218,21 @@ router.post(
         senderPublicKey: publicKey,                       // from generateSignKeys
         senderPrivateKey: signPrivateKey                  // from generateSignKeys
       });
-      console.log('[Signum] sendMessage response:', txResponse);
+      logger.log('[Signum] sendMessage response:', txResponse);
     } catch (err) {
-      console.error('[Signum] Error during Signum upload:', err);
+      await recordAttempt({
+        userId: req.user.userId,
+        blockchain: 'SIGNUM',
+        tag,
+        nodeHost,
+        feePlanck,
+        payloadSize,
+        payloadHash: crypto.createHash('sha256').update(payloadStr).digest('hex'),
+        readingIds: messages.map(m => m._id),
+        elapsedTime: Date.now() - start,
+        httpStatusReturned: 500,
+      });
+      logger.error('[Signum] Error during Signum upload:', err);
       return res.status(500).json({ error: `Signum upload failed: ${err.message}` });
     }
     const elapsedTime = Date.now() - start;
@@ -316,11 +339,11 @@ router.post('/simple-upload', async (req, res) => {
 
   // 1️⃣ Validate inputs & env
   if (!message) {
-    console.error('[Signum] Missing required parameter: message.');
+    logger.error('[Signum] Missing required parameter: message.');
     return res.status(400).json({ error: 'message is required' });
   }
   if (!SIGNUM_PASSPHRASE || !SIGNUM_NUMERIC_ID) {
-    console.error('[Signum] ENV misconfigured.');
+    logger.error('[Signum] ENV misconfigured.');
     return res.status(500).json({ error: 'Server configuration error' });
   }
 
@@ -334,13 +357,13 @@ router.post('/simple-upload', async (req, res) => {
     logger.log(`[Signum] Using suggestedFees.${key}:`, feePlanck);
 
     // 3️⃣ Derive keys from passphrase
-    console.log('[Signum] Generating sign keys from passphrase...');
+    logger.log('[Signum] Generating sign keys from passphrase...');
     const { publicKey, signPrivateKey } = generateSignKeys(SIGNUM_PASSPHRASE);
-    console.log('[Signum] publicKey:', publicKey);
-    console.log('[Signum] signPrivateKey:', Boolean(signPrivateKey));
+    logger.log('[Signum] publicKey:', publicKey);
+    logger.log('[Signum] signPrivateKey:', Boolean(signPrivateKey));
 
     // 4️⃣ Broadcast in one call via message.sendMessage()
-    console.log('[Signum] Sending message via ledger.message.sendMessage()...');
+    logger.log('[Signum] Sending message via ledger.message.sendMessage()...');
     const txId = await ledger.message.sendMessage({
       feePlanck,                        // required string :contentReference[oaicite:1]{index=1}
       message,                          // required
@@ -349,14 +372,14 @@ router.post('/simple-upload', async (req, res) => {
       senderPublicKey: publicKey,       // SignKeys.publicKey
       senderPrivateKey: signPrivateKey  // SignKeys.signPrivateKey
     });
-    console.log('[Signum] sendMessage txId:', txId);
+    logger.log('[Signum] sendMessage txId:', txId);
     // 5️⃣ Return explorer URL
     const explorerURL = `https://explorer.signum.network/tx/${txId.transaction}`;
-    console.log('[Signum] Explorer URL:', explorerURL);
+    logger.log('[Signum] Explorer URL:', explorerURL);
     return res.status(201).json({ txId, explorerURL });
 
   } catch (error) {
-    console.error('[Signum] upload error:', error);
+    logger.error('[Signum] upload error:', error);
     return res.status(500).json({ error: error.message });
   }
 });
@@ -452,7 +475,7 @@ router.get(
         .skip((pageNum - 1) * limitNum)
         .limit(limitNum)
         .lean();
-      console.info(`Fetched ${messages.length}/${totalItems} temperature messages`);
+      logger.log(`Fetched ${messages.length}/${totalItems} temperature messages`);
 
       // 4️⃣ Determine which readings have been uploaded to Signum
       const msgIds = messages.map(m => m._id);

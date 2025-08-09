@@ -76,5 +76,9 @@ router.get('/select-messages-iota', (req, res) => {
 router.get('/select-messages-signum', (req, res) => {
   res.render('selectMessagesSignum', { title: 'Select Messages For Upload'});
 });
+// Route to render global stats
+router.get('/stats-global', (req, res) => {
+  res.render('statsGlobal', { title: 'Global Upload Stats'});
+});
 // Export
 module.exports = router;

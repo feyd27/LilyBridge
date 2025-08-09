@@ -1,15 +1,17 @@
 // routes/iotaRoutes.js
 const express = require('express');
-const router  = express.Router();
-const crypto  = require('crypto');
+const router = express.Router();
+const crypto = require('crypto');
 const { URL } = require('url');
 
-const authMiddleware     = require('../middleware/authMiddleware');
-const logger             = require('../services/logger');
-const User               = require('../models/user');
-const MqttMessage        = require('../models/message');
-const UploadedMessage    = require('../models/uploadedMessage');
+const authMiddleware = require('../middleware/authMiddleware');
+const logger = require('../services/logger');
+const User = require('../models/user');
+const MqttMessage = require('../models/message');
+const UploadedMessage = require('../models/uploadedMessage');
+
 const { data } = require('jquery');
+const { recordAttempt } = require('../services/recordAttempt');
 
 const DEFAULT_IOTA_NODE = 'https://api.shimmer.network';
 // ─── Swagger JSDoc ────────────────────────────────────────────────────────────
@@ -86,9 +88,9 @@ router.post('/upload', authMiddleware, async (req, res) => {
 
   // 3️⃣ Build indexation tag
   const rawPrefix = user.iotaTagPrefix
-    ? user.iotaTagPrefix.slice(0,16).replace(/\W/g,'')
+    ? user.iotaTagPrefix.slice(0, 16).replace(/\W/g, '')
     : user._id.toString();
-  const today = new Date().toISOString().slice(0,10).split('-').reverse().join('');
+  const today = new Date().toISOString().slice(0, 10).split('-').reverse().join('');
   const tag = `${rawPrefix}@lilybridge_${today}`;
   logger.log('IOTA › using indexation tag', { tag });
 
@@ -96,12 +98,12 @@ router.post('/upload', authMiddleware, async (req, res) => {
   let messages;
   try {
     messages = await MqttMessage.find({
-      _id:         { $in: messageIds },
-      uploadedBy:  { $ne: req.user.userId }
+      _id: { $in: messageIds },
+      uploadedBy: { $ne: req.user.userId }
     })
-    .select('chipID macAddress temperature timestamp')
-    .sort({ timestamp: 1 })
-    .lean();
+      .select('chipID macAddress temperature timestamp')
+      .sort({ timestamp: 1 })
+      .lean();
 
     if (!messages.length) {
       return res.status(400).json({ error: 'No matching messages found (or already uploaded).' });
@@ -114,11 +116,11 @@ router.post('/upload', authMiddleware, async (req, res) => {
 
   // 5️⃣ Prepare payload
   const payload = {
-    chipID:     messages[0].chipID,
+    chipID: messages[0].chipID,
     macAddress: messages[0].macAddress,
-    readings:   messages.map(m => ({
+    readings: messages.map(m => ({
       temperature: m.temperature,
-      timestamp:   m.timestamp?.toISOString() ?? null
+      timestamp: m.timestamp?.toISOString() ?? null
     }))
   };
   logger.log('IOTA › raw payload', { payload });
@@ -128,53 +130,76 @@ router.post('/upload', authMiddleware, async (req, res) => {
     const { Client, utf8ToHex } = await import('@iota/sdk');
     const client = new Client({ nodes: [nodeUrl] });
 
-    const hexTag     = utf8ToHex(tag);
+    const hexTag = utf8ToHex(tag);
     const payloadStr = JSON.stringify(payload);
-    const hexData    = utf8ToHex(payloadStr);
-    const dataSize   = (hexData.length - 2) / 2;
+    const hexData = utf8ToHex(payloadStr);
+    const dataSize = (hexData.length - 2) / 2;
     logger.log('IOTA › payload prepared', { dataSize });
     const MAX_BYTES = 32 * 1024;
     if (dataSize > MAX_BYTES) {
-      console.error('IOTA > Paylod too big0, { dataSize}');
+      await recordAttempt({
+        userId: req.user.userId,
+        blockchain: 'IOTA',
+        tag,
+        nodeUrl,
+        payloadSize: dataSize,
+        payloadHash: crypto.createHash('sha256').update(payloadStr).digest('hex'),
+        readingIds: messages.map(m => m._id),
+        httpStatusReturned: 400,
+        err: new Error('Payload too large')
+      });
+      logger.error('IOTA > Paylod too large, { dataSize}');
       return res.status(400).json({
-        error: 'Payload too big, update the selection',
-        dataSizeBytes: dataSize, 
+        error: 'Payload too large, update the selection',
+        dataSizeBytes: dataSize,
         maxAllowed: MAX_BYTES
       });
     }
-    const start   = Date.now();
+    const start = Date.now();
     let [blockId] = [];
     try {
       [blockId] = await client.buildAndPostBlock(undefined, { tag: hexTag, data: hexData });
     } catch (netErr) {
+      await recordAttempt({
+        userId: req.user.userId,
+        blockchain: 'IOTA',
+        tag,
+        nodeUrl,
+        payloadSize: dataSize,
+        payloadHash: crypto.createHash('sha256').update(payloadStr).digest('hex'),
+        readingIds: messages.map(m => m._id),
+        elapsedTime: Date.now() - start,
+        httpStatusReturned: 502,
+        err: netErr
+      });
       logger.error('IOTA › network error', { error: netErr.message });
       return res.status(502).json({ error: `Node connection failed: ${netErr.message}` });
     }
     const elapsedMs = Date.now() - start;
-    const explorer  = `https://explorer.shimmer.network/shimmer/block/${blockId}`;
+    const explorer = `https://explorer.shimmer.network/shimmer/block/${blockId}`;
     logger.log('IOTA › upload succeeded', { blockId, elapsedMs });
 
     // 7️⃣ Persist in DB & mark messages
     const batchId = `${req.user.userId}_${Date.now()}`;
     await UploadedMessage.create({
-      user:         req.user.userId,
+      user: req.user.userId,
       batchId,
-      blockchain:   'IOTA',
-      txId:         blockId,
-      index:        tag,
+      blockchain: 'IOTA',
+      txId: blockId,
+      index: tag,
       nodeUrl,
-      payloadHash:  crypto.createHash('sha256').update(payloadStr).digest('hex'),
-      payloadSize:  dataSize,
-      elapsedTime:  elapsedMs,
-      sentAt:       new Date(),
+      payloadHash: crypto.createHash('sha256').update(payloadStr).digest('hex'),
+      payloadSize: dataSize,
+      elapsedTime: elapsedMs,
+      sentAt: new Date(),
       readingCount: payload.readings.length,
-      readings:     messages.map(m => m._id),
-      status:       'SENT',
-      confirmed:    true,
-      explorerUrl:  explorer,
-      partIndex:    1,
-      totalParts:   1,
-      network:      'mainnet'
+      readings: messages.map(m => m._id),
+      status: 'SENT',
+      confirmed: true,
+      explorerUrl: explorer,
+      partIndex: 1,
+      totalParts: 1,
+      network: 'mainnet'
     });
 
     await MqttMessage.updateMany(
@@ -184,13 +209,24 @@ router.post('/upload', authMiddleware, async (req, res) => {
 
     // 8️⃣ Return success
     return res.status(201).json({
-      message:       'Data uploaded successfully!',
+      message: 'Data uploaded successfully!',
       blockId,
       dataSizeBytes: dataSize,
-      elapsedTime:   elapsedMs,
-      explorerUrl:   explorer
+      elapsedTime: elapsedMs,
+      explorerUrl: explorer
     });
   } catch (err) {
+    await recordAttempt({
+      userId: req.user.userId,
+      blockchain: 'IOTA',
+      tag,
+      nodeUrl,
+      payloadSize: dataSize,                // guard if not defined
+      payloadHash: payloadStr ? crypto.createHash('sha256').update(payloadStr).digest('hex') : undefined,
+      readingIds: messages?.map(m => m._id) || [],
+      httpStatusReturned: 500,
+      err
+    });
     logger.error('IOTA › upload endpoint error', { error: err.stack });
     return res.status(500).json({ error: `Internal error: ${err.message}` });
   }
@@ -292,12 +328,12 @@ router.get(
       // 4️⃣ Find which of these have been uploaded by this user to IOTA
       const msgIds = messages.map(m => m._id);
       const uploads = await UploadedMessage.find({
-        user:       req.user.userId,
+        user: req.user.userId,
         blockchain: 'IOTA',
-        readings:  { $in: msgIds }
+        readings: { $in: msgIds }
       })
-      .select('readings')
-      .lean();
+        .select('readings')
+        .lean();
 
       const uploadedSet = new Set(
         uploads.flatMap(u => u.readings.map(id => id.toString()))
@@ -312,9 +348,9 @@ router.get(
       // 6️⃣ Return
       res.json({
         totalItems,
-        totalPages:  Math.ceil(totalItems / limitNum),
+        totalPages: Math.ceil(totalItems / limitNum),
         currentPage: pageNum,
-        messages:    enriched
+        messages: enriched
       });
     } catch (err) {
       logger.error('Error in /iota/temperature-extended', err);

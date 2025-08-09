@@ -3,6 +3,28 @@
   <ul class="vertical menu" data-accordion-menu>
     <li><a href="/" target="_self"><i class="fas fa-home"></i> Home</a></li>
 
+    <!-- View Stats Accordion -->
+    <li>
+      <a href="#" data-submenu-toggle><i class="fas fa-envelope-open-text"></i>Stats</a>
+      <ul class="menu vertical nested">
+        <li><a href="/stats-global"><i class="fas fa-thermometer-half"></i> Global stats</a></li>
+        <li><a href="/status"><i class="fas fa-refresh"></i> Daily stats</a></li>
+        <li><a href="/errors"><i class="fas fa-exclamation-circle"></i> Failures stats</a></li>
+      </ul>
+    </li>
+
+
+
+    <!-- Upload Options Accordion -->
+    <li>
+      <a href="#" data-submenu-toggle><i class="fas fa-upload"></i> Uploads</a>
+      <ul class="menu vertical nested">
+        <li><a href="/select-messages-iota"><i class="fas fa-cloud-upload-alt"></i> IOTA Upload</a></li>
+        <li><a href="/select-messages-signum"><i class="fas fa-cloud"></i> Signum Upload</a></li>
+        <li><a href="/select-messages-iota"><i class="fas fa-cloud-upload-alt"></i> View on the IOTA Tangle</a></li>
+        <li><a href="/select-messages-signum"><i class="fas fa-cloud"></i> View on the Signum chain</a></li>
+      </ul>
+    </li>
     <!-- View Messages Accordion -->
     <li>
       <a href="#" data-submenu-toggle><i class="fas fa-envelope-open-text"></i> View Data</a>
@@ -23,25 +45,14 @@
       </ul>
     </li>
 
-    <!-- Upload Options Accordion -->
-    <li>
-      <a href="#" data-submenu-toggle><i class="fas fa-upload"></i> Upload Options</a>
-      <ul class="menu vertical nested">
-        <li><a href="/select-messages-iota"><i class="fas fa-cloud-upload-alt"></i> IOTA Upload</a></li>
-        <li><a href="/select-messages-signum"><i class="fas fa-cloud"></i> Signum Upload</a></li>
-      </ul>
-    </li>
-
-    
     <!-- Additional Links -->
     <li><a href="/user-settings"><i class="fas fa-sliders-h"></i> User Settings</a></li>
     <li><a href="#documentation"><i class="fas fa-book"></i> Docs</a></li>
     <li><a href="http://localhost:3000/api-docs/"><i class="fas fa-code"></i> API</a></li>
     <li><a href="https://github.com/feyd27/LilyBridge"><i class="fas fa-sync"></i> Repo</a></li>
   </ul>
-</ul>
-<button id="loginButton" class="button small primary">Login</button>
-<button id="logoutButton" class="button small alert" style="display: none;">Logout</button>
+  </ul>
+  <button id="loginButton" class="button small primary">Login</button>
+  <button id="logoutButton" class="button small alert" style="display: none;">Logout</button>
   <script type="module" src="/js/authButtons.js"></script>
 </div>
-
