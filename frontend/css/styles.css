@@ -331,7 +331,8 @@ div {
 
 /* Heading Styles with Drop Shadows */
 h1,
-h2, h4 {
+h2,
+h4 {
   color: #1e3a5f;
   /* Dark blue */
   text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
@@ -612,6 +613,7 @@ footer {
 .custom-table th:nth-last-child(2) {
   text-align: center;
 }
+
 .custom-table td:last-child,
 .custom-table th:last-child {
   text-align: center;
@@ -656,10 +658,14 @@ footer {
 
 /* The card itself */
 .callout.stat-card {
-  background: #005A9E;         /* dark blue */
-  border: none;                 /* remove Foundation border */
-  border-radius: 6px;          /* rounded corners */
-  color: #EAF4FF;               /* light text for contrast */
+  background: linear-gradient(135deg, #b564c5, #1f5aa8);
+  /* dark blue */
+  border: none;
+  /* remove Foundation border */
+  border-radius: 6px;
+  /* rounded corners */
+  color: #EAF4FF;
+  /* light text for contrast */
   padding: 0.2rem 0.25rem;
   box-shadow: 0 6px 16px rgba(41, 40, 40, 0.308);
 }
@@ -679,7 +685,8 @@ footer {
   margin: 0;
   line-height: 1;
   font-weight: 700;
-  font-size: 1.5rem;             /* adjust as you like */
+  font-size: 1.5rem;
+  /* adjust as you like */
   color: #F7FBFF;
   padding-bottom: 2px;
   padding-right: 2px;
@@ -710,3 +717,69 @@ main {
   flex: 1;
 }
 
+.form-hint {
+  color: #666;
+}
+
+.form-hint.is-invalid {
+  color: #cc4b37;
+}
+
+/* Foundation alert-ish red */
+body {
+  padding: 2rem;
+  background-color: #f3f3f3;
+}
+
+/* Custom styles for the info card */
+.custom-info-card .accordion {
+  /* Applying your specified gradient background */
+  background: linear-gradient(135deg, #b564c5, #1f5aa8);
+  border-radius: 5px;
+  border: none;
+  overflow: hidden;
+  box-shadow: 0 6px 16px rgba(41, 40, 40, 0.308);
+  /* Ensures the gradient corners are rounded */
+}
+
+.custom-info-card .accordion-item {
+  border: none;
+  /* Removes default borders */
+}
+
+.custom-info-card .accordion-title {
+  color: #ffffff;
+  /* White text for better contrast on the gradient */
+  font-weight: bold;
+  font-size: 1.1em;
+  border: none;
+  display: flex;
+  /* Aligns icon and text */
+  align-items: center;
+  gap: 10px;
+  /* Adds space between the icon and the title text */
+  transition: background-color 0.3s ease;
+}
+
+/* Change title background on hover for better user feedback */
+.custom-info-card .accordion-title:hover,
+.custom-info-card .accordion-title:focus {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Style for the content area */
+.custom-info-card .accordion-content {
+  background-color: #fefefe;
+  /* A light background for readable content */
+  color: #333;
+  /* Dark text color as requested in your example */
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.4);
+  /* A subtle separator line */
+}
+
+/* Override Foundation's default ::before and ::after pseudo-elements for the icon */
+.custom-info-card .accordion-title::before,
+.custom-info-card .accordion-title::after {
+  display: none;
+}

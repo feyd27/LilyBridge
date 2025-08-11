@@ -88,5 +88,9 @@ router.get('/view-in-explorer-signum', (req, res) => {
 router.get('/view-on-iota-tangle', (req, res) => {
   res.render('viewOnTangleIota', { title: 'View Uploads On IOTA Tangle'});
 });
+// Route for password reset
+router.get('/reset-password', (req, res) => {
+  res.render('resetPassword', { title: 'Reset Your Password'});
+});
 // Export
 module.exports = router;

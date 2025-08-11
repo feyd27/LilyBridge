@@ -81,6 +81,8 @@ app.use((req, res, next) =>  {
         '/api/public/*',
         '/api/auth/status',
         '/internal/signum/*',
+        '/api/auth/forgot-password',
+        '/api/auth/reset-password',
         ...publicRoutes.stack.map(r => r.route.path),
     ];
 

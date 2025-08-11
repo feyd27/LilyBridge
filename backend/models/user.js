@@ -1,6 +1,6 @@
 // models/user.js
 const mongoose = require('mongoose');
-const bcrypt   = require('bcrypt');
+const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -15,14 +15,14 @@ const userSchema = new mongoose.Schema({
     required: true,
   },
   mqttBroker: {
-    address:   { type: String, required: false, default: null },
-    username:  { type: String, required: false, default: null },
-    password:  { type: String, required: false, default: null },
-    isPrivate: { type: Boolean, required: true,  default: true },
+    address: { type: String, required: false, default: null },
+    username: { type: String, required: false, default: null },
+    password: { type: String, required: false, default: null },
+    isPrivate: { type: Boolean, required: true, default: true },
   },
   role: {
     type: String,
-    enum:  ['reader', 'user', 'admin'],
+    enum: ['reader', 'user', 'admin'],
     default: 'user',
     required: true,
   },
@@ -48,7 +48,7 @@ const userSchema = new mongoose.Schema({
     timestamp: { type: Date, default: Date.now }
   }],
 
-  iotaNodeAddress:   { type: String, required: false, default: 'https://api.shimmer.network' },
+  iotaNodeAddress: { type: String, required: false, default: 'https://api.shimmer.network' },
   signumNodeAddress: { type: String, required: false, default: 'https://europe.signum.network' },
 
   // ← NEW FIELD →
@@ -68,11 +68,14 @@ const userSchema = new mongoose.Schema({
     maxlength: 16,
     match: /^[A-Za-z0-9]+$/   // only alphanumeric
   },
+  passwordResetTokenHash: { type: String, default: null },
+  passwordResetTokenExpiresAt: { type: Date, default: null },
 
 }, {
   timestamps: true
 });
 
-// (Optional) hash password pre-save left out for brevity…
+
+
 
 module.exports = mongoose.model('User', userSchema);
