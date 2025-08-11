@@ -80,5 +80,9 @@ router.get('/select-messages-signum', (req, res) => {
 router.get('/stats-global', (req, res) => {
   res.render('statsGlobal', { title: 'Global Upload Stats'});
 });
+// Route to render global stats
+router.get('/view-in-explorer-signum', (req, res) => {
+  res.render('viewInExplorerSignum', { title: 'View Uploads In Signum Explorer'});
+});
 // Export
 module.exports = router;

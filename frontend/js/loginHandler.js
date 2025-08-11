@@ -58,11 +58,12 @@ document.addEventListener('DOMContentLoaded', () => {
         alertContainer.className = `callout ${type}`;
         alertContainer.textContent = message;
         alertContainer.style.display = 'block';
+        alertContainer.style.borderRadius = '6px';
         alertContainer.classList.remove('fade-out'); // Reset the fade-out animation
 
         // Set a timeout to fade out after 3 seconds
         setTimeout(() => {
             alertContainer.classList.add('fade-out');
-        }, 1000); // 3000 ms = 3 seconds
+        }, 3000); 
     }
 });

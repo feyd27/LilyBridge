@@ -116,13 +116,13 @@ router.get('/signum/uploads', authMiddleware, async (req, res) => {
           totalDataKB:          { $divide: ['$totalBytes', 1024] },
           totalReadings:        1,
           avgReadingsPerUpload: '$avgReadings',
-          totalCost:            { $divide: ['$totalCost', 10000000] },
+          totalCost:            { $divide: ['$totalCost', 100000000] },
           pendingCount:         1,
           confirmedCount:       1,
           avgCostPerReading: {
             $cond: [
               { $gt: ['$totalReadings', 0] },
-              { $divide: [ { $divide: ['$totalCost', 10000000] }, '$totalReadings'] },
+              { $divide: [ { $divide: ['$totalCost', 100000000] }, '$totalReadings'] },
               0
             ]
           },
@@ -1307,40 +1307,182 @@ router.get('/iota/uploads/daily', authMiddleware, async (_req, res) => {
   }
 });
 
-// routes/statsRoutes.js
+
 /**
  * @swagger
- * /stats/explorer-links:
+ * /stats/iota/explorer-links:
  *   get:
- *     summary: List explorer links for uploaded messages
+ *     summary: List explorer links for IOTA uploads
  *     tags: [Stats]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
- *         name: blockchain
- *         schema: { type: string, enum: [IOTA, SIGNUM] }
+ *         name: confirmed
+ *         schema: { type: boolean }
+ *         description: Filter by confirmation status
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, minimum: 1, default: 1 }
+ *         description: Page number (1-based)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           enum: [25, 50, 100]
+ *           default: 50
+ *         description: Page size
+ *     responses:
+ *       200:
+ *         description: Paginated IOTA explorer links
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalItems:   { type: integer }
+ *                 totalPages:   { type: integer }
+ *                 currentPage:  { type: integer }
+ *                 limit:        { type: integer }
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       index:        { type: string }
+ *                       payloadSize:  { type: integer }
+ *                       readingCount: { type: integer }
+ *                       confirmed:    { type: boolean }
+ *                       explorerUrl:  { type: string }
+ *                       txId:         { type: string }
+ *                       sentAt:
+ *                         type: string
+ *                         format: date-time
+ */
+router.get('/iota/explorer-links', authMiddleware, async (req, res) => {
+  try {
+    const { confirmed, page = '1', limit = '50' } = req.query;
+
+    // pagination guards
+    const allowed = new Set([25, 50, 100]);
+    const limitNum = allowed.has(Number(limit)) ? Number(limit) : 50;
+    const pageNum  = Math.max(parseInt(page, 10) || 1, 1);
+
+    // filter
+    const q = { blockchain: 'IOTA' };
+    if (typeof confirmed !== 'undefined') {
+      q.confirmed = confirmed === 'true';
+    }
+
+    const totalItems = await UploadedMessage.countDocuments(q);
+
+    const items = await UploadedMessage.find(q)
+      .sort({ sentAt: -1 })
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum)
+      .select('txId explorerUrl index sentAt confirmed readingCount payloadSize')
+      .lean();
+
+    res.json({
+      totalItems,
+      totalPages: Math.max(1, Math.ceil(totalItems / limitNum)),
+      currentPage: pageNum,
+      limit: limitNum,
+      items,
+    });
+  } catch (err) {
+    console.error('[Stats] /stats/iota/explorer-links error:', err);
+    res.status(500).json({ error: 'Failed to fetch IOTA explorer links' });
+  }
+});
+
+
+/**
+ * @swagger
+ * /stats/signum/explorer-links:
+ *   get:
+ *     summary: List explorer links for Signum uploads
+ *     tags: [Stats]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
  *       - in: query
  *         name: confirmed
  *         schema: { type: boolean }
+ *         description: Filter by confirmation status
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, minimum: 1, default: 1 }
+ *         description: Page number (1-based)
  *       - in: query
  *         name: limit
- *         schema: { type: integer, default: 50 }
+ *         schema:
+ *           type: integer
+ *           enum: [25, 50, 100]
+ *           default: 50
+ *         description: Page size
  *     responses:
  *       200:
- *         description: Rows with explorer links
+ *         description: Paginated Signum explorer links
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalItems:   { type: integer }
+ *                 totalPages:   { type: integer }
+ *                 currentPage:  { type: integer }
+ *                 limit:        { type: integer }
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       index:        { type: string }
+ *                       payloadSize:  { type: integer }
+ *                       readingCount: { type: integer }
+ *                       confirmed:    { type: boolean }
+ *                       explorerUrl:  { type: string }
+ *                       txId:         { type: string }
+ *                       sentAt:
+ *                         type: string
+ *                         format: date-time
  */
-router.get('/explorer-links', authMiddleware, async (req, res) => {
-  const { blockchain, confirmed, limit = 50 } = req.query;
-  const q = {};
-  if (blockchain) q.blockchain = blockchain;
-  if (typeof confirmed !== 'undefined') q.confirmed = confirmed === 'true';
-  const rows = await UploadedMessage.find(q)
-    .sort({ sentAt: -1 })
-    .limit(Math.min(parseInt(limit, 10) || 50, 200))
-    .select('blockchain txId explorerUrl index sentAt confirmed readingCount payloadSize')
-    .lean();
-  res.json(rows);
+router.get('/signum/explorer-links', authMiddleware, async (req, res) => {
+  try {
+    const { confirmed, page = '1', limit = '50' } = req.query;
+
+    // pagination guards
+    const allowed = new Set([25, 50, 100]);
+    const limitNum = allowed.has(Number(limit)) ? Number(limit) : 50;
+    const pageNum  = Math.max(parseInt(page, 10) || 1, 1);
+
+    // filter
+    const q = { blockchain: 'SIGNUM' };
+    if (typeof confirmed !== 'undefined') {
+      q.confirmed = confirmed === 'true';
+    }
+
+    const totalItems = await UploadedMessage.countDocuments(q);
+
+    const items = await UploadedMessage.find(q)
+      .sort({ sentAt: -1 })
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum)
+      .select('txId explorerUrl index sentAt confirmed readingCount payloadSize')
+      .lean();
+
+    res.json({
+      totalItems,
+      totalPages: Math.max(1, Math.ceil(totalItems / limitNum)),
+      currentPage: pageNum,
+      limit: limitNum,
+      items,
+    });
+  } catch (err) {
+    console.error('[Stats] /stats/signum/explorer-links error:', err);
+    res.status(500).json({ error: 'Failed to fetch Signum explorer links' });
+  }
 });
 
 

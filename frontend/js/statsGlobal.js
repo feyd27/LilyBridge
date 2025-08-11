@@ -5,18 +5,18 @@ const fmt3 = (n) => (Number.isFinite(+n) ? (+n).toFixed(2) : '0.00');
 
 const PALETTES = {
   IOTA: {
-    line: 'rgba(78, 97, 255, 1)',       // main line
-    fill: 'rgba(250, 236, 142, 0.5)',   // soft fill
-    avg: 'rgba(78, 97, 255, 0.8)',
-    p50: 'rgba(78, 97, 255, 0.6)',
-    p95: 'rgba(78, 97, 255, 0.4)'
+    line: 'rgba(237, 255, 78, 1)',       // main line
+    fill: 'rgba(248, 250, 142, 0.5)',   // soft fill
+    avg: 'rgba(255, 199, 78, 0.97)',
+    p50: 'rgba(255, 99, 78, 1)',
+    p95: 'rgba(255, 78, 93, 0.86)'
   },
   SIGNUM: {
-    line: 'rgba(0, 170, 140, 1)',
-    fill: 'rgba(180, 255, 230, 0.5)',
-    avg: 'rgba(0, 170, 140, 0.8)',
-    p50: 'rgba(0, 170, 140, 0.6)',
-    p95: 'rgba(0, 170, 140, 0.4)'
+    line: 'rgba(40, 170, 0, 1)',
+    fill: 'rgba(208, 255, 180, 0.73)',
+    avg: 'rgba(226, 222, 11, 1)',
+    p50: 'rgba(202, 236, 10, 0.92)',
+    p95: 'rgba(224, 222, 83, 0.91)'
   }
 };
 
@@ -96,7 +96,7 @@ function buildStyledChart(canvasId, chainLabel, stats, palette) {
           borderColor: palette.p95,
           borderWidth: 1.5,
           borderDash: [2, 6],
-          pointRadius: 0,
+          pointRadius: 1,
           fill: false
         }
       ]
@@ -107,17 +107,17 @@ function buildStyledChart(canvasId, chainLabel, stats, palette) {
       plugins: {
         title: {
           display: true,
-          text: `${chainLabel} — Availability (ms)`,
-          color: '#000',
+          text: `${chainLabel} — Upload duration (ms)`,
+          color: '#ffffffff',
           font: { family: 'Helvetica', weight: 'bold' }
         },
         legend: {
-          labels: { color: '#000', font: { family: 'Helvetica', size: 12 } }
+          labels: { color: '#ffffffff', font: { family: 'Helvetica', size: 12 } }
         },
         tooltip: {
           bodyFont: { family: 'Helvetica', size: 14 },
           titleFont: { family: 'Helvetica', size: 14 },
-          backgroundColor: 'rgba(68, 110, 255, 0.8)',
+          backgroundColor: 'rgba(68, 109, 255, 1)',
           bodyColor: '#fff',
           callbacks: {
             label: (ctx) => `${ctx.dataset.label}: ${Number(ctx.parsed.y).toFixed(3)}`
@@ -130,7 +130,7 @@ function buildStyledChart(canvasId, chainLabel, stats, palette) {
           title: {
             display: true,
             text: 'Upload # (sequence)',
-            color: '#000',
+            color: '#fcf8f8ff',
             font: { family: 'Helvetica', size: 12 }
           },
           ticks: { color: '#000' }

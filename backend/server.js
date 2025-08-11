@@ -4,6 +4,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
 const cookieParser = require('cookie-parser');
 const path = require('path');
+const favicon = require('serve-favicon');
 const connectToDatabase = require('./config/db_conn.js');
 const logger = require('./services/logger');
 const publicRoutes = require('./routes/publicRoutes');
@@ -18,7 +19,7 @@ const iotaRoutes = require('./routes/iotaRoutes.js');
 const authMiddleware = require('./middleware/authMiddleware');
 const expressLayouts = require('express-ejs-layouts');
 const signumConfirmPublic = require('./routes/signumConfirmPublic');
-logger.log('[debug] typeof signumConfirmPublic =', typeof signumConfirmPublic); 
+
 
 const cors = require('cors');
 require('./services/mqttService');
@@ -46,14 +47,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
 app.use(cookieParser());
 app.use(cors()); 
-// Serve favicon.ico explicitly before auth middleware
-app.get('/frontend/images/favicon.ico', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/images/favicon.ico'));
-});
-
+app.use(favicon(path.join(__dirname, '../frontend/images/favicon.ico')));
 
 // Serve static files
 app.use(express.static(path.join(__dirname, '../frontend')));
+app.use('/js',     express.static(path.join(__dirname, '../frontend/js')));
 // Set EJS as the template engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../frontend/pages'));

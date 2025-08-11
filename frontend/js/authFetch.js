@@ -3,32 +3,75 @@
 // 1) Keep the native fetch around for other uses
 export const origFetch = window.fetch.bind(window);
 
+// Public pages & endpoints where a 401 MUST NOT trigger a redirect
+const PUBLIC_PAGES = ['/login', '/register', '/verify-email', '/forgot-password'];
+const PUBLIC_API_PATHS = [
+  '/api/auth/register',
+  '/api/auth/login',
+  '/api/auth/verify-email',
+  '/api/auth/request-reset',
+  '/api/auth/reset',
+  '/api/public/refresh'
+];
+
+// helper: is this call/page public?
+function isPublicContext(input) {
+  const onPublicPage = PUBLIC_PAGES.includes(location.pathname);
+  let path = '';
+
+  if (typeof input === 'string') {
+    try {
+      const u = new URL(input, location.origin);
+      path = u.pathname;
+    } catch {
+      path = input; // relative path
+    }
+  } else if (input && typeof input.url === 'string') {
+    // Request object
+    try {
+      const u = new URL(input.url, location.origin);
+      path = u.pathname;
+    } catch {
+      path = input.url;
+    }
+  }
+
+  const isPublicApi = PUBLIC_API_PATHS.some(p => path.startsWith(p));
+  return onPublicPage || isPublicApi;
+}
+
 /**
  * A drop-in replacement for fetch() that:
  *  • logs request + response (collapsed groups)
- *  • attaches the access token
- *  • on 401 tries /api/auth/refresh
- *  • retries the original request once
+ *  • attaches the access token (if present)
+ *  • on 401 tries /api/public/refresh and retries once
+ *  • DOES NOT redirect on 401 for public pages/endpoints
+ *
+ * You can also opt-out per-call with { anonymousOk: true } in init.
  */
 export async function fetchWithAuth(input, init = {}) {
   console.groupCollapsed('[🚨 fetch]', input);
   console.log('→ options:', init);
 
+  // custom flag to force public behavior per-call
+  const anonymousOk = init.anonymousOk === true;
+  if ('anonymousOk' in init) delete init.anonymousOk;
+
+  const publicCtx = anonymousOk || isPublicContext(input);
+
   // ensure we have a headers object
   init.headers = init.headers || {};
-
-  // if there's a body and no content-type, assume JSON
   if (init.body && !init.headers['Content-Type']) {
     init.headers['Content-Type'] = 'application/json';
   }
 
-  // attach (possibly stale) access token
+  // attach (possibly stale) access token if present
   const accessToken = localStorage.getItem('accessToken');
   if (accessToken) {
     init.headers.Authorization = `Bearer ${accessToken}`;
   }
 
-  console.log(`  ↳ outgoing headers:`, init.headers);
+  console.log('  ↳ outgoing headers:', init.headers);
   console.groupEnd();
 
   // ─── first attempt ────────────────────────────────────────────────────────
@@ -37,8 +80,14 @@ export async function fetchWithAuth(input, init = {}) {
   console.log('← status:', res.status);
   console.groupEnd();
 
-  // ─── on 401 → try a single refresh ─────────────────────────────────────────
+  // ─── on 401 → optionally try refresh ──────────────────────────────────────
   if (res.status === 401) {
+    // On public pages/endpoints, do NOT redirect. Just return the 401.
+    if (publicCtx) {
+      console.warn('[fetchWithAuth] 401 in public context, not redirecting');
+      return res;
+    }
+
     const refreshToken = localStorage.getItem('refreshToken');
     if (!refreshToken) {
       console.warn('[fetchWithAuth] no refreshToken, redirecting to login');
@@ -76,12 +125,11 @@ export async function fetchWithAuth(input, init = {}) {
       console.log('← status:', res.status);
       console.groupEnd();
     } else {
-      // refresh failed—force logout
+      console.warn('[fetchWithAuth] refresh failed');
       window.location.href = '/login';
+      return res;
     }
   }
 
   return res;
 }
-
-

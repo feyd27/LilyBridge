@@ -28,46 +28,46 @@
     </div>
 
     <!-- IOTA cards -->
-    <div class="cell small-12 medium-6">
+    <div class="cell small-12 ">
       <div class="callout">
-        <h4>IOTA</h4>
+        <h1>IOTA</h1>
         <div class="grid-x grid-margin-x">
           <div class="cell small-6 medium-4">
-            <div class="callout">
+            <div class="callout stat-card">
               <h6>Total readings</h6>
               <p id="iota-totalReadingsValue" class="stat-number">0.000</p>
             </div>
           </div>
           <div class="cell small-6 medium-4">
-            <div class="callout">
+            <div class="callout stat-card">
               <h6>Total data (KB)</h6>
               <p id="iota-totalDataKBValue" class="stat-number">0.000</p>
             </div>
           </div>
           <div class="cell small-6 medium-4">
-            <div class="callout">
+            <div class="callout stat-card">
               <h6>Avg readings / upload</h6>
               <p id="iota-avgReadingsPerUploadValue" class="stat-number">0.000</p>
             </div>
           </div>
           <div class="cell small-6 medium-4">
-            <div class="callout">
+            <div class="callout stat-card">
               <h6>Total cost</h6>
               <p id="iota-totalCostValue" class="stat-number">0.000</p>
             </div>
           </div>
           <div class="cell small-6 medium-4">
-            <div class="callout">
+            <div class="callout stat-card">
               <h6>Avg cost / reading</h6>
               <p id="iota-avgCostPerReadingValue" class="stat-number">0.000</p>
             </div>
           </div>
           <div class="cell small-6 medium-4">
-            <div class="callout">
+            <div class="callout stat-card">
               <h6>Pending / Confirmed</h6>
-              <p>
+              <p class="stat-number">
                 <span id="iota-pendingCountValue" class="stat-number">0.000</span>
-                &nbsp;/&nbsp;
+                <span class="stat-number">/</span>
                 <span id="iota-confirmedCountValue" class="stat-number">0.000</span>
               </p>
             </div>
@@ -75,60 +75,10 @@
         </div>
       </div>
     </div>
-
-    <!-- Signum cards -->
-    <div class="cell small-12 medium-6">
-      <div class="callout">
-        <h4>Signum</h4>
-        <div class="grid-x grid-margin-x">
-          <div class="cell small-6 medium-4">
-            <div class="callout">
-              <h6>Total readings</h6>
-              <p id="signum-totalReadingsValue" class="stat-number">0.000</p>
-            </div>
-          </div>
-          <div class="cell small-6 medium-4">
-            <div class="callout">
-              <h6>Total data (KB)</h6>
-              <p id="signum-totalDataKBValue" class="stat-number">0.000</p>
-            </div>
-          </div>
-          <div class="cell small-6 medium-4">
-            <div class="callout">
-              <h6>Avg readings / upload</h6>
-              <p id="signum-avgReadingsPerUploadValue" class="stat-number">0.000</p>
-            </div>
-          </div>
-          <div class="cell small-6 medium-4">
-            <div class="callout">
-              <h6>Total cost [Ꞩ] </h6>
-              <p id="signum-totalCostValue" class="stat-number">0.000</p>
-            </div>
-          </div>
-          <div class="cell small-6 medium-4">
-            <div class="callout">
-              <h6>Avg cost / reading [Ꞩ]</h6>
-              <p id="signum-avgCostPerReadingValue" class="stat-number">0.000</p>
-            </div>
-          </div>
-          <div class="cell small-6 medium-4">
-            <div class="callout">
-              <h6>Pending / Confirmed</h6>
-              <p>
-                <span id="signum-pendingCountValue" class="stat-number">0.000</span>
-                &nbsp;/&nbsp;
-                <span id="signum-confirmedCountValue" class="stat-number">0.000</span>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- IOTA chart -->
+     <!-- IOTA chart -->
     <div class="cell small-12">
-      <div class="callout">
-        <h5>IOTA — Availability (ms)</h5>
+      <div class="callout stat-card">
+        <h5>IOTA — Upload duration (ms)</h5>
         <div style="height: 340px;">
           <canvas id="iotaChart"></canvas>
         </div>
@@ -138,10 +88,61 @@
       </div>
     </div>
 
-    <!-- Signum chart -->
+    <!-- Signum cards -->
     <div class="cell small-12">
       <div class="callout">
-        <h5>Signum — Availability (ms)</h5>
+        <h1>Signum</h1>
+        <div class="grid-x grid-margin-x">
+          <div class="cell small-6 medium-4">
+            <div class="callout stat-card">
+              <h6>Total readings</h6>
+              <p id="signum-totalReadingsValue" class="stat-number">0.000</p>
+            </div>
+          </div>
+          <div class="cell small-6 medium-4">
+            <div class="callout stat-card">
+              <h6>Total data (KB)</h6>
+              <p id="signum-totalDataKBValue" class="stat-number">0.000</p>
+            </div>
+          </div>
+          <div class="cell small-6 medium-4">
+            <div class="callout stat-card">
+              <h6>Avg readings / upload</h6>
+              <p id="signum-avgReadingsPerUploadValue" class="stat-number">0.000</p>
+            </div>
+          </div>
+          <div class="cell small-6 medium-4">
+            <div class="callout stat-card">
+              <h6>Total cost [Ꞩ] </h6>
+              <p id="signum-totalCostValue" class="stat-number">0.000</p>
+            </div>
+          </div>
+          <div class="cell small-6 medium-4">
+            <div class="callout stat-card">
+              <h6>Avg cost / reading [Ꞩ]</h6>
+              <p id="signum-avgCostPerReadingValue" class="stat-number">0.000</p>
+            </div>
+          </div>
+          <div class="cell small-6 medium-4">
+            <div class="callout stat-card">
+              <h6>Pending / Confirmed</h6>
+              <p class="stat-number">
+                <span id="signum-pendingCountValue" class="stat-number">0.000</span>
+                <span class="stat-number">/</span>
+                <span id="signum-confirmedCountValue" class="stat-number">0.000</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+   
+
+    <!-- Signum chart -->
+    <div class="cell small-12">
+      <div class="callout stat-card">
+        <h5>Signum — Upload duration (ms)</h5>
         <div style="height: 340px;">
           <canvas id="signumChart"></canvas>
         </div>
