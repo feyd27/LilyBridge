@@ -1,4 +1,4 @@
-//js/signumExplorerTable.js
+//js/iotaExplorerTable.js
 import { fetchWithAuth } from "./authFetch.js";
 
 const state = {
@@ -18,33 +18,31 @@ function showAlert(msg, type = "alert") {
   setTimeout(() => (el.style.display = "none"), 3000);
 }
 
-function fmtBool(b) {
-  return b ? "✅" : "❌";
-}
+const fmtBool = (b) => (b ? "✅" : "❌");
 
 function renderTable(items) {
-  const tbody = document.getElementById("signumTableBody");
+  const tbody = document.getElementById("iotaTableBody");
   if (!tbody) return;
   tbody.innerHTML = "";
 
   items.forEach((row) => {
     const tr = document.createElement("tr");
-    const btnDisabled = !row.explorerUrl ? "disabled" : "";
+    const disabled = !row.explorerUrl ? "disabled" : "";
     tr.innerHTML = `
       <td>${row.index ?? ""}</td>
       <td>${Number(row.payloadSize ?? 0).toLocaleString()}</td>
       <td>${Number(row.readingCount ?? 0).toLocaleString()}</td>
       <td>${fmtBool(!!row.confirmed)}</td>
       <td class="text-center">
-        <button class="button tiny ${btnDisabled}" data-url="${row.explorerUrl || ""}" ${btnDisabled}>
-          View on the chain
+        <button class="button tiny ${disabled}" data-url="${row.explorerUrl || ""}" ${disabled}>
+          View on the Tangle
         </button>
       </td>
     `;
     tbody.appendChild(tr);
   });
 
-  // wire buttons for the current page
+  // Wire explorer buttons
   tbody.querySelectorAll("button[data-url]").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       const url = e.currentTarget.getAttribute("data-url");
@@ -54,22 +52,20 @@ function renderTable(items) {
 }
 
 function updatePaginationUI() {
-  const info = document.getElementById("signumPaginationInfo");
-  const prev = document.getElementById("PrevPage");
-  const next = document.getElementById("NextPage");
+  const info = document.getElementById("iotaPaginationInfo");
+  const prev = document.getElementById("iotaPrevPage");
+  const next = document.getElementById("iotaNextPage");
 
-  if (info) {
-    info.textContent = `Page ${state.page} of ${state.totalPages} — limit ${state.limit}`;
-  }
+  if (info) info.textContent = `Page ${state.page} of ${state.totalPages} — limit ${state.limit}`;
   if (prev) prev.disabled = state.page <= 1;
   if (next) next.disabled = state.page >= state.totalPages;
 }
 
 async function fetchPage() {
-  // const url = `/stats/signum/explorer-links?confirmed=${state.confirmed}&page=${state.page}&limit=${state.limit}`;
+  // const url = `/stats/iota/explorer-links?confirmed=${state.confirmed}&page=${state.page}&limit=${state.limit}`;
   try {
     const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
-    const res = await fetchWithAuth(`/stats/signum/explorer-links?confirmed=${state.confirmed}&page=${state.page}&limit=${state.limit}`,
+    const res = await fetchWithAuth(`/stats/iota/explorer-links?confirmed=${state.confirmed}&page=${state.page}&limit=${state.limit}`,
       {
             headers: {
                 'Authorization': `Bearer ${token}`  // Add Authorization header
@@ -77,7 +73,7 @@ async function fetchPage() {
   });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    // data: { totalItems, totalPages, currentPage, limit, items }
+
     state.totalItems = data.totalItems || 0;
     state.totalPages = data.totalPages || 1;
     state.page       = data.currentPage || 1;
@@ -86,18 +82,18 @@ async function fetchPage() {
     renderTable(Array.isArray(data.items) ? data.items : []);
     updatePaginationUI();
   } catch (err) {
-    console.error("[SignumExplorer] fetchPage error:", err);
-    showAlert("Failed to load Signum explorer links.", "alert");
+    console.error("[IotaExplorer] fetchPage error:", err);
+    showAlert("Failed to load IOTA explorer links.", "alert");
   }
 }
 
 function attachControls() {
-  const pageSizeEl = document.getElementById("pageSize");
+  const pageSizeEl = document.getElementById("PageSize");
   const prev = document.getElementById("PrevPage");
   const next = document.getElementById("NextPage");
 
   if (pageSizeEl) {
-    pageSizeEl.value = String(state.limit); // set default 25
+    pageSizeEl.value = String(state.limit); // default 25
     pageSizeEl.addEventListener("change", () => {
       const v = parseInt(pageSizeEl.value, 10);
       state.limit = [25, 50, 100].includes(v) ? v : 25;
@@ -125,5 +121,5 @@ function attachControls() {
 
 document.addEventListener("DOMContentLoaded", () => {
   attachControls();
-  fetchPage(); // defaults: confirmed=true, page=1, limit=25
+  fetchPage(); // confirmed=true, page=1, limit=25
 });

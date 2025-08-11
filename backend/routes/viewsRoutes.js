@@ -80,9 +80,13 @@ router.get('/select-messages-signum', (req, res) => {
 router.get('/stats-global', (req, res) => {
   res.render('statsGlobal', { title: 'Global Upload Stats'});
 });
-// Route to render global stats
+// Route to render explorer links for Signum
 router.get('/view-in-explorer-signum', (req, res) => {
   res.render('viewInExplorerSignum', { title: 'View Uploads In Signum Explorer'});
+});
+// Route to render explorer links for Iota
+router.get('/view-on-iota-tangle', (req, res) => {
+  res.render('viewOnTangleIota', { title: 'View Uploads On IOTA Tangle'});
 });
 // Export
 module.exports = router;
