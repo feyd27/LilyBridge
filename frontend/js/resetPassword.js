@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBtn.classList.add('disabled');
 
     try {
-      const res = await fetch('/api/auth/reset-password', {
+      const res = await fetch('/api/public/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         // backend hashes the password – we only send plaintext over HTTPS

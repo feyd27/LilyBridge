@@ -64,6 +64,52 @@ document.addEventListener('DOMContentLoaded', () => {
         selectAllBtn.disabled = !hasRows;
     }
 
+    // function displayTemperatureMessages(messages) {
+    //     container.innerHTML = '';
+    //     messages.forEach(msg => {
+    //         const isChecked = selectedMessages.has(msg._id) ? 'checked' : '';
+    //         const uploadIcon = msg.uploadedToIOTA
+    //             ? `<span style="color: green;">&#10004;</span>`
+    //             : `<span style="color: red;">&#10060;</span>`;
+
+    //         const row = document.createElement('tr');
+    //         row.innerHTML = `
+    //             <td>${msg.chipID}</td>
+    //             <td>${msg.macAddress}</td>
+    //             <td>${msg.temperature}°C</td>
+    //             <td>${formatTimestamp(msg.timestamp)}</td>
+    //             <td>${uploadIcon}</td>
+    //             <td>
+    //               <input
+    //                 type="checkbox"
+    //                 class="message-checkbox"
+    //                 data-id="${msg._id}"
+    //                 ${isChecked}
+    //               >
+    //             </td>
+    //         `;
+    //         container.appendChild(row);
+    //     });
+
+    //     // wire up the checkboxes
+    //     container.querySelectorAll('.message-checkbox').forEach(cb => {
+    //         cb.addEventListener('change', e => {
+    //             const id = e.target.dataset.id;
+    //             if (e.target.checked) selectedMessages.add(id);
+    //             else selectedMessages.delete(id);
+
+    //             updateUploadButtonState();
+    //             updateSelectedCount();
+    //             updateBulkButtons();
+    //         });
+    //     });
+
+    //     // after redraw, make sure button + count are correct
+    //     updateUploadButtonState();
+    //     updateSelectedCount();
+    //     updateBulkButtons();
+    // }
+
     function displayTemperatureMessages(messages) {
         container.innerHTML = '';
         messages.forEach(msg => {
@@ -72,22 +118,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `<span style="color: green;">&#10004;</span>`
                 : `<span style="color: red;">&#10060;</span>`;
 
+            // Check if temperature is a valid number, then format to 2 decimal places.
+            const formattedTemp = typeof msg.temperature === 'number'
+                ? msg.temperature.toFixed(2)
+                : 'N/A';
+
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${msg.chipID}</td>
-                <td>${msg.macAddress}</td>
-                <td>${msg.temperature}°C</td>
-                <td>${formatTimestamp(msg.timestamp)}</td>
-                <td>${uploadIcon}</td>
-                <td>
-                  <input
+            <td>${msg.chipID}</td>
+            <td>${msg.macAddress}</td>
+            <td>${formattedTemp}°C</td>
+            <td>${formatTimestamp(msg.timestamp)}</td>
+            <td>${uploadIcon}</td>
+            <td>
+                <input
                     type="checkbox"
                     class="message-checkbox"
                     data-id="${msg._id}"
                     ${isChecked}
-                  >
-                </td>
-            `;
+                >
+            </td>
+        `;
             container.appendChild(row);
         });
 
@@ -109,7 +160,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSelectedCount();
         updateBulkButtons();
     }
-
     async function fetchAndDisplayMessages() {
         try {
             const res = await fetchWithAuth(
@@ -120,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
             totalPages = data.totalPages;
             updatePaginationDisplay(data.totalItems, totalPages, currentPage);
             updateButtonStates();
-            updateBulkButtons(); 
+            updateBulkButtons();
         } catch (err) {
             console.error('Error fetching temperature messages:', err);
         }

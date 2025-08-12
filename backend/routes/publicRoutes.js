@@ -7,6 +7,23 @@ const logger = require('../services/logger');
 const jwt     = require('jsonwebtoken');
 const User    = require('../models/user');
 logger.log('🛣️  publicRoutes.js loaded');
+const { Resend } = require('resend');
+const crypto = require('crypto');
+const bcrypt = require('bcrypt');
+
+// Generate a random token using crypto for the verification email
+function generateVerificationToken() {
+    
+    return crypto.randomBytes(32).toString('hex'); 
+  }
+
+// helper: create a random token and its SHA256 hash for password reset
+function createResetTokenPair() {
+  const token = crypto.randomBytes(32).toString('hex');
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+  return { token, tokenHash };
+}
+
 /**
  * @swagger
  * /api/public/api/messages/temperature/last50:
@@ -225,5 +242,157 @@ router.post('/refresh', async (req, res) => {
   return res.json({ accessToken: newAccessToken });
 });
 
+/**
+ * @swagger
+ * /api/public/forgot-password:
+ *   post:
+ *     summary: Request a password reset link (email)
+ *     tags: [Public]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [username]
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: User's email (same as username)
+ *                 example: user@example.com
+ *     responses:
+ *       200:
+ *         description: If the user exists, an email will be sent with reset instructions
+ *       500:
+ *         description: Server error
+ */
+router.post('/forgot-password', async (req, res) => {
+  const { username } = req.body;
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  try {
+    const user = await User.findOne({ username });
+    // Always respond 200 to avoid account enumeration
+    if (!user) {
+      return res.status(200).json({ message: 'If an account exists, we sent an email with instructions.' });
+    }
+
+    // Create token + expiry
+    const { token, tokenHash } = createResetTokenPair();
+    const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    user.passwordResetTokenHash = tokenHash;
+    user.passwordResetTokenExpiresAt = expires;
+    await user.save();
+
+    // Build link to your frontend reset page
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    // Send email
+    await resend.emails.send({
+      from: 'verify@updates.lily-bridge.online',
+      to: req.body.username,
+      subject: 'Reset your password',
+      html: `<!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Verify your email</title>
+      </head>
+      <body style="background: linear-gradient(135deg, #b564c5, #1f5aa8); background-size: cover; background-repeat: no-repeat; margin: 0; padding: 0; background-position: center;">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td align="center">
+              <table border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td>
+                    <h1>Password Reset for you Lily-Bridge account</h1>
+                    <p>Click the button below to reset your password:</p>
+                    <a href="${resetLink}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Reset Password</a>
+                    <p>The reset link is valid for 1 hour.</p>
+                    <p>If you did not request this password reset, you can ignore this email.</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>`
+    });
+
+    return res.status(200).json({ message: 'If an account exists, we sent an email with instructions.' });
+  } catch (err) {
+    logger.error('[Auth] forgot-password error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
+ * @swagger
+ * /api/public/reset-password:
+ *   post:
+ *     summary: Set a new password using the reset token
+ *     tags: [Public]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [token, password]
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 description: Password reset token received by email
+ *               password:
+ *                 type: string
+ *                 description: New password
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *       400:
+ *         description: Invalid or expired token
+ *       500:
+ *         description: Server error
+ */
+router.post('/reset-password', async (req, res) => {
+  const { token, password } = req.body;
+
+  if (!token || !password) {
+    return res.status(400).json({ message: 'token and password are required' });
+  }
+
+  try {
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await User.findOne({
+      passwordResetTokenHash: tokenHash,
+      passwordResetTokenExpiresAt: { $gt: new Date() } // not expired
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired reset token' });
+    }
+
+    // Update password
+    const hashed = await bcrypt.hash(password, 10);
+    user.password = hashed;
+
+    // Clear token fields
+    user.passwordResetTokenHash = null;
+    user.passwordResetTokenExpiresAt = null;
+
+    // Track completion time
+    user.passwordResetHistory.push({ timestamp: new Date() });
+
+    await user.save();
+
+    return res.status(200).json({ message: 'Password updated successfully' });
+  } catch (err) {
+    console.error('[Auth] reset-password error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
 module.exports = router;
 

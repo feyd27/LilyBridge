@@ -43,19 +43,40 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => console.error('Error fetching temperature messages:', error));
     }
 
+    // function displayTemperatureMessages(messages) {
+    //     container.innerHTML = '';
+    //     messages.forEach(message => {
+    //         const row = document.createElement('tr');
+    //         row.innerHTML = `
+    //     <td>${message.chipID}</td>
+    //     <td>${message.macAddress}</td>
+    //     <td>${message.temperature}°C</td>
+    //     <td>${formatTimestamp(message.timestamp)}</td>
+    //   `;
+    //         container.appendChild(row);
+    //     });
+    // }
+
     function displayTemperatureMessages(messages) {
-        container.innerHTML = '';
-        messages.forEach(message => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-        <td>${message.chipID}</td>
-        <td>${message.macAddress}</td>
-        <td>${message.temperature}°C</td>
-        <td>${formatTimestamp(message.timestamp)}</td>
-      `;
-            container.appendChild(row);
-        });
-    }
+    container.innerHTML = '';
+    messages.forEach(message => {
+        const row = document.createElement('tr');
+
+        // Check if temperature is a valid number, then format to 2 decimal places.
+        // If not, display 'N/A'.
+        const formattedTemp = typeof message.temperature === 'number'
+            ? message.temperature.toFixed(2)
+            : 'N/A';
+
+        row.innerHTML = `
+            <td>${message.chipID}</td>
+            <td>${message.macAddress}</td>
+            <td>${formattedTemp}°C</td>
+            <td>${formatTimestamp(message.timestamp)}</td>
+        `;
+        container.appendChild(row);
+    });
+}
     function updatePaginationDisplay(totalItems, totalPages, currentPage) {
         paginationInfo.textContent = `Page ${currentPage} of ${totalPages} - Displaying ${Math.min(pageSize, totalItems)} of ${totalItems} messages`;
     }

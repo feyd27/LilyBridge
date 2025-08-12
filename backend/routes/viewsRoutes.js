@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const logger = require('../services/logger');
+const { layouts } = require('chart.js');
 
 // Route to serve the index.html file
 router.get('/', (req, res) => {
@@ -9,12 +10,12 @@ router.get('/', (req, res) => {
 
 // Route to render the registration page
 router.get('/register', (req, res) => {
-    res.render('register', { title: 'User Registration'});
+    res.render('register', {layout: 'layout-no-sidebar'});
   });
   
   // Route to render the login page
   router.get('/login', (req, res) => {
-    res.render('login', { title: 'Login'});
+    res.render('login', {layout: 'layout-no-sidebar'});
   });
 
 // Route to render the logout confirmation page
@@ -25,7 +26,7 @@ router.get('/logout-confirmation', (req, res) => {
   });
 // Route to render the logout confirmation page
 router.get('/login-confirmation', (req, res) => {
-  res.render('loginConfirmation', { title: 'Logged Out' });
+  res.render('loginConfirmation',  {layout: 'layout-no-sidebar'});
 });
 
 // Route to render the temperature messages page
@@ -60,7 +61,7 @@ router.get('/delete-error-messages', (req, res) => {
 
 // Route to render the page for email verification
 router.get('/verify-email', (req, res) => {
-  res.render('verifyEmail', { title: 'Verify Email' });
+  res.render('verifyEmail', {layout: 'layout-no-sidebar'});
 });
 
 // Route to render user settings page
@@ -90,7 +91,11 @@ router.get('/view-on-iota-tangle', (req, res) => {
 });
 // Route for password reset
 router.get('/reset-password', (req, res) => {
-  res.render('resetPassword', { title: 'Reset Your Password'});
+  res.render('resetPassword', {layout: 'layout-no-sidebar'});
+});
+// Route for forgot password
+router.get('/forgot-password', (req, res) => {
+  res.render('forgotPassword', {layout: 'layout-no-sidebar'});
 });
 // Export
 module.exports = router;

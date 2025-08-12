@@ -1,10 +1,4 @@
-/* Font Face for Rubik */
-@font-face {
-  font-family: 'Rubik';
-  src: url('../font/Rubik-Bold.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-}
+
 
 /* Basic Structure and Font Settings */
 html {

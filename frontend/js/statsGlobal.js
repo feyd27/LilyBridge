@@ -1,145 +1,139 @@
-// /frontend/js/statsGlobal.js
+// /assets/js/statsGlobal.js
 import { fetchWithAuth } from './authFetch.js';
 
-const fmt3 = (n) => (Number.isFinite(+n) ? (+n).toFixed(2) : '0.00');
-
+/* -------------------- chart palettes -------------------- */
 const PALETTES = {
   IOTA: {
     line: 'rgba(237, 255, 78, 1)',       // main line
     fill: 'rgba(248, 250, 142, 0.5)',   // soft fill
-    avg: 'rgba(255, 199, 78, 0.97)',
-    p50: 'rgba(255, 99, 78, 1)',
-    p95: 'rgba(255, 78, 93, 0.86)'
+    avg:  'rgba(255, 199, 78, 0.97)',
+    p50:  'rgba(255, 99, 78, 1)',
+    p95:  'rgba(255, 78, 93, 0.86)'
   },
   SIGNUM: {
     line: 'rgba(40, 170, 0, 1)',
     fill: 'rgba(208, 255, 180, 0.73)',
-    avg: 'rgba(226, 222, 11, 1)',
-    p50: 'rgba(202, 236, 10, 0.92)',
-    p95: 'rgba(224, 222, 83, 0.91)'
+    avg:  'rgba(226, 222, 11, 1)',
+    p50:  'rgba(202, 236, 10, 0.92)',
+    p95:  'rgba(224, 222, 83, 0.91)'
   }
 };
 
+/* -------------------- formatting helpers -------------------- */
+const fmt = (n, d = 3) =>
+  Number(n ?? 0).toLocaleString(undefined, {
+    minimumFractionDigits: d,
+    maximumFractionDigits: d
+  });
+
+const fmt0 = (n) => fmt(n, 0);
+const fmt3 = (n) => fmt(n, 3);
+const fmt6 = (n) => fmt(n, 6);
+
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
+
 function showAlert(msg, type = 'alert') {
   const el = document.getElementById('alertContainer');
+  if (!el) return;
   el.className = `callout ${type}`;
   el.textContent = msg;
   el.style.display = 'block';
   setTimeout(() => (el.style.display = 'none'), 3500);
 }
 
-function setText(id, value) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = fmt3(value);
+/* -------------------- cards rendering -------------------- */
+function renderCards(prefix, stats) {
+  // 0-decimal fields
+  setText(`${prefix}-totalReadingsValue`,   fmt0(stats.totalReadings));
+  setText(`${prefix}-pendingCountValue`,    fmt0(stats.pendingCount));
+  setText(`${prefix}-confirmedCountValue`,  fmt0(stats.confirmedCount));
+
+  // 6-decimal
+  setText(`${prefix}-avgCostPerReadingValue`, fmt6(stats.avgCostPerReading));
+
+  // 3-decimal defaults
+  setText(`${prefix}-totalDataKBValue`,         fmt3(stats.totalDataKB));
+  setText(`${prefix}-avgReadingsPerUploadValue`,fmt3(stats.avgReadingsPerUpload));
+  setText(`${prefix}-totalCostValue`,           fmt3(stats.totalCost));
+  setText(`${prefix}-avgTimeToConfirmMsValue`,  fmt3(stats.avgTimeToConfirmMs));
+  setText(`${prefix}-p50TimeToConfirmMsValue`,  fmt3(stats.p50TimeToConfirmMs));
+  setText(`${prefix}-p95TimeToConfirmMsValue`,  fmt3(stats.p95TimeToConfirmMs));
 }
 
-function constLine(val, len) {
-  return Array.from({ length: len }, (_, i) => ({ x: i + 1, y: val }));
+/* -------------------- charts -------------------- */
+let iotaChartInstance = null;
+let signumChartInstance = null;
+
+function makeOverlaySeries(len, value, label, color, dash = [6, 4]) {
+  if (!Number.isFinite(value) || value <= 0 || len === 0) return null;
+  return {
+    label,
+    data: Array(len).fill(Number(value)),
+    borderColor: color,
+    borderWidth: 2,
+    borderDash: dash,
+    fill: false,
+    pointRadius: 0,
+    tension: 0
+  };
 }
-function toXY(arr) {
-  return (Array.isArray(arr) ? arr : []).map((v, i) => ({ x: i + 1, y: +v || 0 }));
-}
 
-// NEW: styled chart (temperature-chart look & feel)
-function buildStyledChart(canvasId, chainLabel, stats, palette) {
-  const ctx = document.getElementById(canvasId);
-  if (!ctx) return;
-
-  const durations = Array.isArray(stats.durations) ? stats.durations : [];
-  const N = durations.length || 1;
-
-  const avg = +stats.avgTimeToConfirmMs || 0;
-  const p50 = +stats.p50TimeToConfirmMs || 0;
-  const p95 = +stats.p95TimeToConfirmMs || 0;
-
-  const key = `__chart_${canvasId}`;
-  if (window[key]) window[key].destroy();
-
-  window[key] = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: durations.map((_, i) => i + 1),
-      datasets: [
-        // Main series (solid, filled)
-        {
-          label: `${chainLabel} durations (ms)`,
-          data: durations,
-          borderWidth: 2,
-          borderColor: palette.line,
-          backgroundColor: palette.fill,
-          fill: true,
-          pointRadius: 0,
-          tension: 0.12
-        },
-        // Avg / P50 / P95 (dashed, no fill)
-        {
-          label: `${chainLabel} Avg (${avg.toFixed(3)} ms)`,
-          data: constLine(avg, N),
-          borderColor: palette.avg,
-          borderWidth: 1.5,
-          borderDash: [6, 6],
-          pointRadius: 0,
-          fill: false
-        },
-        {
-          label: `${chainLabel} P50 (${p50.toFixed(3)} ms)`,
-          data: constLine(p50, N),
-          borderColor: palette.p50,
-          borderWidth: 1.5,
-          borderDash: [4, 6],
-          pointRadius: 0,
-          fill: false
-        },
-        {
-          label: `${chainLabel} P95 (${p95.toFixed(3)} ms)`,
-          data: constLine(p95, N),
-          borderColor: palette.p95,
-          borderWidth: 1.5,
-          borderDash: [2, 6],
-          pointRadius: 1,
-          fill: false
-        }
-      ]
+function makeLineConfig({ labels, mainSeries, overlays, title, yLabel }) {
+  // overlays: array of optional datasets (filter nulls)
+  const datasets = [
+    {
+      label: yLabel,
+      data: mainSeries.data,
+      borderWidth: 2,
+      borderColor: mainSeries.borderColor,
+      backgroundColor: mainSeries.backgroundColor,
+      fill: true,
+      tension: 0.25,
+      pointRadius: 0
     },
+    ...overlays.filter(Boolean)
+  ];
+
+  return {
+    type: 'line',
+    data: { labels, datasets },
     options: {
       responsive: true,
-      maintainAspectRatio: false,
       plugins: {
         title: {
           display: true,
-          text: `${chainLabel} — Upload duration (ms)`,
-          color: '#ffffffff',
+          text: title,
+          color: '#000',
           font: { family: 'Helvetica', weight: 'bold' }
         },
         legend: {
-          labels: { color: '#ffffffff', font: { family: 'Helvetica', size: 12 } }
+          labels: { color: '#000', font: { family: 'Helvetica', size: 12 } }
         },
         tooltip: {
-          bodyFont: { family: 'Helvetica', size: 14 },
-          titleFont: { family: 'Helvetica', size: 14 },
-          backgroundColor: 'rgba(68, 109, 255, 1)',
-          bodyColor: '#fff',
-          callbacks: {
-            label: (ctx) => `${ctx.dataset.label}: ${Number(ctx.parsed.y).toFixed(3)}`
-          }
+          bodyFont:   { family: 'Helvetica', size: 14 },
+          titleFont:  { family: 'Helvetica', size: 14 },
+          backgroundColor: 'rgba(68, 110, 255, 0.8)',
+          bodyColor:  '#fff'
         }
       },
       scales: {
         x: {
-          type: 'linear',
           title: {
             display: true,
-            text: 'Upload # (sequence)',
-            color: '#fcf8f8ff',
+            text: 'Upload # (most recent first)',
+            color: '#000',
             font: { family: 'Helvetica', size: 12 }
           },
           ticks: { color: '#000' }
         },
         y: {
-          beginAtZero: true,
+          beginAtZero: false,
           title: {
             display: true,
-            text: 'Milliseconds',
+            text: yLabel,
             color: '#000',
             font: { family: 'Helvetica', size: 12 }
           },
@@ -147,44 +141,96 @@ function buildStyledChart(canvasId, chainLabel, stats, palette) {
         }
       }
     }
-  });
+  };
 }
 
+function drawIotaChart(iotaData) {
+  const canvas = document.getElementById('iotaChart');
+  if (!canvas || !window.Chart) return;
+
+  const durations = (Array.isArray(iotaData?.durations) ? iotaData.durations : [])
+    .map(Number)
+    .filter((n) => Number.isFinite(n));
+  const labels    = durations.map((_, idx) => idx + 1);
+
+  if (iotaChartInstance) iotaChartInstance.destroy();
+
+  const overlays = [
+    makeOverlaySeries(labels.length, iotaData?.avgTimeToConfirmMs, 'Avg', PALETTES.IOTA.avg, [6, 4]),
+    makeOverlaySeries(labels.length, iotaData?.p50TimeToConfirmMs, 'P50', PALETTES.IOTA.p50, [4, 4]),
+    makeOverlaySeries(labels.length, iotaData?.p95TimeToConfirmMs, 'P95', PALETTES.IOTA.p95, [2, 4])
+  ];
+
+  const cfg = makeLineConfig({
+    labels,
+    mainSeries: {
+      data: durations,
+      borderColor: PALETTES.IOTA.line,
+      backgroundColor: PALETTES.IOTA.fill
+    },
+    overlays,
+    title: 'IOTA — Upload Duration (ms)',
+    yLabel: 'Duration (ms)'
+  });
+
+  iotaChartInstance = new Chart(canvas.getContext('2d'), cfg);
+}
+
+function drawSignumChart(sigData) {
+  const canvas = document.getElementById('signumChart');
+  if (!canvas || !window.Chart) return;
+
+  const durations = (Array.isArray(sigData?.durations) ? sigData.durations : [])
+    .map(Number)
+    .filter((n) => Number.isFinite(n));
+  const labels    = durations.map((_, idx) => idx + 1);
+
+  if (signumChartInstance) signumChartInstance.destroy();
+
+  const overlays = [
+    makeOverlaySeries(labels.length, sigData?.avgTimeToConfirmMs, 'Avg', PALETTES.SIGNUM.avg, [6, 4]),
+    makeOverlaySeries(labels.length, sigData?.p50TimeToConfirmMs, 'P50', PALETTES.SIGNUM.p50, [4, 4]),
+    makeOverlaySeries(labels.length, sigData?.p95TimeToConfirmMs, 'P95', PALETTES.SIGNUM.p95, [2, 4])
+  ];
+
+  const cfg = makeLineConfig({
+    labels,
+    mainSeries: {
+      data: durations,
+      borderColor: PALETTES.SIGNUM.line,
+      backgroundColor: PALETTES.SIGNUM.fill
+    },
+    overlays,
+    title: 'Signum — Confirmation Time (ms)',
+    yLabel: 'Time to Confirm (ms)'
+  });
+
+  signumChartInstance = new Chart(canvas.getContext('2d'), cfg);
+}
+
+/* -------------------- fetch helpers -------------------- */
+async function fetchJson(url) {
+  const res = await fetchWithAuth(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+  return res.json();
+}
+
+/* -------------------- boot -------------------- */
 async function load() {
   try {
-    const [iotaRes, signumRes] = await Promise.all([
-      fetchWithAuth('/stats/iota/uploads'),
-      fetchWithAuth('/stats/signum/uploads')
+    const [iotaData, signumData] = await Promise.all([
+      fetchJson('/stats/iota/uploads'),
+      fetchJson('/stats/signum/uploads')
     ]);
-    if (!iotaRes.ok || !signumRes.ok) throw new Error(`HTTP ${iotaRes.status}/${signumRes.status}`);
 
-    const [iota, signum] = await Promise.all([iotaRes.json(), signumRes.json()]);
-    
+    renderCards('iota', iotaData);
+    renderCards('signum', signumData);
 
-    // IOTA cards
-    setText('iota-totalReadingsValue', iota.totalReadings);
-    setText('iota-totalDataKBValue', iota.totalDataKB);
-    setText('iota-avgReadingsPerUploadValue', iota.avgReadingsPerUpload);
-    setText('iota-totalCostValue', iota.totalCost);
-    setText('iota-avgCostPerReadingValue', iota.avgCostPerReading);
-    setText('iota-pendingCountValue', iota.pendingCount);
-    setText('iota-confirmedCountValue', iota.confirmedCount);
-
-    // Signum cards
-    setText('signum-totalReadingsValue', signum.totalReadings);
-    setText('signum-totalDataKBValue', signum.totalDataKB);
-    setText('signum-avgReadingsPerUploadValue', signum.avgReadingsPerUpload);
-    setText('signum-totalCostValue', signum.totalCost);
-    setText('signum-avgCostPerReadingValue', signum.avgCostPerReading);
-    setText('signum-pendingCountValue', signum.pendingCount);
-    setText('signum-confirmedCountValue', signum.confirmedCount);
-
-    // Charts
-    buildStyledChart('iotaChart', 'IOTA', iota, PALETTES.IOTA);
-    buildStyledChart('signumChart', 'Signum', signum, PALETTES.SIGNUM);
+    drawIotaChart(iotaData);
+    drawSignumChart(signumData);
   } catch (err) {
     console.error('[Global Stats Split] load error:', err);
-    showAlert('Failed to load stats. Please try again.', 'alert');
+    showAlert('Failed to load stats. Please refresh.', 'alert');
   }
 }
 

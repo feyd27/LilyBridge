@@ -56,7 +56,7 @@ app.use('/js',     express.static(path.join(__dirname, '../frontend/js')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../frontend/pages'));
 app.use(expressLayouts);
-
+app.set('layout', 'layout');
 
 // Content Security Policy (CSP)
 app.use((req, res, next) => {
@@ -67,7 +67,6 @@ app.use((req, res, next) => {
   next();
 });
 app.use('/', viewsRoutes); 
-probe('signumConfirmPublic', signumConfirmPublic);
 app.use('/internal/signum', signumConfirmPublic);
 
 
@@ -81,8 +80,8 @@ app.use((req, res, next) =>  {
         '/api/public/*',
         '/api/auth/status',
         '/internal/signum/*',
-        '/api/auth/forgot-password',
-        '/api/auth/reset-password',
+        '/api/public/forgot-password',
+        '/api/piblic/reset-password',
         ...publicRoutes.stack.map(r => r.route.path),
     ];
 
@@ -99,34 +98,15 @@ app.use((req, res, next) =>  {
 
 // Routes (without authentication)
 
-probe('authRoutes', authRoutes);
 app.use('/api/auth', cors(), authRoutes); 
-
-probe('publicRoutes', publicRoutes);
 app.use('/api/public', publicRoutes);  
-
-probe('mqttRoutes', mqttRoutes);
 app.use('/api/mqtt', mqttRoutes);
-
-probe('protectedRoutes', protectedRoutes);
 app.use('/api/protected', protectedRoutes); 
-
-probe('purgeMessagesRoutes', purgeMessagesRoutes);
 app.use('/api/messages', purgeMessagesRoutes);  
-
-probe('userSettingsRoutes', userSettingsRoutes);
 app.use('/api/settings', userSettingsRoutes); 
-
-probe('signumConfirmPublic', signumConfirmPublic);
 app.use('/internal/signum', signumConfirmPublic);
-
-probe('iotaRoutes', iotaRoutes);
 app.use('/iota', iotaRoutes);
-
-probe('signumRoutes', signumRoutes);
 app.use('/signum', signumRoutes);
-
-probe('statsRoutes', statsRoutes);
 app.use('/stats', statsRoutes);
 
 
