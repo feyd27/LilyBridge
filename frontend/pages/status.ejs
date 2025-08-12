@@ -21,7 +21,41 @@
 <body>
 <main class="grid-container">
     <h1 class="title-align">Status Messages</h1>
-    <br>
+      <div class="grid-container">
+        <div class="grid-x grid-margin-x">
+            <div class="cell medium-8 large-12">
+
+                <!-- Collapsible Info Card Element -->
+                <div class="custom-info-card">
+                    <ul class="accordion" data-accordion data-allow-all-closed="true">
+                        <!-- 
+                          - The 'is-active' class makes this item open by default.
+                          - Remove 'is-active' to have it start in a closed state.
+                        -->
+                        <li class="accordion-item is-active" data-accordion-item>
+                            <!-- The clickable header with icon and title -->
+                            <a href="#" class="accordion-title">
+                                <i class="fas fa-info-circle"></i>
+                                <span>System Status & Connectivity</span>
+                            </a>
+
+                            <!-- The collapsible content area -->
+                            <div class="accordion-content" data-tab-content>
+                                <p>To provide real-time feedback on the device's operational state, 
+                                  the system sends a status message every minute. This message contains 
+                                  crucial information about its WiFi connection and its connectivity to the MQTT broker. 
+                                  The Lily Bridge user interface displays this latest status, giving users a clear 
+                                  and immediate indication of whether the IoT device is online and actively communicating.
+                                </p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </div>
+   
     <table class="hover custom-table">
       <thead>
         <tr>
