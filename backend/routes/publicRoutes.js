@@ -6,7 +6,6 @@ const MqttMessage = require('../models/message');
 const logger = require('../services/logger');
 const jwt     = require('jsonwebtoken');
 const User    = require('../models/user');
-logger.log('🛣️  publicRoutes.js loaded');
 const { Resend } = require('resend');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
@@ -71,7 +70,7 @@ router.get('/api/messages/temperature/last50', async (req, res) => {
 
     res.status(200).json(messages);
   } catch (error) {
-    console.error('Error retrieving temperature messages:', error);
+    logger.error('Error retrieving temperature messages:', error);
     res.status(500).json({ error: 'Failed to retrieve temperature messages' });
   }
 });
@@ -390,7 +389,7 @@ router.post('/reset-password', async (req, res) => {
 
     return res.status(200).json({ message: 'Password updated successfully' });
   } catch (err) {
-    console.error('[Auth] reset-password error:', err);
+    logger.error('[Auth] reset-password error:', err);
     return res.status(500).json({ message: 'Server error' });
   }
 });

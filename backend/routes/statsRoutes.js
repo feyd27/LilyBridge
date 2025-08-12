@@ -1,6 +1,7 @@
 // routes/statsRoutes.js
 const express         = require('express');
 const router          = express.Router();
+const logger          = require('../services/logger');
 const authMiddleware  = require('../middleware/authMiddleware');
 const UploadedMessage = require('../models/uploadedMessage');
 const UploadAttempt = require('../models/uploadAttempt');
@@ -241,7 +242,7 @@ router.get('/signum/uploads', authMiddleware, async (req, res) => {
 
     res.json(stats);
   } catch (err) {
-    console.error('[Stats] Error computing Signum upload stats:', err);
+    logger.error('[Stats] Error computing Signum upload stats:', err);
     res.status(500).json({ error: 'Failed to fetch Signum upload statistics' });
   }
 });
@@ -441,7 +442,7 @@ router.get('/iota/uploads', authMiddleware, async (req, res) => {
 
     res.json(stats);
   } catch (err) {
-    console.error('[Stats] Error computing IOTA upload stats:', err);
+    logger.error('[Stats] Error computing IOTA upload stats:', err);
     res.status(500).json({ error: 'Failed to fetch IOTA upload statistics' });
   }
 });
@@ -635,7 +636,7 @@ router.get('/failures', authMiddleware, async (req, res) => {
       items
     });
   } catch (err) {
-    console.error('[Stats] /stats/failures error:', err);
+    logger.error('[Stats] /stats/failures error:', err);
     return res.status(500).json({ error: 'Failed to fetch failed attempts' });
   }
 });
@@ -881,7 +882,7 @@ router.get('/signum/uploads/daily', authMiddleware, async (_req, res) => {
 
     res.json(daily);
   } catch (err) {
-    console.error('[Stats] Error computing Signum daily stats:', err);
+    logger.error('[Stats] Error computing Signum daily stats:', err);
     res.status(500).json({ error: 'Failed to fetch Signum daily statistics' });
   }
 });
@@ -1127,7 +1128,7 @@ router.get('/signum/uploads/daily', authMiddleware, async (_req, res) => {
 
     res.json(daily);
   } catch (err) {
-    console.error('[Stats] Error computing Signum daily stats:', err);
+    logger.error('[Stats] Error computing Signum daily stats:', err);
     res.status(500).json({ error: 'Failed to fetch Signum daily statistics' });
   }
 });
@@ -1302,7 +1303,7 @@ router.get('/iota/uploads/daily', authMiddleware, async (_req, res) => {
 
     res.json(daily);
   } catch (err) {
-    console.error('[Stats] Error computing IOTA daily stats:', err);
+    logger.error('[Stats] Error computing IOTA daily stats:', err);
     res.status(500).json({ error: 'Failed to fetch IOTA daily statistics' });
   }
 });
@@ -1391,7 +1392,7 @@ router.get('/iota/explorer-links', authMiddleware, async (req, res) => {
       items,
     });
   } catch (err) {
-    console.error('[Stats] /stats/iota/explorer-links error:', err);
+    logger.error('[Stats] /stats/iota/explorer-links error:', err);
     res.status(500).json({ error: 'Failed to fetch IOTA explorer links' });
   }
 });
@@ -1480,7 +1481,7 @@ router.get('/signum/explorer-links', authMiddleware, async (req, res) => {
       items,
     });
   } catch (err) {
-    console.error('[Stats] /stats/signum/explorer-links error:', err);
+    logger.error('[Stats] /stats/signum/explorer-links error:', err);
     res.status(500).json({ error: 'Failed to fetch Signum explorer links' });
   }
 });

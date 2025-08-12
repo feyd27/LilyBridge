@@ -1,9 +1,10 @@
 // backend/routes/purgeMessages.js
 
 const express = require('express');
-const router  = express.Router();
+const router = express.Router();
+const logger = require('../services/logger');
 const authMiddleware = require('../middleware/authMiddleware');
-const User    = require('../models/user');
+const User = require('../models/user');
 const Message = require('../models/message'); // assumes your status messages use this model
 
 /**
@@ -34,13 +35,13 @@ const Message = require('../models/message'); // assumes your status messages us
  */
 
 router.delete('/purge', async (req, res) => {
-    try {
-        await Message.deleteMany({});
-        res.status(200).json({ message: 'All messages purged successfully' });
-    } catch (error) {
-        console.error('Error purging messages:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
+  try {
+    await Message.deleteMany({});
+    res.status(200).json({ message: 'All messages purged successfully' });
+  } catch (error) {
+    logger.error('Error purging messages:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 /**
@@ -98,7 +99,7 @@ router.delete(
       // delete all others
       const { deletedCount } = await Message.deleteMany({
         topic: 'status',
-        _id:   { $ne: newest._id }
+        _id: { $ne: newest._id }
       });
 
       return res.status(200).json({
@@ -106,7 +107,7 @@ router.delete(
         keptId: newest._id
       });
     } catch (err) {
-      console.error('Error deleting old status messages:', err);
+      logger.error('Error deleting old status messages:', err);
       return res.status(500).json({ message: 'Server error' });
     }
   }
@@ -168,7 +169,7 @@ router.delete(
         usersProcessed: processed
       });
     } catch (err) {
-      console.error('Error trimming login histories:', err);
+      logger.error('Error trimming login histories:', err);
       return res.status(500).json({ message: 'Server error' });
     }
   }

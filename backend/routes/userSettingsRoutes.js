@@ -1,6 +1,7 @@
 // routes/userSettingsRoutes.js
 const express = require('express');
 const router = express.Router();
+const logger = require('../services/logger');
 const authMiddleware = require('../middleware/authMiddleware');
 const User = require('../models/user');
 
@@ -96,7 +97,7 @@ router.get('/me', authMiddleware, async (req, res) => {
 
     res.json(settings);
   } catch (error) {
-    console.error('Error fetching user settings:', error);
+    logger.error('Error fetching user settings:', error);
     res.status(500).json({ message: 'Error fetching user settings' });
   }
 });
@@ -190,7 +191,7 @@ router.patch('/me', authMiddleware, async (req, res) => {
 
     return res.json({ message: 'Settings saved', user });
   } catch (err) {
-    console.error('Error updating user settings:', err);
+    logger.error('Error updating user settings:', err);
     return res.status(500).json({ message: 'Unable to update settings' });
   }
 });

@@ -244,7 +244,7 @@ router.delete('/api/messages/temperature', async (req, res) => {
       messages,
     });
   } catch (error) {
-    console.error('Error deleting temperature messages:', error);
+    logger.error('Error deleting temperature messages:', error);
     res.status(500).json({ error: 'Failed to delete temperature messages' });
   }
 });
@@ -476,7 +476,7 @@ router.delete('/api/messages/status', async (req, res) => {
       messages,
     });
   } catch (error) {
-    console.error('Error deleting status messages:', error);
+    logger.error('Error deleting status messages:', error);
     res.status(500).json({ error: 'Failed to delete status messages' });
   }
 });
