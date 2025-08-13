@@ -31,5 +31,9 @@
     "mqtt": "^5.10.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+     "yarn": "^1.22.22"
   }
 }
