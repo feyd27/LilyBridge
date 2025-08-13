@@ -19,8 +19,6 @@ const iotaRoutes = require('./routes/iotaRoutes.js');
 const authMiddleware = require('./middleware/authMiddleware');
 const expressLayouts = require('express-ejs-layouts');
 const signumConfirmPublic = require('./routes/signumConfirmPublic');
-
-
 const cors = require('cors');
 require('./services/mqttService');
 require('./db');
@@ -34,19 +32,14 @@ connectToDatabase();
 
 // Initialize Express app
 const app = express();
+app.use(cors()); 
 const signumRoutes = require('./routes/signumRoutes.js');
 
-function isRouter(x) {
-  return x && typeof x === 'function' && typeof x.handle === 'function' && typeof x.use === 'function';
-}
-function probe(name, mw) {
-  logger.log(`[mount-check] ${name}: type=${typeof mw} isRouter=${isRouter(mw)}`);
-}
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
 app.use(cookieParser());
-app.use(cors()); 
+
 app.use(favicon(path.join(__dirname, '../frontend/images/favicon.ico')));
 
 // Serve static files
@@ -96,7 +89,6 @@ app.use((req, res, next) =>  {
     authMiddleware(req, res, next);
 });
 
-// Routes (without authentication)
 
 app.use('/api/auth', cors(), authRoutes); 
 app.use('/api/public', publicRoutes);  
