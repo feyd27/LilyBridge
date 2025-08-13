@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const logger = require('../services/logger');
 const { layouts } = require('chart.js');
+const fs = require('fs');
+const path = require('path');
 
 // Route to serve the index.html file
 router.get('/', (req, res) => {
@@ -69,6 +71,16 @@ router.get('/user-settings', (req, res) => {
   res.render('userSettings', { title: 'User Settings'});
 });
 
+try {
+    const viewsPath = path.join(__dirname, '../../frontend/pages');
+    const files = fs.readdirSync(viewsPath);
+    console.log('--- Debug: Files in views directory ---');
+    console.log('Looking in:', viewsPath);
+    console.log('Files found:', files);
+    console.log('------------------------------------');
+} catch (e) {
+    console.error('--- Debug: Error reading views directory ---', e);
+}
 // Route to render selection page
 router.get('/select-messages-iota', (req, res) => {
   res.render('selectMessagesIota', { title: 'Select Messages For Upload'});
