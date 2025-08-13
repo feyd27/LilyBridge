@@ -15,19 +15,6 @@ function generateVerificationToken() {
     return crypto.randomBytes(32).toString('hex'); 
   }
 
-// helper: create a random token and its SHA256 hash for password reset
-function createResetTokenPair() {
-  const token = crypto.randomBytes(32).toString('hex');
-  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-  return { token, tokenHash };
-}
-
-
-
-
-
-
-
 
 /**
  * @swagger
@@ -119,8 +106,8 @@ router.post('/register', async (req, res) => {
          const resend = new Resend(process.env.RESEND_API_KEY);
 
     await resend.emails.send({
-        from: 'verify@updates.lily-bridge.online', // Replace with your verified sender email
-        to: req.body.username, // Assuming username is the email
+        from: 'verify@updates.lily-bridge.online', 
+        to: req.body.username,
         subject: 'Verify your email',
         html: `<!DOCTYPE html>
       <html>
@@ -238,7 +225,6 @@ router.post('/login', async (req, res) => {
             refreshToken,
         });
          // Record login event
-        //  const user = await User.findById(req.user.userId);
          user.loginHistory.push({ timestamp: new Date() });
          await user.save();
     } catch (error) {
@@ -375,11 +361,6 @@ router.post('/verify-email', async (req, res) => {
       res.status(500).json({ message: 'Server error during verification.' });
     }
   });
-
-// routes/authRoutes.js
-
-
-
 
 
 module.exports = router;

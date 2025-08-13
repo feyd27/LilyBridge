@@ -71,16 +71,6 @@ router.get('/user-settings', (req, res) => {
   res.render('userSettings', { title: 'User Settings'});
 });
 
-try {
-    const viewsPath = path.join(__dirname, '../../frontend/pages');
-    const files = fs.readdirSync(viewsPath);
-    logger.log('--- Debug: Files in views directory ---');
-    logger.log('Looking in:', viewsPath);
-    logger.log('Files found:', files);
-    logger.log('------------------------------------');
-} catch (e) {
-    logger.error('--- Debug: Error reading views directory ---', e);
-}
 // Route to render selection page
 router.get('/select-messages-iota', (req, res) => {
   res.render('selectMessagesIOTA', { title: 'Select Messages For Upload'});
