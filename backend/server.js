@@ -90,7 +90,7 @@ app.use((req, res, next) =>  {
 });
 
 
-app.use('/api/auth', cors(), authRoutes); 
+app.use('/api/auth', authRoutes); 
 app.use('/api/public', publicRoutes);  
 app.use('/api/mqtt', mqttRoutes);
 app.use('/api/protected', protectedRoutes); 
@@ -114,7 +114,8 @@ const swaggerOptions = {
       },
       servers: [
           {
-              url: 'http://localhost:3000',
+              url: 'https://lily-bridge.online',
+              description: 'Production Server'
           },
       ],
       components: {
