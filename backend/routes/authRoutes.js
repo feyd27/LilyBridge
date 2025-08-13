@@ -241,8 +241,6 @@ router.post('/login', async (req, res) => {
         //  const user = await User.findById(req.user.userId);
          user.loginHistory.push({ timestamp: new Date() });
          await user.save();
-        logger.log('Access Token:', accessToken);
-        logger.log('Refresh Token:', refreshToken);
     } catch (error) {
         logger.error('Error logging in user:', error);
         res.status(500).json({ message: 'Server error' });
