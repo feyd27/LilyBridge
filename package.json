@@ -23,5 +23,9 @@
     "mqtt": "^5.10.1",
     "resend": "^4.0.1",
     "serve-favicon": "^2.5.1"
+  },
+    "devDependencies": {
+    "typescript": "^5.4.5",
+     "yarn": "^1.22.22"
   }
 }
