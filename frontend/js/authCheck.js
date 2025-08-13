@@ -3,7 +3,7 @@ import { fetchWithAuth } from './authFetch.js';
 function checkAuthentication() {
     const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
     if (token) {
-      console.log('Access token:', token);
+      console.log('Access token:', 'exists');
     } else {
       console.log('Access token not found.');
     }
