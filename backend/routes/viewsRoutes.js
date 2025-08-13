@@ -74,12 +74,12 @@ router.get('/user-settings', (req, res) => {
 try {
     const viewsPath = path.join(__dirname, '../../frontend/pages');
     const files = fs.readdirSync(viewsPath);
-    console.log('--- Debug: Files in views directory ---');
-    console.log('Looking in:', viewsPath);
-    console.log('Files found:', files);
-    console.log('------------------------------------');
+    logger.log('--- Debug: Files in views directory ---');
+    logger.log('Looking in:', viewsPath);
+    logger.log('Files found:', files);
+    logger.log('------------------------------------');
 } catch (e) {
-    console.error('--- Debug: Error reading views directory ---', e);
+    logger.error('--- Debug: Error reading views directory ---', e);
 }
 // Route to render selection page
 router.get('/select-messages-iota', (req, res) => {
