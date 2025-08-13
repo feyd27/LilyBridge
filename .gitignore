@@ -1,3 +1,5 @@
 config
 .env
 /backend/middleware/iota-test/
+# Dependencies
+/node_modules
