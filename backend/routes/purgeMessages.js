@@ -7,6 +7,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 const User = require('../models/user');
 const Message = require('../models/message'); // assumes your status messages use this model
 
+
 /**
  * @swagger
  * /api/messages/purge:
@@ -174,5 +175,6 @@ router.delete(
     }
   }
 );
+
 
 module.exports = router;

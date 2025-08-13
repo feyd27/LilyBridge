@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = '';
         messages.forEach(msg => {
             const isChecked = selectedMessages.has(msg._id) ? 'checked' : '';
-            const uploadIcon = msg.uploadedToIOTA
+            const uploadIcon = msg.uploadedToSignum
                 ? `<span style="color: green;">&#10004;</span>`
                 : `<span style="color: red;">&#10060;</span>`;
 
