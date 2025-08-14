@@ -101,40 +101,51 @@ app.use('/iota', iotaRoutes);
 app.use('/signum', signumRoutes);
 app.use('/stats', statsRoutes);
 
-
+// Define the server configuration based on the environment variable
+let serverConfig;
+if (process.env.ENVIRONMENT === 'local') {
+  // If the environment is 'local', use the localhost URL
+  serverConfig = [{
+    url: 'http://localhost:3000',
+    description: 'Local Development Server'
+  }];
+} else {
+  // Otherwise, use the production URL
+  serverConfig = [{
+    url: 'https://lily-bridge.online',
+    description: 'Production Server'
+  }];
+}
 
 // Swagger configuration
 const swaggerOptions = {
   swaggerDefinition: {
-      openapi: '3.0.0',
-      info: {
-          title: 'Lily-Bridge API Documentation',
-          version: '1.0.0',
-          description: 'API Documentation for Lily-Bridge MQTT backend',
+    openapi: '3.0.0',
+    info: {
+      title: 'Lily-Bridge API Documentation',
+      version: '1.0.0',
+      description: 'API Documentation for Lily-Bridge MQTT backend',
+    },
+    // Use the dynamic server configuration here
+    servers: serverConfig,
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
       },
-      servers: [
-          {
-              url: 'https://lily-bridge.online',
-              description: 'Production Server'
-          },
-      ],
-      components: {
-          securitySchemes: {
-              bearerAuth: {
-                  type: 'http',
-                  scheme: 'bearer',
-                  bearerFormat: 'JWT',
-              },
-          },
+    },
+    security: [
+      {
+        bearerAuth: [],
       },
-      security: [
-          {
-              bearerAuth: [],
-          },
-      ],
+    ],
   },
   apis: ['./routes/*.js'],
 };
+
 // Initialize Swagger docs
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, { deepLinking: false, explorer: true}));
