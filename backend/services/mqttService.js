@@ -11,7 +11,8 @@ const mqttClient = mqtt.connect(`${process.env.MQTT_HOST}:${process.env.MQTT_POR
   username: process.env.MQTT_USERNAME,
   password: process.env.MQTT_PASSWORD,
 });
-
+const instanceId = Math.random().toString(36).substring(7);
+logger.log(`MQTT Service started with Instance ID: ${instanceId}`);
 mqttClient.on('connect', () => {
   logger.log('Connected to MQTT broker');
   mqttClient.subscribe(process.env.MQTT_TOPICS.split(','), (err, granted) => {
@@ -37,6 +38,7 @@ mqttClient.on('reconnect', () => {
 
 // Handle incoming MQTT messages
 mqttClient.on('message', async (topic, message) => {
+   logger.log(`[MQTT debug Instance: ${instanceId}] Message received on topic ${topic}`);
   const messageContent = message.toString();
   logger.log(`Received message from ${topic}: ${messageContent}`);
 
