@@ -1,11 +1,13 @@
 // services/mqttService.js
 require('dotenv').config();
 const mqtt = require('mqtt');
-const moment = require('moment');
+// const moment = require('moment');
+const moment = require('moment-timezone'); 
 const config = require('../config/config');
 const databaseService = require('./databaseService');
 const MqttMessage = require('../models/message');
 const logger = require('../services/logger');
+const SOURCE_TZ = process.env.SOURCE_TZ || 'Europe/Belgrade'; // added
 
 const mqttClient = mqtt.connect(`${process.env.MQTT_HOST}:${process.env.MQTT_PORT}`, {
   username: process.env.MQTT_USERNAME,
@@ -46,16 +48,29 @@ mqttClient.on('message', async (topic, message) => {
 
   if (topic === 'temperature') {
     // Parse the temperature message
-    const[chipInfo, tempReading, timeReading] = messageContent.split('|').map(part => part.trim());
+    // const[chipInfo, tempReading, timeReading] = messageContent.split('|').map(part => part.trim());
+    const [chipInfo, tempReading, timeReading] = messageContent.split('|').map(part => part.trim());
     const[chipID, macAddress] = chipInfo.split('@');
     const temperature = parseFloat(tempReading.split(':')[1].replace('°C', '').trim());
-    const timeString = timeReading.split(': ')[1].trim();
-
+    // const timeString = timeReading.split(': ')[1].trim();
+    const timeString = timeReading.replace(/^time\s*:\s*/i, '').trim(); // "14.08.2025 21:15:31"
     // Convert the timestamp to a Date object
-    const timestamp = moment(timeString, 'DD.MM.YYYY HH:mm:ss').toDate();
-
+   //  const timestamp = moment(timeString, 'DD.MM.YYYY HH:mm:ss').toDate();
+    const m = moment.tz(timeString, 'DD.MM.YYYY HH:mm:ss', SOURCE_TZ);
+    if (!m.isValid()) {
+      logger.error('[MQTT temperature] Invalid timeString', { timeString, topic });
+    }
+    const timestamp = m.toDate();
     // Create the parsed message object
 
+     // Debug so you can verify the fix in logs
+     logger.log('[MQTT temperature parse]', {
+      raw: timeString,
+      sourceTz: SOURCE_TZ,
+      wallClockInSourceTz: m.isValid() ? m.format('YYYY-MM-DD HH:mm:ss Z') : null,
+      storedIsoUtc: timestamp.toISOString(),
+      offsetMinutes: m.utcOffset()
+      });
     parsedMessage = {
       topic,
       chipID: chipID.trim(),
