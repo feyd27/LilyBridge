@@ -59,30 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => console.error('Error fetching temperature messages:', error));
     }
 
-    // function displayTemperatureMessages(messages) {
-    //     container.innerHTML = '';
-    //     messages.forEach(message => {
-    //         const row = document.createElement('tr');
-    //         row.innerHTML = `
-    //             <td>${message.chipID}</td>
-    //             <td>${message.macAddress}</td>
-    //             <td>${message.temperature}°C</td>
-    //             <td>${formatTimestamp(message.timestamp)}</td>
-    //             <td><input type="checkbox" class="message-checkbox" data-id="${message._id}"></td>
-    //         `;
-    //         container.appendChild(row);
-    //     });
-
-    //     container.querySelectorAll('.message-checkbox').forEach(checkbox => {
-    //         checkbox.addEventListener('change', (e) => {
-    //             const id = e.target.dataset.id;
-    //             if (e.target.checked) selectedMessages.add(id);
-    //             else selectedMessages.delete(id);
-    //             updateDeleteButtonState();
-    //         });
-    //     });
-    //     updateSelectedCount();
-    // }
 
     function displayTemperatureMessages(messages) {
         container.innerHTML = '';
