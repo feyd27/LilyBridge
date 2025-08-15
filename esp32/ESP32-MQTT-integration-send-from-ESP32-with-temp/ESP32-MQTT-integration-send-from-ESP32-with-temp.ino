@@ -30,11 +30,11 @@ DallasTemperature sensors(&oneWire);
 //#define WIFI_SSID "TerryNet"
 //#define WIFI_PASSWORD "Abulafi10081976"
 
-#define WIFI_SSID "ZTE_9AF407"
-#define WIFI_PASSWORD "2B32EX7237"
+//#define WIFI_SSID "ZTE_9AF407"
+//#define WIFI_PASSWORD "2B32EX7237"
 
-//#define WIFI_SSID "moto g(60)_9853"
-//#define WIFI_PASSWORD "motopass"
+#define WIFI_SSID "moto g(60)_9853"
+#define WIFI_PASSWORD "motopass"
 
 // Time server config
 

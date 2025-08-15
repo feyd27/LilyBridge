@@ -1,104 +1,83 @@
-<!DOCTYPE html>
-<html lang="en">
+<h1 class="title-align">Delete Sensor Data</h1>
+<div class="grid-container">
+  <div class="grid-x grid-margin-x">
+    <div class="cell medium-8 large-12">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %></title>
-    <link rel="icon" type="image/png" href="images/favicon.png">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="css/foundation.min.css">
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
-      rel="stylesheet">
-</head>
-
-<body>
-    <h1 class="title-align">Delete Sensor Data</h1>
-      <div class="grid-container">
-        <div class="grid-x grid-margin-x">
-            <div class="cell medium-8 large-12">
-
-                <!-- Collapsible Info Card Element -->
-                <div class="custom-info-card">
-                    <ul class="accordion" data-accordion data-allow-all-closed="true">
-                        <!-- 
+      <!-- Collapsible Info Card Element -->
+      <div class="custom-info-card">
+        <ul class="accordion" data-accordion data-allow-all-closed="true">
+          <!-- 
                           - The 'is-active' class makes this item open by default.
                           - Remove 'is-active' to have it start in a closed state.
                         -->
-                        <li class="accordion-item is-active" data-accordion-item>
-                            <!-- The clickable header with icon and title -->
-                            <a href="#" class="accordion-title">
-                                <i class="fas fa-info-circle"></i>
-                                <span>Data Management & Cleanup</span>
-                            </a>
+          <li class="accordion-item is-active" data-accordion-item>
+            <!-- The clickable header with icon and title -->
+            <a href="#" class="accordion-title">
+              <i class="fas fa-info-circle"></i>
+              <span>Data Management & Cleanup</span>
+            </a>
 
-                            <!-- The collapsible content area -->
-                            <div class="accordion-content" data-tab-content>
-                                <p>To help maintain a clean dataset, the Lily Bridge application allows users to manually 
-                                  select and delete individual messages—whether they are sensor readings, 
-                                  status updates, or error logs. This feature is useful for removing duplicate entries 
-                                  or clearing out old, irrelevant data like outdated status messages. In addition to manual controls, 
-                                  the application's administrators perform periodic cleanups of the database to ensure optimal performance for all users.
-                                </p>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-
+            <!-- The collapsible content area -->
+            <div class="accordion-content" data-tab-content>
+              <p>To help maintain a clean dataset, the Lily Bridge application allows users to manually
+                select and delete individual messages—whether they are sensor readings,
+                status updates, or error logs. This feature is useful for removing duplicate entries
+                or clearing out old, irrelevant data like outdated status messages. In addition to manual controls,
+                the application's administrators perform periodic cleanups of the database to ensure optimal performance
+                for all users.
+              </p>
             </div>
-        </div>
+          </li>
+        </ul>
+      </div>
+
     </div>
-   
-    <div id="alertContainer" class="callout success" style="display: none;"></div>
-    <form id="temperatureForm">
-        <table class="hover custom-table">
-          <thead>
-            <tr>
-              <th>Device ID</th>
-              <th>MAC</th>
-              <th>Sensor data</th>
-              <th>Timestamp</th>
-              <th>Select</th>
-            </tr>
-          </thead>
-          <tbody id="temperatureMessagesContainer">
-            <!-- Temperature messages will be dynamically inserted here -->
-          </tbody>
-        </table>
+  </div>
+</div>
 
-        <div id="paginationControls" class="grid-x grid-padding-x">
-          <div class="cell small-6 medium-4">
-            <label for="pageSize">Rows per page:</label>
-            <select id="pageSize">
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select>
-          </div>
-          <div class="cell small-6 medium-8 text-right">
-            <button class="button small primary radius small-radius" id="prevPage" type="button">Previous</button>
-            <button class="button small primary radius small-radius" id="nextPage" type="button">Next</button>
-          </div>
-          <div id="paginationInfo" class="cell small-12 text-right"></div>
-        </div>
+<div id="alertContainer" class="callout success" style="display: none;"></div>
+<form id="temperatureForm">
+  <table class="hover custom-table">
+    <thead>
+      <tr>
+        <th>Device ID</th>
+        <th>MAC</th>
+        <th>Sensor data</th>
+        <th>Timestamp</th>
+        <th>Select</th>
+      </tr>
+    </thead>
+    <tbody id="temperatureMessagesContainer">
+      <!-- Temperature messages will be dynamically inserted here -->
+    </tbody>
+  </table>
 
-        <div class="upload-controls text-right" style="margin-top: 1em;">
-          <span id="selectedCount" style="margin-right: 10px; font-weight: 500;">Selected: 0 messages</span>
-          <button class="button alert radius" id="deleteSelectedTemperature" type="button" disabled>
-            <i class="fas fa-trash-alt"></i> Delete Selected
-          </button>
-        </div>
-    </form>
+  <div id="paginationControls" class="grid-x grid-padding-x">
+    <div class="cell small-6 medium-4">
+      <label for="pageSize">Rows per page:</label>
+      <select id="pageSize">
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
+    </div>
+    <div class="cell small-6 medium-8 text-right">
+      <button class="button small primary radius small-radius" id="prevPage" type="button">Previous</button>
+      <button class="button small primary radius small-radius" id="nextPage" type="button">Next</button>
+    </div>
+    <div id="paginationInfo" class="cell small-12 text-right"></div>
+  </div>
 
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/foundation.min.js"></script>
-    <script type="module" src="/js/deleteTemperature.js"></script>
-    <script src="/js/statusMessage.js"></script>
-    <script src="/js/foundationInit.js"></script>
-</body>
-</html>
+  <div class="upload-controls text-right" style="margin-top: 1em;">
+    <span id="selectedCount" style="margin-right: 10px; font-weight: 500;">Selected: 0 messages</span>
+    <button class="button alert radius" id="deleteSelectedTemperature" type="button" disabled>
+      <i class="fas fa-trash-alt"></i> Delete Selected
+    </button>
+  </div>
+</form>
+
+<script src="/js/jquery.min.js"></script>
+<script src="/js/foundation.min.js"></script>
+<script src="/js/foundationInit.js"></script>
+<script type="module" src="/js/deleteTemperature.js"></script>
+<script src="/js/statusMessage.js"></script>
