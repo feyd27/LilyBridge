@@ -12,38 +12,38 @@ router.get('/', (req, res) => {
 
 // Route to render the registration page
 router.get('/register', (req, res) => {
-    res.render('register', {layout: 'layout-no-sidebar'});
+    res.render('register', {layout: 'layout-no-sidebar', title: 'User Registration'});
   });
   
   // Route to render the login page
   router.get('/login', (req, res) => {
-    res.render('login', {layout: 'layout-no-sidebar'});
+    res.render('login', {layout: 'layout-no-sidebar', title: 'Login'});
   });
 
 // Route to render the logout confirmation page
 router.get('/logout-confirmation', (req, res) => {
-    const isAuthenticated = !!req.cookies.accessToken;
-    res.render('logoutConfirmation', { isAuthenticated , title: 'Logged Out' });
+    //const isAuthenticated = !!req.cookies.accessToken;
+    res.render('logoutConfirmation', { layout: 'layout-no-sidebar', title: 'Logged Out' });
     logger.log('testing if we get here');
   });
 // Route to render the logout confirmation page
 router.get('/login-confirmation', (req, res) => {
-  res.render('loginConfirmation',  {layout: 'layout-no-sidebar'});
+  res.render('loginConfirmation',  {layout: 'layout-no-sidebar', title: 'Welcome'});
 });
 
 // Route to render the temperature messages page
 router.get('/temperature', (req, res) => {
-  res.render('temperature', { title: 'Temperature messages overview' });
+  res.render('temperature', { title: 'Temperature Messages Overview' });
 });
 
 // Route to render the status messages page
 router.get('/status', (req, res) => {
-  res.render('status', { title: 'Status messages overview' });
+  res.render('status', { title: 'Status Messages Overview' });
 });
 
 // Route to render the error messages page
 router.get('/errors', (req, res) => {
-  res.render('errors', { title: 'Error messages overview' });
+  res.render('errors', { title: 'Error Messages Overview' });
 });
 
 // Route to render the page to delete temperature messages
@@ -63,7 +63,7 @@ router.get('/delete-error-messages', (req, res) => {
 
 // Route to render the page for email verification
 router.get('/verify-email', (req, res) => {
-  res.render('verifyEmail', {layout: 'layout-no-sidebar'});
+  res.render('verifyEmail', {layout: 'layout-no-sidebar', title: 'Verify Email'});
 });
 
 // Route to render user settings page
@@ -93,11 +93,11 @@ router.get('/view-on-iota-tangle', (req, res) => {
 });
 // Route for password reset
 router.get('/reset-password', (req, res) => {
-  res.render('resetPassword', {layout: 'layout-no-sidebar'});
+  res.render('resetPassword', {layout: 'layout-no-sidebar', title: 'Reset Password'});
 });
 // Route for forgot password
 router.get('/forgot-password', (req, res) => {
-  res.render('forgotPassword', {layout: 'layout-no-sidebar'});
+  res.render('forgotPassword', {layout: 'layout-no-sidebar', title: 'Forgot Password'});
 });
 // Export
 module.exports = router;
