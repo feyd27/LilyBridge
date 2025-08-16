@@ -22,7 +22,7 @@ router.get('/register', (req, res) => {
 
 // Route to render the logout confirmation page
 router.get('/logout-confirmation', (req, res) => {
-    //const isAuthenticated = !!req.cookies.accessToken;
+    const isAuthenticated = !!req.cookies.accessToken;
     res.render('logoutConfirmation', { layout: 'layout-no-sidebar', title: 'Logged Out' });
     logger.log('testing if we get here');
   });

@@ -1,47 +1,46 @@
 <h1 class="title-align">User Settings</h1>
-<div class="grid-container">
-  <div class="grid-x grid-margin-x">
-    <div class="cell medium-8 large-12">
 
-      <!-- Collapsible Info Card Element -->
-      <div class="custom-info-card">
-        <ul class="accordion" data-accordion data-allow-all-closed="true">
-          <!-- 
+<div class="cell medium-8 large-12">
+
+  <!-- Collapsible Info Card Element -->
+  <div class="custom-info-card">
+    <ul class="accordion" data-accordion data-allow-all-closed="true">
+      <!-- 
                           - The 'is-active' class makes this item open by default.
                           - Remove 'is-active' to have it start in a closed state.
                         -->
-          <li class="accordion-item is-active" data-accordion-item>
-            <!-- The clickable header with icon and title -->
-            <a href="#" class="accordion-title">
-              <i class="fas fa-info-circle"></i>
-              <span>User-Defined Upload Settings</span>
-            </a>
+      <li class="accordion-item is-active" data-accordion-item>
+        <!-- The clickable header with icon and title -->
+        <a href="#" class="accordion-title">
+          <i class="fas fa-info-circle"></i>
+          <span>User-Defined Upload Settings</span>
+        </a>
 
-            <!-- The collapsible content area -->
-            <div class="accordion-content" data-tab-content>
-              <p>
-              <ul>
-                <li><b>Custom Tag:</b> You can specify a unique "upload tag" for your data submissions.
-                  This string is added to the payload, making it easy to search for and identify your specific uploads
-                  on the ledger.
-                  If left blank, the system automatically uses your unique User ID as the default tag.</li>
-                <li><b>Custom Node:</b> Advanced users can specify the exact network node where their data is sent.
-                  If you leave this blank, the system uses pre-configured, reliable defaults:
-                  <code>https://europe.signum.network</code> for Signum
-                  and <code> https://api.shimmer.network</code> for IOTA. <br>
-                  <b><small>Note: If you provide a custom node URL, please ensure it is online and accepts API
-                      connections, as an unreachable node will cause the upload to fail.</small></b>
-                </li>
-              </ul>
-              </p>
-            </div>
-          </li>
-        </ul>
-      </div>
-
-    </div>
+        <!-- The collapsible content area -->
+        <div class="accordion-content" data-tab-content>
+          <p>
+          <ul>
+            <li><b>Custom Tag:</b> You can specify a unique "upload tag" for your data submissions.
+              This string is added to the payload, making it easy to search for and identify your specific uploads
+              on the ledger.
+              If left blank, the system automatically uses your unique User ID as the default tag.</li>
+            <li><b>Custom Node:</b> Advanced users can specify the exact network node where their data is sent.
+              If you leave this blank, the system uses pre-configured, reliable defaults:
+              <code>https://europe.signum.network</code> for Signum
+              and <code> https://api.shimmer.network</code> for IOTA. <br>
+              <b><small>Note: If you provide a custom node URL, please ensure it is online and accepts API
+                  connections, as an unreachable node will cause the upload to fail.</small></b>
+            </li>
+          </ul>
+          </p>
+        </div>
+      </li>
+    </ul>
   </div>
+
 </div>
+
+
 <div id="alertContainer" class="callout success" style="display: none;"></div>
 <form id="settingsForm">
   <table class="custom-table">
