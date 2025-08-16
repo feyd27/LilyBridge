@@ -1,4 +1,4 @@
-import { fetchWithAuth } from './authFetch.js';
+// /js/deleteTemperature.js
 
 document.addEventListener('DOMContentLoaded', () => {
     const pageSizeSelect = document.getElementById('pageSize');
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function fetchAndDisplayMessages() {
         const token = localStorage.getItem('accessToken');
-        fetchWithAuth(`/api/mqtt/api/messages/temperature?page=${currentPage}&limit=${pageSize}`, {
+        fetch(`/api/mqtt/api/messages/temperature?page=${currentPage}&limit=${pageSize}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         })
             .then(response => response.json())
@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const token = localStorage.getItem('accessToken');
         try {
-            const response = await fetchWithAuth('/api/mqtt/api/messages/temperature', {
+            const response = await fetch('/api/mqtt/api/messages/temperature', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ ids })

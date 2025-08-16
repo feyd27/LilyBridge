@@ -1,21 +1,21 @@
 // /assets/js/statsGlobal.js
-import { fetchWithAuth } from './authFetch.js';
+
 
 /* -------------------- chart palettes -------------------- */
 const PALETTES = {
   IOTA: {
     line: 'rgba(237, 255, 78, 1)',       // main line
     fill: 'rgba(248, 250, 142, 0.5)',   // soft fill
-    avg:  'rgba(255, 199, 78, 0.97)',
-    p50:  'rgba(255, 99, 78, 1)',
-    p95:  'rgba(255, 78, 93, 0.86)'
+    avg: 'rgba(255, 199, 78, 0.97)',
+    p50: 'rgba(255, 99, 78, 1)',
+    p95: 'rgba(255, 78, 93, 0.86)'
   },
   SIGNUM: {
     line: 'rgba(40, 170, 0, 1)',
     fill: 'rgba(208, 255, 180, 0.73)',
-    avg:  'rgba(226, 222, 11, 1)',
-    p50:  'rgba(202, 236, 10, 0.92)',
-    p95:  'rgba(224, 222, 83, 0.91)'
+    avg: 'rgba(226, 222, 11, 1)',
+    p50: 'rgba(202, 236, 10, 0.92)',
+    p95: 'rgba(224, 222, 83, 0.91)'
   }
 };
 
@@ -47,20 +47,20 @@ function showAlert(msg, type = 'alert') {
 /* -------------------- cards rendering -------------------- */
 function renderCards(prefix, stats) {
   // 0-decimal fields
-  setText(`${prefix}-totalReadingsValue`,   fmt0(stats.totalReadings));
-  setText(`${prefix}-pendingCountValue`,    fmt0(stats.pendingCount));
-  setText(`${prefix}-confirmedCountValue`,  fmt0(stats.confirmedCount));
+  setText(`${prefix}-totalReadingsValue`, fmt0(stats.totalReadings));
+  setText(`${prefix}-pendingCountValue`, fmt0(stats.pendingCount));
+  setText(`${prefix}-confirmedCountValue`, fmt0(stats.confirmedCount));
 
   // 6-decimal
   setText(`${prefix}-avgCostPerReadingValue`, fmt6(stats.avgCostPerReading));
 
   // 3-decimal defaults
-  setText(`${prefix}-totalDataKBValue`,         fmt3(stats.totalDataKB));
-  setText(`${prefix}-avgReadingsPerUploadValue`,fmt3(stats.avgReadingsPerUpload));
-  setText(`${prefix}-totalCostValue`,           fmt3(stats.totalCost));
-  setText(`${prefix}-avgTimeToConfirmMsValue`,  fmt3(stats.avgTimeToConfirmMs));
-  setText(`${prefix}-p50TimeToConfirmMsValue`,  fmt3(stats.p50TimeToConfirmMs));
-  setText(`${prefix}-p95TimeToConfirmMsValue`,  fmt3(stats.p95TimeToConfirmMs));
+  setText(`${prefix}-totalDataKBValue`, fmt3(stats.totalDataKB));
+  setText(`${prefix}-avgReadingsPerUploadValue`, fmt3(stats.avgReadingsPerUpload));
+  setText(`${prefix}-totalCostValue`, fmt3(stats.totalCost));
+  setText(`${prefix}-avgTimeToConfirmMsValue`, fmt3(stats.avgTimeToConfirmMs));
+  setText(`${prefix}-p50TimeToConfirmMsValue`, fmt3(stats.p50TimeToConfirmMs));
+  setText(`${prefix}-p95TimeToConfirmMsValue`, fmt3(stats.p95TimeToConfirmMs));
 }
 
 /* -------------------- charts -------------------- */
@@ -113,10 +113,10 @@ function makeLineConfig({ labels, mainSeries, overlays, title, yLabel }) {
           labels: { color: '#000', font: { family: 'Helvetica', size: 12 } }
         },
         tooltip: {
-          bodyFont:   { family: 'Helvetica', size: 14 },
-          titleFont:  { family: 'Helvetica', size: 14 },
+          bodyFont: { family: 'Helvetica', size: 14 },
+          titleFont: { family: 'Helvetica', size: 14 },
           backgroundColor: 'rgba(68, 110, 255, 0.8)',
-          bodyColor:  '#fff'
+          bodyColor: '#fff'
         }
       },
       scales: {
@@ -151,7 +151,7 @@ function drawIotaChart(iotaData) {
   const durations = (Array.isArray(iotaData?.durations) ? iotaData.durations : [])
     .map(Number)
     .filter((n) => Number.isFinite(n));
-  const labels    = durations.map((_, idx) => idx + 1);
+  const labels = durations.map((_, idx) => idx + 1);
 
   if (iotaChartInstance) iotaChartInstance.destroy();
 
@@ -183,7 +183,7 @@ function drawSignumChart(sigData) {
   const durations = (Array.isArray(sigData?.durations) ? sigData.durations : [])
     .map(Number)
     .filter((n) => Number.isFinite(n));
-  const labels    = durations.map((_, idx) => idx + 1);
+  const labels = durations.map((_, idx) => idx + 1);
 
   if (signumChartInstance) signumChartInstance.destroy();
 
@@ -210,7 +210,7 @@ function drawSignumChart(sigData) {
 
 /* -------------------- fetch helpers -------------------- */
 async function fetchJson(url) {
-  const res = await fetchWithAuth(url);
+  const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
   return res.json();
 }

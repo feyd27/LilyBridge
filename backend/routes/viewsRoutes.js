@@ -4,9 +4,10 @@ const logger = require('../services/logger');
 const { layouts } = require('chart.js');
 const fs = require('fs');
 const path = require('path');
+const authMiddleware = require('../middleware/authMiddleware');
 
 // Route to serve the index.html file
-router.get('/', (req, res) => {
+router.get('/', authMiddleware, (req, res) => {
     res.render('index', { title: 'Lily-Bridge.online' });
   });
 
@@ -22,42 +23,40 @@ router.get('/register', (req, res) => {
 
 // Route to render the logout confirmation page
 router.get('/logout-confirmation', (req, res) => {
-    const isAuthenticated = !!req.cookies.accessToken;
     res.render('logoutConfirmation', { layout: 'layout-no-sidebar', title: 'Logged Out' });
-    logger.log('testing if we get here');
   });
 // Route to render the logout confirmation page
-router.get('/login-confirmation', (req, res) => {
+router.get('/login-confirmation', authMiddleware, (req, res) => {
   res.render('loginConfirmation',  {layout: 'layout-no-sidebar', title: 'Welcome'});
 });
 
 // Route to render the temperature messages page
-router.get('/temperature', (req, res) => {
+router.get('/temperature', authMiddleware, (req, res) => {
   res.render('temperature', { title: 'Temperature Messages Overview' });
 });
 
 // Route to render the status messages page
-router.get('/status', (req, res) => {
+router.get('/status', authMiddleware, (req, res) => {
   res.render('status', { title: 'Status Messages Overview' });
 });
 
 // Route to render the error messages page
-router.get('/errors', (req, res) => {
+router.get('/errors', authMiddleware, (req, res) => {
   res.render('errors', { title: 'Error Messages Overview' });
 });
 
 // Route to render the page to delete temperature messages
-router.get('/delete-temp-messages', (req, res) => {
+router.get('/delete-temp-messages', authMiddleware, (req, res) => {
   res.render('deleteTempMessages', { title: 'Delete Temperature Messages' });
 });
 
 // Route to render the page to delete status messages
-router.get('/delete-status-messages', (req, res) => {
+router.get('/delete-status-messages', authMiddleware, (req, res) => {
   res.render('deleteStatusMessages', { title: 'Delete Status Messages' });
 });
 
 // Route to render the page to delete error messages
-router.get('/delete-error-messages', (req, res) => {
+router.get('/delete-error-messages', authMiddleware, (req, res) => {
   res.render('deleteErrorMessages', { title: 'Delete Error Messages' });
 });
 
@@ -67,28 +66,28 @@ router.get('/verify-email', (req, res) => {
 });
 
 // Route to render user settings page
-router.get('/user-settings', (req, res) => {
+router.get('/user-settings', authMiddleware, (req, res) => {
   res.render('userSettings', { title: 'User Settings'});
 });
 
 // Route to render selection page
-router.get('/select-messages-iota', (req, res) => {
+router.get('/select-messages-iota', authMiddleware, (req, res) => {
   res.render('selectMessagesIOTA', { title: 'Select Messages For Upload'});
 });
 // Route to render selection page
-router.get('/select-messages-signum', (req, res) => {
+router.get('/select-messages-signum', authMiddleware, (req, res) => {
   res.render('selectMessagesSignum', { title: 'Select Messages For Upload'});
 });
 // Route to render global stats
-router.get('/stats-global', (req, res) => {
+router.get('/stats-global', authMiddleware, (req, res) => {
   res.render('statsGlobal', { title: 'Global Upload Stats'});
 });
 // Route to render explorer links for Signum
-router.get('/view-in-explorer-signum', (req, res) => {
+router.get('/view-in-explorer-signum', authMiddleware, (req, res) => {
   res.render('viewInExplorerSignum', { title: 'View Uploads In Signum Explorer'});
 });
 // Route to render explorer links for Iota
-router.get('/view-on-iota-tangle', (req, res) => {
+router.get('/view-on-iota-tangle', authMiddleware, (req, res) => {
   res.render('viewOnTangleIota', { title: 'View Uploads On IOTA Tangle'});
 });
 // Route for password reset

@@ -1,4 +1,4 @@
-import { fetchWithAuth } from './authFetch.js';
+// /js/deleteError.js
 
 document.addEventListener('DOMContentLoaded', () => {
   const pageSizeSelect = document.getElementById('pageSize');
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       container.style.display = 'none';
       location.reload();
-    }, 3000);
+    }, 30000);
   }
  
   function formatTimestamp(ts) {
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function fetchAndDisplayMessages() {
     try {
-      const res = await fetchWithAuth(`/api/mqtt/api/messages/errors?page=${currentPage}&limit=${pageSize}`);
+      const res = await fetch(`/api/mqtt/api/messages/errors?page=${currentPage}&limit=${pageSize}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       displayErrorMessages(data.messages || []);
@@ -131,8 +131,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const ids = Array.from(selectedMessages);
     try {
-      const res = await fetchWithAuth('/api/mqtt/api/messages/errors', {
+      const res = await fetch('/api/mqtt/api/messages/errors', {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ ids }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

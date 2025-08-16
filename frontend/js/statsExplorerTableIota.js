@@ -1,5 +1,5 @@
 //js/iotaExplorerTable.js
-import { fetchWithAuth } from "./authFetch.js";
+
 
 const state = {
   confirmed: true,
@@ -62,22 +62,17 @@ function updatePaginationUI() {
 }
 
 async function fetchPage() {
-  // const url = `/stats/iota/explorer-links?confirmed=${state.confirmed}&page=${state.page}&limit=${state.limit}`;
+
   try {
-    const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
-    const res = await fetchWithAuth(`/stats/iota/explorer-links?confirmed=${state.confirmed}&page=${state.page}&limit=${state.limit}`,
-      {
-            headers: {
-                'Authorization': `Bearer ${token}`  // Add Authorization header
-            }
-  });
+
+    const res = await fetch(`/stats/iota/explorer-links?confirmed=${state.confirmed}&page=${state.page}&limit=${state.limit}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
     state.totalItems = data.totalItems || 0;
     state.totalPages = data.totalPages || 1;
-    state.page       = data.currentPage || 1;
-    state.limit      = data.limit || state.limit;
+    state.page = data.currentPage || 1;
+    state.limit = data.limit || state.limit;
 
     renderTable(Array.isArray(data.items) ? data.items : []);
     updatePaginationUI();

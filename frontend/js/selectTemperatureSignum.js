@@ -1,4 +1,4 @@
-import { fetchWithAuth } from "./authFetch.js";
+// /js/selectTemperatureSignum.js
 
 document.addEventListener('DOMContentLoaded', () => {
     const pageSizeSelect = document.getElementById('pageSize');
@@ -64,51 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
         selectAllBtn.disabled = !hasRows;
     }
 
-    // function displayTemperatureMessages(messages) {
-    //     container.innerHTML = '';
-    //     messages.forEach(msg => {
-    //         const isChecked = selectedMessages.has(msg._id) ? 'checked' : '';
-    //         const uploadIcon = msg.uploadedToSignum
-    //             ? `<span style="color: green;">&#10004;</span>`
-    //             : `<span style="color: red;">&#10060;</span>`;
-
-    //         const row = document.createElement('tr');
-    //         row.innerHTML = `
-    //             <td>${msg.chipID}</td>
-    //             <td>${msg.macAddress}</td>
-    //             <td>${msg.temperature}°C</td>
-    //             <td>${formatTimestamp(msg.timestamp)}</td>
-    //             <td>${uploadIcon}</td>
-    //             <td>
-    //               <input
-    //                 type="checkbox"
-    //                 class="message-checkbox"
-    //                 data-id="${msg._id}"
-    //                 ${isChecked}
-    //               >
-    //             </td>
-    //         `;
-    //         container.appendChild(row);
-    //     });
-
-    //     // wire up the checkboxes
-    //     container.querySelectorAll('.message-checkbox').forEach(cb => {
-    //         cb.addEventListener('change', e => {
-    //             const id = e.target.dataset.id;
-    //             if (e.target.checked) selectedMessages.add(id);
-    //             else selectedMessages.delete(id);
-
-    //             updateUploadButtonState();
-    //             updateSelectedCount();
-    //             updateBulkButtons();
-    //         });
-    //     });
-
-    //     // after redraw, make sure button + count are correct
-    //     updateUploadButtonState();
-    //     updateSelectedCount();
-    //     updateBulkButtons();
-    // }
+    
 
     function displayTemperatureMessages(messages) {
         container.innerHTML = '';
@@ -163,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchAndDisplayMessages() {
         try {
-            const res = await fetchWithAuth(
+            const res = await fetch(
                 `/signum/temperature-extended?page=${currentPage}&limit=${pageSize}`
             );
             const data = await res.json();
@@ -212,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         try {
             const body = { messageIds: Array.from(selectedMessages) };
-            const res = await fetchWithAuth('/signum/upload', {
+            const res = await fetch('/signum/upload', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)

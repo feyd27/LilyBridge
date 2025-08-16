@@ -1,6 +1,6 @@
-// /assets/js/forgotPassword.js
+// /js/forgotPassword.js
 
-// very forgiving email check (optional)
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function qs(id)  { return document.getElementById(id); }

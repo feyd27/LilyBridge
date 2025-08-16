@@ -154,92 +154,112 @@ router.get('/api/messages/status/last', async (req, res) => {
  * @swagger
  * /api/public/refresh:
  *   post:
- *     summary: Issue a new access token given a valid refresh token
- *     tags:
- *       - Public
+ *     summary: Issue a new access token using the refresh token cookie
+ *     tags: [Public]
  *     description: |
- *       Provide your refresh token (either in the `X-Refresh-Token` header
- *       or in the JSON body) and receive a fresh access token (4h lifespan).
- *       No Bearer header is required on this route.
- *     parameters:
- *       - in: header
- *         name: X-Refresh-Token
- *         required: true
- *         schema:
- *           type: string
- *         description: Your current refresh token
- *     requestBody:
- *       description: |
- *         Alternatively, send the refresh token in the JSON body, for example:
- *         {"refreshToken":"<token>"}
- *       required: false
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               refreshToken:
- *                 type: string
- *                 description: Refresh token (if not using the header)
+ *       This endpoint uses the HttpOnly `refreshToken` cookie to issue a new `accessToken`.
+ *       The new access token is returned in a new HttpOnly `accessToken` cookie.
+ *       No request body or authorization headers are needed.
  *     responses:
  *       200:
- *         description: New access token issued
+ *         description: New access token issued and set in an HttpOnly cookie.
+ *         headers:
+ *           Set-Cookie:
+ *             schema:
+ *               type: string
+ *               example: "accessToken=...; Path=/; HttpOnly"
+ *             description: Contains the new HttpOnly cookie for the access token.
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 accessToken:
+ *                 message:
  *                   type: string
- *                   description: Fresh JWT access token (4h lifespan)
- *       400:
- *         description: Missing refresh token
- *       403:
- *         description: Invalid or expired refresh token
- *       404:
- *         description: User not found for that token payload
+ *                   example: Access token refreshed successfully
+ *       401:
+ *         description: Unauthorized. Missing, invalid, or expired refresh token.
  */
 router.post('/refresh', async (req, res) => {
-   const incomingRefresh =
-    (req.header('X-Refresh-Token') || '').trim() ||
-    req.body.refreshToken;
-   //  logger.log(req)
+  const incomingRefresh = req.cookies.refreshToken;
   if (!incomingRefresh) {
-    return res
-      .status(400)
-      .json({ message: 'Refresh token required' });
-  }
-
+    return res.status(401).json({
+      message: 'Unauthorized: no refresh token provided' });
+    }
   let payload;
   try {
-    // only verify against the refresh secret
     payload = jwt.verify(
       incomingRefresh,
       process.env.JWT_REFRESH_SECRET
     );
   } catch (err) {
-    return res
-      .status(403)
-      .json({ message: 'Invalid or expired refresh token' });
-  }
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+    return res.status(401).json({
+      message: 'Unauthorized: invalid or expired refresh token' });
+    }
+    const user = await User.findById(payload.userId);
+    if (!user || user.refreshToken !== incomingRefresh) {
+      return res.status(401).json({ 
+        message: 'Unauthorized: refresh token not recognized' });
+      }
+    
+    const newAccessToken = jwt.sign(
+      {userId: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '30m'}
+    );
 
-  // 2️⃣ Lookup user and compare stored token
-  const user = await User.findById(payload.userId);
-  if (!user || user.refreshToken !== incomingRefresh) {
-    return res
-      .status(403)
-      .json({ message: 'Refresh token not recognized' });
-  }
+    res.cookie('accessToken', newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 30 * 60 * 1000 // 30m
+    });
+    
+    return res.status(200).json({
+      message: 'Access token refreshed successfully'
+    });
+  });
+  //  const incomingRefresh =
+  //   (req.header('X-Refresh-Token') || '').trim() ||
+  //   req.body.refreshToken;
+  //  //  logger.log(req)
+  // if (!incomingRefresh) {
+  //   return res
+  //     .status(400)
+  //     .json({ message: 'Refresh token required' });
+  // }
 
-  // 3️⃣ Issue a new access token
-  const newAccessToken = jwt.sign(
-    { userId: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '4h' }
-  );
+  // let payload;
+  // try {
+  //   // only verify against the refresh secret
+  //   payload = jwt.verify(
+  //     incomingRefresh,
+  //     process.env.JWT_REFRESH_SECRET
+  //   );
+  // } catch (err) {
+  //   return res
+  //     .status(403)
+  //     .json({ message: 'Invalid or expired refresh token' });
+  // }
 
-  return res.json({ accessToken: newAccessToken });
-});
+//   // 2️⃣ Lookup user and compare stored token
+//   const user = await User.findById(payload.userId);
+//   if (!user || user.refreshToken !== incomingRefresh) {
+//     return res
+//       .status(403)
+//       .json({ message: 'Refresh token not recognized' });
+//   }
+
+//   // 3️⃣ Issue a new access token
+//   const newAccessToken = jwt.sign(
+//     { userId: user._id, role: user.role },
+//     process.env.JWT_SECRET,
+//     { expiresIn: process.env.JWT_EXPIRES_IN || '4h' }
+//   );
+
+//   return res.json({ accessToken: newAccessToken });
+// });
 
 /**
  * @swagger

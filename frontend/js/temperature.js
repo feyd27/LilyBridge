@@ -1,6 +1,5 @@
-// temperature.js
+// /js/temperature.js
 
-import { fetchWithAuth } from "./authFetch.js";
 document.addEventListener('DOMContentLoaded', () => {
     const pageSizeSelect = document.getElementById('pageSize');
     const prevPageBtn = document.getElementById('prevPage');
@@ -27,12 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function fetchAndDisplayMessages() {
-        const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
-        fetchWithAuth(`/api/mqtt/api/messages/temperature?page=${currentPage}&limit=${pageSize}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`  // Add Authorization header
-            }
-        })
+        fetch(`/api/mqtt/api/messages/temperature?page=${currentPage}&limit=${pageSize}`)
             .then(response => response.json())
             .then(data => {
                 displayTemperatureMessages(data.messages);

@@ -1,4 +1,4 @@
-import { fetchWithAuth } from './authFetch.js';
+// /js/userSettings.js
 
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('settingsForm');
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 1️⃣ Load saved settings (including tag prefix)
   async function loadSettings() {
     try {
-      const res = await fetchWithAuth('/api/settings/me');
+      const res = await fetch('/api/settings/me');
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || res.statusText);
 
@@ -44,8 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     try {
-      const res = await fetchWithAuth('/api/settings/me', {
+      const res = await fetch('/api/settings/me', {
         method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(payload)
       });
       const json = await res.json();

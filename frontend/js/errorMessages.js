@@ -1,4 +1,4 @@
-import { fetchWithAuth } from "./authFetch.js";
+// /js/errorMessages.js
 
 document.addEventListener('DOMContentLoaded', () => {
   const pageSizeSelect = document.getElementById('pageSize');
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function fetchAndDisplayMessages() {
-    fetchWithAuth(
+    fetch(
       `/api/mqtt/api/messages/errors?page=${currentPage}&limit=${pageSize}`
     )
       .then(res => res.json())

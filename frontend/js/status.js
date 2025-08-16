@@ -1,22 +1,18 @@
-import { fetchWithAuth } from './authFetch.js';
+// /js/status.js
+
 document.addEventListener('DOMContentLoaded', () => {
     const pageSizeSelect = document.getElementById('pageSize');
     const prevPageBtn = document.getElementById('prevPage');
     const nextPageBtn = document.getElementById('nextPage');
     const paginationInfo = document.getElementById('paginationInfo');
 
-        let currentPage = 1;
+    let currentPage = 1;
     let pageSize = parseInt(pageSizeSelect.value);
     let totalPages = 1;
 
     // Fetch and display messages
     function fetchAndDisplayMessages() {
-        const token = localStorage.getItem('accessToken'); // Retrieve token from localStorage
-        fetchWithAuth(`/api/mqtt/api/messages/status?page=${currentPage}&limit=${pageSize}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`  // Add Authorization header
-            }
-        })
+        fetch(`/api/mqtt/api/messages/status?page=${currentPage}&limit=${pageSize}`)
             .then(response => response.json())
             .then(data => {
                 if (data.messages.length === 0) {

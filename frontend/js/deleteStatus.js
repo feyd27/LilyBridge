@@ -1,4 +1,4 @@
-import { fetchWithAuth } from "./authFetch.js";
+// /js/deleteStatus.js
 
 document.addEventListener('DOMContentLoaded', () => {
   const pageSizeSelect = document.getElementById('pageSize');
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function fetchAndDisplayMessages() {
     const token = localStorage.getItem('accessToken');
-    fetchWithAuth(`/api/mqtt/api/messages/status?page=${currentPage}&limit=${pageSize}`, {
+    fetch(`/api/mqtt/api/messages/status?page=${currentPage}&limit=${pageSize}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(response => response.json())
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ids = Array.from(selectedMessages);
     const token = localStorage.getItem('accessToken');
     try {
-      const response = await fetchWithAuth('/api/mqtt/api/messages/status', {
+      const response = await fetch('/api/mqtt/api/messages/status', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ ids })

@@ -1,25 +1,21 @@
 // logout.js
 document.addEventListener('DOMContentLoaded', () => {
-    const logoutLink = document.getElementById('logoutLink');
+    const logoutButton = document.getElementById('logoutButton');
 
-    if (logoutLink) {
-        logoutLink.addEventListener('click', async (event) => {
+    if (logoutButton) {
+        logoutButton.addEventListener('click', async (event) => {
             event.preventDefault(); // Prevent default link behavior
 
             try {
-                const token = localStorage.getItem('accessToken');
+                // The browser will automatically send the HttpOnly cookies with this request.
+                // No headers or tokens are needed from the client-side script.
                 const response = await fetch('/api/auth/logout', {
                     method: 'POST',
-                    headers: {
-                        'Authorization': token ? `Bearer ${token}` : '', // Add it to the header
-                        'Content-Type': 'application/json', // You might need this
-                      },
                 });
 
                 if (response.ok) {
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('refreshToken'); 
-                    // Redirect to logout confirmation page
+                    // The server has successfully cleared the cookies.
+                    // Now we can redirect the user.
                     window.location.href = '/logout-confirmation';
                 } else {
                     console.error('Failed to log out.');
