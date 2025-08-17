@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedCount = document.getElementById('selectedCount');
     const selectAllBtn = document.getElementById('selectAllBtn');
     const deselectAllBtn = document.getElementById('deselectAllBtn');
+    const spinnerOverlay = document.getElementById('spinner-overlay');
 
     let currentPage = 1;
     let pageSize = parseInt(pageSizeSelect.value, 10);
@@ -162,6 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         try {
+            spinnerOverlay.classList.add('show');
+
             const body = { messageIds: Array.from(selectedMessages) };
             const res = await fetch('/iota/upload', {
                 method: 'POST',
@@ -171,8 +174,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.status === 400) {
                 const errPayload = await res.json().catch(() => ({}));
                 const errMsg = errPayload.error || 'Bad request. Please check your selection';
+                throw new Error(errMsg);                 
                 showTimedAlert(errMsg, 'alert');
-                return;
             }
             if (!res.ok) throw new Error(await res.text());
             const json = await res.json();
@@ -182,8 +185,11 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchAndDisplayMessages();
         } catch (err) {
             console.error('Upload error:', err);
-            showTimedAlert('Upload failed. Please try again.', 'alert');
-        }
+            smoothScrollToTop();
+            showTimedAlert('Upload failed: ${err.message}', 'alert');
+        } finally {
+            spinnerOverlay.classList.remove('show');
+            }
     });
 
     pageSizeSelect.addEventListener('change', () => {

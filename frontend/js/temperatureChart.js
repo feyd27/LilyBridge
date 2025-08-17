@@ -30,7 +30,7 @@ function createTemperatureChart(data) {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Last 50 Messages',
+                    text: 'Last 50 Sensor Readings',
                     color: '#000',
                     font: { family: 'Helvetica', weight: 'bold' }
                 },
