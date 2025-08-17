@@ -2,6 +2,7 @@
 
 const jwt = require('jsonwebtoken');
 const User = require('../models/user'); // Assuming you need this for refresh logic
+const logger = require('../services/logger');
 
 // Helper function to generate a new access token
 function generateAccessToken(user) {
@@ -56,6 +57,8 @@ async function handleRefreshToken(req, res, next, refreshToken) {
 
         // Issue a new access token
         const newAccessToken = generateAccessToken(user);
+        logger.log('[Token mgmt]:', refreshToken);
+        logger.log('[Token mgmt]: new access token issued');
 
         // Set the new access token in a cookie
         res.cookie('accessToken', newAccessToken, {
