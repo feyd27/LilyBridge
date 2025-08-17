@@ -232,10 +232,6 @@ router.post('/login', async (req, res) => {
     user.loginHistory.push({ timestamp: new Date() }); // Record login event
     await user.save();
 
-    // // Send tokens in the response header
-    // res.setHeader('Authorization', `Bearer ${accessToken}`);
-    // res.setHeader('X-Refresh-Token', refreshToken); // Custom header for refresh token
-
     // Set tokens into HttpOnly cookies
 
     res.cookie('accessToken', accessToken, {
@@ -250,12 +246,6 @@ router.post('/login', async (req, res) => {
       maxAge: 2 * 24 * 60 * 1000 // 2 days in ms
     });
 
-    // res.status(200).json({
-    //     message: 'Login successful',
-    //     accessToken,
-    //     refreshToken,
-    // });
-
     res.status(200).json({
       message: 'Login success',
       user: {
@@ -264,11 +254,6 @@ router.post('/login', async (req, res) => {
         role: user.role
       }
     });
-
-
-    //  // Record login event
-    //  user.loginHistory.push({ timestamp: new Date() });
-    //  await user.save();
   } catch (error) {
     logger.error('Error logging in user:', error);
     res.status(500).json({ message: 'Server error' });

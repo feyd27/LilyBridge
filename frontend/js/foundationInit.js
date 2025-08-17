@@ -3,7 +3,7 @@ $(document).ready(function() {
     $(document).foundation();  // Initialize Foundation for accordion and other components
   
     // Custom accordion speed control
-    const animationSpeed = 1800;
+    const animationSpeed = 2500;
     $('[data-accordion-menu] > li > a').on('click', function(e) {
       const clickedItem = $(this).closest('li');
       const nestedMenu = clickedItem.find('.nested');
