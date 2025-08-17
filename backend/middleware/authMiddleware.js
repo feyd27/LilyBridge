@@ -57,8 +57,6 @@ async function handleRefreshToken(req, res, next, refreshToken) {
 
         // Issue a new access token
         const newAccessToken = generateAccessToken(user);
-        logger.log('[Token mgmt]:', refreshToken);
-        logger.log('[Token mgmt]: new access token issued');
 
         // Set the new access token in a cookie
         res.cookie('accessToken', newAccessToken, {
