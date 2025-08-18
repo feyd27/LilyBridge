@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedCount = document.getElementById('selectedCount');
     const selectAllBtn = document.getElementById('selectAllBtn');
     const deselectAllBtn = document.getElementById('deselectAllBtn');
+    const spinnerOverlay = document.getElementById('spinner-overlay');
 
     let currentPage = 1;
     let pageSize = parseInt(pageSizeSelect.value, 10);
@@ -64,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         selectAllBtn.disabled = !hasRows;
     }
 
-    
+
 
     function displayTemperatureMessages(messages) {
         container.innerHTML = '';
@@ -167,6 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         try {
+            spinnerOverlay.classList.add('show');
             const body = { messageIds: Array.from(selectedMessages) };
             const res = await fetch('/signum/upload', {
                 method: 'POST',
@@ -183,9 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch (_) {
                     msg = await res.text().catch(() => msg);
                 }
-                smoothScrollToTop();
-                showTimedAlert(msg, 'alert');
-                return;
+                throw new Error(msg);
             }
             const json = await res.json();
             smoothScrollToTop();
@@ -194,8 +194,12 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchAndDisplayMessages();
         } catch (err) {
             console.error('Upload error:', err);
-            showTimedAlert('Upload failed. Please try again.', 'alert');
+            smoothScrollToTop();
+            showTimedAlert(err.message, 'alert');
+        } finally {
+            spinnerOverlay.classList.remove('show');
         }
+
     });
 
     pageSizeSelect.addEventListener('change', () => {
