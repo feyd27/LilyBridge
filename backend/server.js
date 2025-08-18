@@ -68,6 +68,7 @@ app.use((req, res, next) =>  {
         // '/',
         '/api/auth/login',
         '/api/auth/register',
+        '/api/auth/verify-email',
         '/api-docs',
         '/api-docs/*',
         '/api/public/*',
@@ -146,6 +147,8 @@ const swaggerOptions = {
   apis: ['./routes/*.js'],
 };
 
+
+
 // Initialize Swagger docs
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, { deepLinking: false, explorer: true}));
@@ -215,6 +218,9 @@ if (ENABLED) {
   setInterval(() => { void checkPendingBatch(); }, INTERVAL);
 }
 
+app.get('*', (req, res) => {
+  res.status(404).render('404-page', {layout: 'layout-no-sidebar', title: 'O-O'});
+});
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

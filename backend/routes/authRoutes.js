@@ -216,6 +216,10 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid username or password' });
     }
 
+     if (!user.isVerified) {
+            return res.status(403).json({ message: 'Please verify your email address before logging in.' });
+        }
+
     // Generate Access Token and Refresh Token
     const accessToken = jwt.sign(
       { userId: user._id, role: user.role },
@@ -310,9 +314,7 @@ router.post('/logout', async (req, res) => {
 
   res.status(200).json({ message: 'User logged out successfully' });
 });
-// router.post('/logout', (req, res) => {
-//     res.status(200).json({ message: 'User logged out successfully' }); 
-// });
+
 
 /**
  * @swagger
@@ -367,8 +369,6 @@ router.get('/status', authMiddleware, (req, res) => {
   }
 });
 
-
-// backend/routes/authRoutes.js
 /**
  * @swagger
  * /api/auth/verify-email:
@@ -429,7 +429,5 @@ router.post('/verify-email', async (req, res) => {
     res.status(500).json({ message: 'Server error during verification.' });
   }
 });
-
-
 module.exports = router;
 
