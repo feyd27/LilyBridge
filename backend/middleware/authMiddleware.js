@@ -18,6 +18,7 @@ async function authMiddleware(req, res, next) {
 
     // If no access token is present, try to refresh immediately
     if (!accessToken) {
+        logger.info(`[Auth] No access token cookie found for request to ${req.originalUrl}. Attempting refresh.`);
         return handleRefreshToken(req, res, next, refreshToken);
     }
 
@@ -25,13 +26,16 @@ async function authMiddleware(req, res, next) {
     try {
         const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
         req.user = decoded;
+        logger.info(`[Auth] Valid access token for user ${decoded.userId} on ${req.originalUrl}.`);
         return next(); // Token is valid, proceed
     } catch (error) {
         // If token is expired, try to refresh it
         if (error.name === 'TokenExpiredError') {
+            logger.info(`[Auth] Access token expired for request to ${req.originalUrl}. Attempting refresh.`);
             return handleRefreshToken(req, res, next, refreshToken);
         }
         // For any other error (e.g., malformed token), redirect to login
+        logger.warn(`[Auth] Invalid access token for ${req.originalUrl}. Error: ${error.message}. Redirecting to login.`);
         return res.redirect('/login');
     }
 }
@@ -39,17 +43,19 @@ async function authMiddleware(req, res, next) {
 async function handleRefreshToken(req, res, next, refreshToken) {
     // If there's no refresh token, the user is not authenticated
     if (!refreshToken) {
+        logger.warn(`[Auth] Refresh failed for ${req.originalUrl}: No refresh token provided. Redirecting to login.`);
         return res.redirect('/login');
     }
 
     try {
         // Verify the refresh token
         const decodedRefresh = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-
+        logger.info(`[Auth] Refresh token payload decoded for user ${decodedRefresh.userId}.`);
         // Optional but recommended: Check if the refresh token is still valid in the database
         const user = await User.findById(decodedRefresh.userId);
         if (!user || user.refreshToken !== refreshToken) {
             // Clear cookies if the token is invalid
+            logger.warn(`[Auth] Refresh failed for user ${decodedRefresh.userId}: Refresh token not found in DB or does not match. This could indicate a stolen token or logout from another device. Redirecting to login.`);
             res.clearCookie('accessToken');
             res.clearCookie('refreshToken');
             return res.redirect('/login');
@@ -67,10 +73,12 @@ async function handleRefreshToken(req, res, next, refreshToken) {
 
         // Attach user info to the request and proceed
         req.user = { userId: user._id, role: user.role };
+        logger.info(`[Auth] Successfully refreshed access token for user ${user._id}.`);
         next();
 
     } catch (error) {
         // If the refresh token is invalid or expired
+        logger.error(`[Auth] Refresh failed for ${req.originalUrl} with error: ${error.message}. Redirecting to login.`);
         res.clearCookie('accessToken');
         res.clearCookie('refreshToken');
         return res.redirect('/login');
