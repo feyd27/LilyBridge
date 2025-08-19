@@ -224,13 +224,13 @@ router.post('/login', async (req, res) => {
     const accessToken = jwt.sign(
       { userId: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '4h' }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '30m' }
     );
 
     const refreshToken = jwt.sign(
       { userId: user._id },
       process.env.JWT_REFRESH_SECRET,
-      { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
+      { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '2d' }
     );
     user.refreshToken = refreshToken;
     user.loginHistory.push({ timestamp: new Date() }); // Record login event
