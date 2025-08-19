@@ -363,21 +363,20 @@ router.get(
  * @swagger
  * /iota/find/{tag}:
  *   get:
- *     summary: Finds and decodes data from the Tangle by a given tag
- *     tags:
- *       - IOTA
+ *     summary: Finds and decodes data from the IOTA/Shimmer Tangle by a tag
+ *     tags: [IOTA]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []   # Use cookie-based authentication
  *     parameters:
  *       - in: path
  *         name: tag
  *         required: true
  *         schema:
  *           type: string
- *         description: The tag to search for on the Tangle.
+ *         description: The UTF-8 tag to search for on the Tangle.
  *     responses:
- *       '200':
- *         description: An array of found data payloads.
+ *       200:
+ *         description: An array of found data payloads, each linked to its block ID.
  *         content:
  *           application/json:
  *             schema:
@@ -385,82 +384,96 @@ router.get(
  *               items:
  *                 type: object
  *                 properties:
- *                   messageId:
+ *                   blockId:
  *                     type: string
+ *                     description: The ID of the block containing the payload.
  *                   data:
- *                     description: Decoded JSON or text
+ *                     description: The decoded payload, which can be JSON or plain text.
  *                     oneOf:
  *                       - type: object
  *                       - type: string
- *       '404':
+ *       401:
+ *         description: Unauthorized. User is not logged in.
+ *       404:
  *         description: No data found for the specified tag.
- *       '500':
- *         description: Error finding data on the Tangle.
+ *       500:
+ *         description: Internal server error or error communicating with the Tangle.
  */
+
 router.get('/find/:tag', authMiddleware, async (req, res) => {
-  const { tag } = req.params;
+    const { tag } = req.params;
 
-  try {
-    // 1️⃣ Hex-encode the UTF-8 tag (no "0x" prefix)
-    const hexTag = Buffer.from(tag, 'utf8').toString('hex');
+    try {
+        // 1️⃣ Hex-encode the UTF-8 tag and add the "0x" prefix for the query
+        const hexTag = '0x' + Buffer.from(tag, 'utf8').toString('hex');
 
-    // 2️⃣ Query the Shimmer Mainnet message indexer
-    const idxResp = await fetch(
-      `https://api.shimmer.network/api/indexer/v1/messages?index=${hexTag}`
-    );
+        // 2️⃣ Query the modern Shimmer Mainnet Indexer for output IDs by tag
+        const idxResp = await fetch(
+            `https://api.shimmer.network/api/plugins/indexer/v1/outputs/basic?tag=${hexTag}`
+        );
+        if (!idxResp.ok) {
+            // If the tag is not found, the indexer returns a 200 OK with an empty items array,
+            // so any non-OK status is a server-side error.
+            const errorBody = await idxResp.text();
+            return res.status(500).json({ error: `Indexer error: ${errorBody}` });
+        }
 
-    // 2a) Tag not found → 404
-    if (idxResp.status === 404) {
-      return res.status(404).json({ message: 'No data found for this tag.' });
+        // 3️⃣ Parse the list of output IDs from the 'items' array
+        const { items: outputIds } = await idxResp.json();
+        if (!outputIds || outputIds.length === 0) {
+            return res.status(404).json({ message: 'No data found for this tag.' });
+        }
+
+        // 4️⃣ For each output, find its block and decode the payload
+        const results = await Promise.all(outputIds.map(async (outputId) => {
+            try {
+                // 4a) Get the output's metadata to find the blockId it was included in
+                const outputResp = await fetch(
+                    `https://api.shimmer.network/api/core/v2/outputs/${outputId}`
+                );
+                if (!outputResp.ok) return null; // Skip if we can't get output metadata
+                const { metadata } = await outputResp.json();
+                const { blockId } = metadata;
+
+                // 4b) Fetch the full block using the blockId
+                const blockResp = await fetch(
+                    `https://api.shimmer.network/api/core/v2/blocks/${blockId}`
+                );
+                if (!blockResp.ok) return null; // Skip if we can't fetch the block
+                const blockData = await blockResp.json();
+
+                // Check for a Tagged Data Payload (type 5)
+                if (blockData.payload?.type !== 5) return null;
+
+                // Decode the data from hex to a readable string
+                const dataHex = (blockData.payload.data || '').replace(/^0x/, '');
+                const utf8Str = Buffer.from(dataHex, 'hex').toString('utf8');
+
+                // Try to parse as JSON, otherwise return as plain text
+                let parsedData;
+                try { parsedData = JSON.parse(utf8Str); }
+                catch { parsedData = utf8Str; }
+
+                return { blockId, data: parsedData };
+            } catch (e) {
+                // Ignore errors for individual items to not fail the whole request
+                logger.warn(`Failed to process output ${outputId}:`, e.message);
+                return null;
+            }
+        }));
+
+        // 5️⃣ Filter out any nulls (failed lookups) and return the results
+        const filteredResults = results.filter(r => r !== null);
+        if (filteredResults.length === 0) {
+            return res.status(404).json({ message: 'Data found but could not be decoded.' });
+        }
+
+        return res.status(200).json(filteredResults);
+
+    } catch (err) {
+        logger.error(`IOTA Find Error for tag "${tag}":`, err);
+        return res.status(500).json({ error: err.message });
     }
-    // 2b) Other non-OK → 500 + upstream error
-    if (!idxResp.ok) {
-      const errorBody = await idxResp.text();
-      return res.status(500).json({ error: errorBody });
-    }
-
-    // 3️⃣ Parse the list of message IDs
-    const { messageIds } = await idxResp.json();
-    if (!messageIds.length) {
-      // (defensive) if indexer returns an empty array
-      return res.status(404).json({ message: 'No data found for this tag.' });
-    }
-
-    // 4️⃣ Fetch each block and decode its TaggedData payload
-    const results = await Promise.all(messageIds.map(async (messageId) => {
-      const coreResp = await fetch(
-        `https://api.shimmer.network/api/core/v2/blocks/${messageId}`
-      );
-      if (!coreResp.ok) {
-        // skip blocks we can’t fetch
-        return null;
-      }
-      const { blockId, block } = await coreResp.json();
-      if (block.payload?.type !== 5) {
-        // skip non-TaggedData payloads
-        return null;
-      }
-
-      // strip "0x", hex→utf8
-      const dataHex = (block.payload.data || '').replace(/^0x/, '');
-      const utf8Str = Buffer.from(dataHex, 'hex').toString('utf8');
-
-      // try JSON.parse, else plain text
-      let parsed;
-      try { parsed = JSON.parse(utf8Str); }
-      catch { parsed = utf8Str; }
-
-      return { messageId: blockId, data: parsed };
-    }));
-
-    // 5️⃣ Filter out nulls and return
-    const filtered = results.filter(r => r !== null);
-    return res.status(200).json(filtered);
-
-  } catch (err) {
-    logger.error(`IOTA Find Error for tag "${tag}":`, err);
-    return res.status(500).json({ error: err.message });
-  }
 });
 
 module.exports = router;

@@ -75,7 +75,8 @@ app.use((req, res, next) =>  {
         '/api/auth/status',
         '/internal/signum/*',
         '/api/public/forgot-password',
-        '/api/piblic/reset-password',
+        '/api/public/reset-password',
+        '/api/iota/find/*',
         ...publicRoutes.stack.map(r => r.route.path),
     ];
 
@@ -120,33 +121,35 @@ if (process.env.ENVIRONMENT === 'local') {
 
 // Swagger configuration
 const swaggerOptions = {
-  swaggerDefinition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'Lily-Bridge API Documentation',
-      version: '1.0.0',
-      description: 'API Documentation for Lily-Bridge MQTT backend',
-    },
-    // Use the dynamic server configuration here
-    servers: serverConfig,
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
+    swaggerDefinition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'Lily-Bridge API Documentation',
+            version: '1.0.0',
+            description: 'API Documentation for Lily-Bridge MQTT backend',
         },
-      },
+        // Use the dynamic server configuration here
+        servers: serverConfig,
+        components: {
+            // 1. Define the 'cookieAuth' security scheme
+            securitySchemes: {
+                cookieAuth: {
+                    type: 'apiKey',
+                    in: 'cookie',
+                    name: 'accessToken', // The name of your access token cookie
+                    description: 'Authentication cookie sent by the server after login.'
+                },
+            },
+        },
+        // 2. Apply 'cookieAuth' globally to all endpoints by default
+        security: [
+            {
+                cookieAuth: [],
+            },
+        ],
     },
-    security: [
-      {
-        bearerAuth: [],
-      },
-    ],
-  },
-  apis: ['./routes/*.js'],
+    apis: ['./routes/api/*.js', './routes/*.js'], 
 };
-
 
 
 // Initialize Swagger docs
