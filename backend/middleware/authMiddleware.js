@@ -15,6 +15,7 @@ function generateAccessToken(user) {
 
 async function authMiddleware(req, res, next) {
     const { accessToken, refreshToken } = req.cookies;
+    logger.log(`[Auth Check] Request to ${req.originalUrl} - AccessToken: ${accessToken ? 'Present' : 'MISSING'}, RefreshToken: ${refreshToken ? 'Present' : 'MISSING'}`);
 
     // If no access token is present, try to refresh immediately
     if (!accessToken) {
