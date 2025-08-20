@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error('Upload error:', err);
             smoothScrollToTop();
-            showTimedAlert('Upload failed: ${err.message}', 'alert');
+            showTimedAlert(`Upload failed: ${err.message}`, 'alert');
         } finally {
             spinnerOverlay.classList.remove('show');
             }

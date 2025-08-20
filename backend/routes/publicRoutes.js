@@ -220,47 +220,7 @@ router.post('/refresh', async (req, res) => {
       message: 'Access token refreshed successfully'
     });
   });
-  //  const incomingRefresh =
-  //   (req.header('X-Refresh-Token') || '').trim() ||
-  //   req.body.refreshToken;
-  //  //  logger.log(req)
-  // if (!incomingRefresh) {
-  //   return res
-  //     .status(400)
-  //     .json({ message: 'Refresh token required' });
-  // }
-
-  // let payload;
-  // try {
-  //   // only verify against the refresh secret
-  //   payload = jwt.verify(
-  //     incomingRefresh,
-  //     process.env.JWT_REFRESH_SECRET
-  //   );
-  // } catch (err) {
-  //   return res
-  //     .status(403)
-  //     .json({ message: 'Invalid or expired refresh token' });
-  // }
-
-//   // 2️⃣ Lookup user and compare stored token
-//   const user = await User.findById(payload.userId);
-//   if (!user || user.refreshToken !== incomingRefresh) {
-//     return res
-//       .status(403)
-//       .json({ message: 'Refresh token not recognized' });
-//   }
-
-//   // 3️⃣ Issue a new access token
-//   const newAccessToken = jwt.sign(
-//     { userId: user._id, role: user.role },
-//     process.env.JWT_SECRET,
-//     { expiresIn: process.env.JWT_EXPIRES_IN || '4h' }
-//   );
-
-//   return res.json({ accessToken: newAccessToken });
-// });
-
+  
 /**
  * @swagger
  * /api/public/forgot-password:
