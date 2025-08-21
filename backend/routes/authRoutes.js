@@ -9,6 +9,7 @@ const crypto = require('crypto');
 const router = express.Router();
 const { Resend } = require('resend');
 const authMiddleware = require('../middleware/authMiddleware.js');
+const { authLimiter } = require('../middleware/rateLimiter.js');
 
 // Generate a random token using crypto for the verification email
 function generateVerificationToken() {
@@ -78,7 +79,7 @@ function generateVerificationToken() {
  *       500:
  *         description: Server error during registration.
  */
-router.post('/register', async (req, res) => {
+router.post('/register', authLimiter, async (req, res) => {
   const { username, password, mqttBroker, role } = req.body;
 
   try {
@@ -202,7 +203,7 @@ router.post('/register', async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, async (req, res) => {
   const { username, password } = req.body;
 
   try {
