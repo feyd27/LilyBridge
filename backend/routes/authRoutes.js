@@ -236,18 +236,22 @@ router.post('/login', async (req, res) => {
     user.loginHistory.push({ timestamp: new Date() }); // Record login event
     await user.save();
 
+    const accessTokenMaxAge = 30 * 60 * 1000; // 30 min
+    const refreshTokenMaxAge = 2 * 24 * 60 * 60 * 1000; // 2 days
+
+    logger.log(`[Auth] Setting cookie maxAge -> accessToken: ${accessTokenMaxAge} ms, refreshToken: ${refreshTokenMaxAge} ms`); 
     // Set tokens into HttpOnly cookies
 
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // Send only over HTTPS
-      maxAge: 30 * 60 * 1000 // 30 minutes in ms
+      maxAge: accessTokenMaxAge // 30 minutes in ms
     });
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 2 * 24 * 60 * 1000 // 2 days in ms
+      maxAge: refreshTokenMaxAge // 2 days in ms
     });
 
     res.status(200).json({
