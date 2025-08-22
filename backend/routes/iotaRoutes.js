@@ -123,7 +123,7 @@ router.post('/upload', authMiddleware, async (req, res) => {
       timestamp: m.timestamp?.toISOString() ?? null
     }))
   };
-  logger.log('IOTA › raw payload', { payload });
+  logger.log('IOTA › raw payload', JSON.stringify(payload, null, 2));
 
   // 6️⃣ Submit to IOTA
   try {
