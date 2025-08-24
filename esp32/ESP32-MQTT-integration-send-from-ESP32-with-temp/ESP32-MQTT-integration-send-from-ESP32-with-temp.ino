@@ -1,9 +1,3 @@
-/*
-  Rui Santos & Sara Santos - Random Nerd Tutorials
-  Complete project details at https://RandomNerdTutorials.com/cloud-mqtt-mosquitto-broker-access-anywhere-digital-ocean/
-  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.
-  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
 #include <WiFi.h>
 #include <Wire.h>
 #include <OneWire.h>
@@ -26,9 +20,6 @@ OneWire oneWire(oneWireBus);
 DallasTemperature sensors(&oneWire);
 
 // Wi-Fi information
-
-//#define WIFI_SSID "TerryNet"
-//#define WIFI_PASSWORD "Abulafi10081976"
 
 #define WIFI_SSID "ZTE_9AF407"
 #define WIFI_PASSWORD "2B32EX7237"
@@ -182,8 +173,6 @@ void loop() {
 
   // Temperature in Celsius degrees
   float temperature = sensors.getTempCByIndex(0);
-  // Serial.print(temperature);
- // Serial.println("unit °C");
 
   // Get the current time
   struct tm timeinfo;
@@ -221,9 +210,9 @@ void loop() {
 
   if (currentStatusMillis - previousStatusCheckMillis >= statusCheckInterval) {
     previousStatusCheckMillis = currentStatusMillis;
-     String statusCheckString = String(ESP.getChipModel()) + String(ESP.getChipRevision()) + "@" + macAddress + "| Wifi OK | MQTT OK | Time: " + String(timeStringBuff);
+    String statusCheckString = String(ESP.getChipModel()) + String(ESP.getChipRevision()) + "@" + macAddress + "| Wifi OK | MQTT OK | Time: " + String(timeStringBuff);
     if ((WiFi.status() == WL_CONNECTED) && (mqttClient.connected()))
-     uint16_t packetIdPub1 = mqttClient.publish(MQTT_PUB_STATUS, 1, true, statusCheckString.c_str());
+      uint16_t packetIdPub1 = mqttClient.publish(MQTT_PUB_STATUS, 1, true, statusCheckString.c_str());
     Serial.println("Message: " + statusCheckString);
   }
 
