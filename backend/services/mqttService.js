@@ -62,8 +62,6 @@ mqttClient.on('message', async (topic, message) => {
     }
     const timestamp = m.toDate();
     // Create the parsed message object
-
-     // Debug so you can verify the fix in logs
      logger.log('[MQTT temperature parse]', {
       raw: timeString,
       sourceTz: SOURCE_TZ,
@@ -89,9 +87,9 @@ mqttClient.on('message', async (topic, message) => {
   try {
     const newMessage = new MqttMessage(parsedMessage);
     await newMessage.save();
-    logger.log('Message saved to database');
+    logger.log('[MQTT] Message saved to database');
   } catch (err) {
-    logger.error('Error saving message to database: ', err);
+    logger.error('[MQTT] Error saving message to database: ', err);
   }
 });
   

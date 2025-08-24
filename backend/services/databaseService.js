@@ -7,9 +7,9 @@ const saveMessage = async (topic, messageContent) => {
   const newMessage = new MqttMessage({ topic, message: messageContent });
   try {
     await newMessage.save();
-    logger.log('Message saved to database');
+    logger.log('[DB] Message saved to database');
   } catch (error) {
-    logger.error('Error saving message to database:', error);
+    logger.error('[DB] Error saving message to database:', error);
   }
 };
 
