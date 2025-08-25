@@ -3,8 +3,8 @@ require('dotenv').config();
 const mqtt = require('mqtt');
 // const moment = require('moment');
 const moment = require('moment-timezone'); 
-const config = require('../config/config');
-const databaseService = require('./databaseService');
+// const config = require('../config/config');
+// const databaseService = require('./databaseService');
 const MqttMessage = require('../models/message');
 const logger = require('../services/logger');
 const SOURCE_TZ = process.env.SOURCE_TZ || 'Europe/Belgrade'; // added
