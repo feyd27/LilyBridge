@@ -10,7 +10,7 @@ const router = express.Router();
 const { Resend } = require('resend');
 const authMiddleware = require('../middleware/authMiddleware.js');
 const { authLimiter } = require('../middleware/rateLimiter.js');
-const sanitizeHtml = require('sanitize-html');
+
 // Generate a random token using crypto for the verification email
 function generateVerificationToken() {
 
@@ -83,12 +83,7 @@ router.post('/register', authLimiter, async (req, res) => {
   const { username, password, mqttBroker, role } = req.body;
 
   try {
-        // Sanitize the username right away with a strict policy (no HTML allowed)
-        const cleanUsername = sanitizeHtml(username, {
-            allowedTags: [],
-            allowedAttributes: {},
-        });
-    const existingUser = await User.findOne({ username: cleanUsername });
+    const existingUser = await User.findOne({ username });
     if (existingUser) {
       return res.status(400).json({ message: 'Username already taken' });
     }
@@ -96,7 +91,7 @@ router.post('/register', authLimiter, async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const verificationToken = generateVerificationToken();
     const newUser = new User({
-      username: cleanUsername,
+      username,
       password: hashedPassword,
       mqttBroker,
       role,
