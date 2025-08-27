@@ -1,3 +1,4 @@
+
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('registrationForm');
     const alertContainer = document.getElementById('alertContainer');
@@ -40,17 +41,11 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         hideAlert();
 
-        const rawUserName = form.username.value;
-        const cleanUserName = DOMpurify.sanitize(rawUserName);
-
-        if (rawUserName !== cleanUserName) {
-            showAlert("Username contained invalid characters which were removed.", "warning");
-            form.username.value = cleanUserName;
-            return;
-        }
-
+        // Get the form values directly
+        const username = form.username.value;
         const password = passwordField.value;
         const confirmPassword = confirmPasswordField.value;
+
 
         // Password validation criteria
         const passwordCriteria = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{12,}$/;
@@ -69,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('/api/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: cleanUserName, password })
+            body: JSON.stringify({ username, password })
         })
         .then(response => response.json())
         .then(data => {

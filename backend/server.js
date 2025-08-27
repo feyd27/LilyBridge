@@ -65,7 +65,9 @@ app.use('/internal/signum', signumConfirmPublic);
 
 app.use((req, res, next) =>  {
     const publicPaths = [
-        // '/',
+        '/js/*',
+        '/css/*',
+        '/images/*',
         '/api/auth/login',
         '/api/auth/register',
         '/api/auth/verify-email',
