@@ -205,7 +205,7 @@ async function checkPendingBatch() {
             body: JSON.stringify({ txId: item.txId })
           });
           const txt = await res.text();
-          logger.log(`[ConfirmPoller] ${item.txId} → ${res.status} ${res.statusText} – ${txt}`);
+          logger.log(`[ConfirmPoller] ${item.txId} → ${res.status} ${res.statusText} - ${txt}`);
         } catch (e) {
           logger.error('[ConfirmPoller] error for', item.txId, e.message);
         }
