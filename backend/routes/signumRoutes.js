@@ -225,6 +225,7 @@ router.post(
         blockchain: 'SIGNUM',
         tag,
         nodeHost,
+        nodeHost: nodeUrl,
         feePlanck,
         payloadSize,
         payloadHash: crypto.createHash('sha256').update(payloadStr).digest('hex'),
