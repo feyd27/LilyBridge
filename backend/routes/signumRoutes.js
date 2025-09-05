@@ -210,9 +210,9 @@ router.post(
     try {
       logger.log('[Signum] Sending message via ledger.message.sendMessage()...');
       txResponse = await ledger.message.sendMessage({
-        feePlanck: feePlanck,                       // required Planck string :contentReference[oaicite:0]{index=0}
+        feePlanck: feePlanck,                       // required Planck 
         deadline: 1440,                            // optional, defaults to 1440
-        message: payloadStr,                      // your JSON payload
+        message: payloadStr,                      // JSON payload
         messageIsText: true,                            // send as text
         recipientId: SIGNUM_NUMERIC_ID,               // numeric account ID
         senderPublicKey: publicKey,                       // from generateSignKeys
