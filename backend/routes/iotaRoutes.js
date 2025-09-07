@@ -177,7 +177,8 @@ router.post('/upload', authMiddleware, async (req, res) => {
     }
     const elapsedMs = Date.now() - start;
     const explorer = `https://explorer.shimmer.network/shimmer/block/${blockId}`;
-    logger.log('[IOTA] upload succeeded', { blockId, elapsedMs, explorer});
+    logger.log('[IOTA] upload succeeded', { blockId, elapsedMs});
+    logger.log('[IOTA] explorer URL', {explorer});
 
     // 7️⃣ Persist in DB & mark messages
     const batchId = `${req.user.userId}_${Date.now()}`;
