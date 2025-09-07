@@ -72,7 +72,7 @@ router.post('/upload', authMiddleware, async (req, res) => {
   if (!Array.isArray(messageIds) || messageIds.length === 0) {
     return res.status(400).json({ error: 'You must supply an array of messageIds to upload.' });
   }
-  logger.log('IOTA › upload request received', { userId: req.user.userId, messageIds });
+  logger.log('[IOTA] Upload request received', { userId: req.user.userId, messageIds });
 
   // 2️⃣ Load user & node URL
   let user, nodeUrl;
@@ -81,10 +81,10 @@ router.post('/upload', authMiddleware, async (req, res) => {
     nodeUrl = (user?.iotaNodeAddress?.trim() || DEFAULT_IOTA_NODE);
     nodeUrl = new URL(nodeUrl).href;
   } catch (err) {
-    logger.error('IOTA › invalid node URL or user load failed', { error: err.message });
+    logger.error('[IOTA] Invalid node URL or user load failed', { error: err.message });
     return res.status(400).json({ error: `Bad IOTA node URL: "${nodeUrl}"` });
   }
-  logger.log('IOTA › using node URL', { nodeUrl });
+  logger.log('[IOTA] Using node URL', { nodeUrl });
 
   // 3️⃣ Build indexation tag
   const rawPrefix = user.iotaTagPrefix
@@ -92,7 +92,7 @@ router.post('/upload', authMiddleware, async (req, res) => {
     : user._id.toString();
   const today = new Date().toISOString().slice(0, 10).split('-').reverse().join('');
   const tag = `${rawPrefix}@lilybridge_${today}`;
-  logger.log('IOTA › using indexation tag', { tag });
+  logger.log('[IOTA] Using indexation tag', { tag });
 
   // 4️⃣ Fetch exactly those messages
   let messages;
@@ -109,10 +109,10 @@ router.post('/upload', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'No matching messages found (or already uploaded).' });
     }
   } catch (err) {
-    logger.error('IOTA › failed loading messages', { error: err.message });
+    logger.error('[IOTA] Failed to load messages', { error: err.message });
     return res.status(500).json({ error: 'Could not load messages.' });
   }
-  logger.log('IOTA › loaded messages', { count: messages.length });
+  logger.log('[IOTA] Loaded messages', { count: messages.length });
 
   // 5️⃣ Prepare payload
   const payload = {
@@ -123,7 +123,7 @@ router.post('/upload', authMiddleware, async (req, res) => {
       timestamp: m.timestamp?.toISOString() ?? null
     }))
   };
-  logger.log('IOTA › raw payload', JSON.stringify(payload, null, 2));
+  logger.log('[IOTA] Raw payload', JSON.stringify(payload, null, 2));
 
   // 6️⃣ Submit to IOTA
   try {
@@ -134,7 +134,7 @@ router.post('/upload', authMiddleware, async (req, res) => {
     const payloadStr = JSON.stringify(payload);
     const hexData = utf8ToHex(payloadStr);
     const dataSize = (hexData.length - 2) / 2;
-    logger.log('IOTA › payload prepared', { dataSize });
+    logger.log('[IOTA] Payload prepared', { dataSize });
     const MAX_BYTES = 32 * 1024;
     if (dataSize > MAX_BYTES) {
       await recordAttempt({
@@ -148,7 +148,7 @@ router.post('/upload', authMiddleware, async (req, res) => {
         httpStatusReturned: 400,
         err: new Error('Payload too large')
       });
-      logger.error('IOTA > Paylod too large, { dataSize}');
+      logger.error('[IOTA] Paylod too large, { dataSize}');
       return res.status(400).json({
         error: 'Payload too large, update the selection',
         dataSizeBytes: dataSize,
@@ -177,7 +177,7 @@ router.post('/upload', authMiddleware, async (req, res) => {
     }
     const elapsedMs = Date.now() - start;
     const explorer = `https://explorer.shimmer.network/shimmer/block/${blockId}`;
-    logger.log('IOTA › upload succeeded', { blockId, elapsedMs });
+    logger.log('[IOTA] upload succeeded', { blockId, elapsedMs });
 
     // 7️⃣ Persist in DB & mark messages
     const batchId = `${req.user.userId}_${Date.now()}`;
@@ -227,7 +227,7 @@ router.post('/upload', authMiddleware, async (req, res) => {
       httpStatusReturned: 500,
       err
     });
-    logger.error('IOTA › upload endpoint error', { error: err.stack });
+    logger.error('[IOTA] upload endpoint error', { error: err.stack });
     return res.status(500).json({ error: `Internal error: ${err.message}` });
   }
 });
