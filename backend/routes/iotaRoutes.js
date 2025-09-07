@@ -84,7 +84,7 @@ router.post('/upload', authMiddleware, async (req, res) => {
     logger.error('[IOTA] Invalid node URL or user load failed', { error: err.message });
     return res.status(400).json({ error: `Bad IOTA node URL: "${nodeUrl}"` });
   }
-  logger.log('[IOTA] Using node URL', { nodeUrl });
+  logger.log('[IOTA] Using node URL',  nodeUrl );
 
   // 3️⃣ Build indexation tag
   const rawPrefix = user.iotaTagPrefix
@@ -92,7 +92,7 @@ router.post('/upload', authMiddleware, async (req, res) => {
     : user._id.toString();
   const today = new Date().toISOString().slice(0, 10).split('-').reverse().join('');
   const tag = `${rawPrefix}@lilybridge_${today}`;
-  logger.log('[IOTA] Using indexation tag', { tag });
+  logger.log('[IOTA] Using indexation tag',  tag );
 
   // 4️⃣ Fetch exactly those messages
   let messages;
@@ -106,7 +106,7 @@ router.post('/upload', authMiddleware, async (req, res) => {
       .lean();
 
     if (!messages.length) {
-      return res.status(400).json({ error: 'No matching messages found (or already uploaded).' });
+      return res.status(400).json({ error: 'No matching messages found.' });
     }
   } catch (err) {
     logger.error('[IOTA] Failed to load messages', { error: err.message });
@@ -148,7 +148,7 @@ router.post('/upload', authMiddleware, async (req, res) => {
         httpStatusReturned: 400,
         err: new Error('Payload too large')
       });
-      logger.error('[IOTA] Paylod too large, { dataSize}');
+      logger.error('[IOTA] Paylod too large', {dataSize});
       return res.status(400).json({
         error: 'Payload too large, update the selection',
         dataSizeBytes: dataSize,
@@ -172,13 +172,13 @@ router.post('/upload', authMiddleware, async (req, res) => {
         httpStatusReturned: 502,
         err: netErr
       });
-      logger.error('IOTA › network error', { error: netErr.message });
+      logger.error('[IOTA] Network error', { error: netErr.message });
       return res.status(502).json({ error: `Node connection failed: ${netErr.message}` });
     }
     const elapsedMs = Date.now() - start;
     const explorer = `https://explorer.shimmer.network/shimmer/block/${blockId}`;
-    logger.log('[IOTA] upload succeeded', { blockId, elapsedMs});
-    logger.log('[IOTA] explorer URL', {explorer});
+    logger.log('[IOTA] upload succeeded', blockId, elapsedMs);
+    logger.log('[IOTA] explorer URL', explorer);
 
     // 7️⃣ Persist in DB & mark messages
     const batchId = `${req.user.userId}_${Date.now()}`;
