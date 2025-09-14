@@ -144,6 +144,11 @@ router.get('/me', authMiddleware, async (req, res) => {
  *                 nullable: true
  *                 description: Optional alphanumeric (max 16 chars) prefix for IOTA indexation tags
  *                 example: MYTAG123
+ *               signumTagPrefix:
+ *                 type: string
+ *                 nullable: true
+ *                 description: Optional alphanumeric (max 16 chars) prefix for Signum indexation tags
+ *                 example: MYTAG123
  *             example:
  *               mqttBroker:
  *                 address: mqtt://broker.example.com
@@ -153,6 +158,7 @@ router.get('/me', authMiddleware, async (req, res) => {
  *               iotaNodeAddress: https://api.shimmer.network
  *               signumNodeAddress: https://nodes.signum.network
  *               iotaTagPrefix: MYTAG123
+ *               signumTagPrefix: MYTAG123
  *     responses:
  *       200:
  *         description: Settings updated
