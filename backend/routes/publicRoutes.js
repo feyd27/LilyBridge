@@ -285,7 +285,7 @@ router.post('/forgot-password', async (req, res) => {
               <table border="0" cellspacing="0" cellpadding="0">
                 <tr>
                   <td>
-                    <h1>Password Reset for you Lily-Bridge account</h1>
+                    <h1>Password Reset for your Lily-Bridge account</h1>
                     <p>Click the button below to reset your password:</p>
                     <a href="${resetLink}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Reset Password</a>
                     <p>The reset link is valid for 1 hour.</p>
