@@ -570,7 +570,7 @@ footer {
   color: #555;
 }
 
-/* Container for action controls (counter + delete button) */
+
 .upload-controls {
   background-color: #f7f7f7;
   border: 2px solid #e57373;
@@ -632,7 +632,7 @@ footer {
   /* space between buttons */
 }
 
-/* (Optional fallback if you don't want to rely on flex gap) */
+
 .cell.text-right .button+.button {
   margin-left: 0.75rem;
 }
@@ -644,7 +644,7 @@ footer {
   text-align: right;
 }
 
-/* Optional: wrapper for the grid that holds all stat cards */
+
 .stats-cards {
   background-color: transparent;
   border: none;
