@@ -48,7 +48,7 @@ const uploadedMessageSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// never upload the same reading twice to the same chain *for the same user*:
+
 uploadedMessageSchema.index(
   { user: 1, blockchain: 1, readings: 1 },
   {

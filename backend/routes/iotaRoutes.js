@@ -68,13 +68,13 @@ const DEFAULT_IOTA_NODE = 'https://api.shimmer.network';
 router.post('/upload', authMiddleware, async (req, res) => {
   const { messageIds } = req.body;
 
-  // 1️⃣ Validate input
+  // Validate input
   if (!Array.isArray(messageIds) || messageIds.length === 0) {
     return res.status(400).json({ error: 'You must supply an array of messageIds to upload.' });
   }
   logger.log('[IOTA] Upload request received', { userId: req.user.userId, messageIds });
 
-  // 2️⃣ Load user & node URL
+  // Load user & node URL
   let user, nodeUrl;
   try {
     user = await User.findById(req.user.userId).lean();
@@ -86,7 +86,7 @@ router.post('/upload', authMiddleware, async (req, res) => {
   }
   logger.log('[IOTA] Using node URL',  nodeUrl );
 
-  // 3️⃣ Build indexation tag
+  // Build indexation tag
   const rawPrefix = user.iotaTagPrefix
     ? user.iotaTagPrefix.slice(0, 16).replace(/\W/g, '')
     : user._id.toString();
@@ -94,7 +94,7 @@ router.post('/upload', authMiddleware, async (req, res) => {
   const tag = `${rawPrefix}@lilybridge_${today}`;
   logger.log('[IOTA] Using indexation tag',  tag );
 
-  // 4️⃣ Fetch exactly those messages
+  // Fetch exactly those messages
   let messages;
   try {
     messages = await MqttMessage.find({
@@ -114,7 +114,7 @@ router.post('/upload', authMiddleware, async (req, res) => {
   }
   logger.log('[IOTA] Loaded messages', { count: messages.length });
 
-  // 5️⃣ Prepare payload
+  // Prepare payload
   const payload = {
     chipID: messages[0].chipID,
     macAddress: messages[0].macAddress,
@@ -125,7 +125,7 @@ router.post('/upload', authMiddleware, async (req, res) => {
   };
   logger.log('[IOTA] Raw payload', JSON.stringify(payload, null, 2));
 
-  // 6️⃣ Submit to IOTA
+  // Submit to IOTA
   try {
     const { Client, utf8ToHex } = await import('@iota/sdk');
     const client = new Client({ nodes: [nodeUrl] });
@@ -180,7 +180,7 @@ router.post('/upload', authMiddleware, async (req, res) => {
     logger.log('[IOTA] upload succeeded', blockId, elapsedMs);
     logger.log('[IOTA] explorer URL', explorer);
 
-    // 7️⃣ Persist in DB & mark messages
+    // Persist in DB & mark messages
     const batchId = `${req.user.userId}_${Date.now()}`;
     await UploadedMessage.create({
       user: req.user.userId,
@@ -208,7 +208,7 @@ router.post('/upload', authMiddleware, async (req, res) => {
       { $push: { uploadedBy: req.user.userId } }
     );
 
-    // 8️⃣ Return success
+    // Return success
     return res.status(201).json({
       message: 'Data uploaded successfully!',
       blockId,
@@ -304,21 +304,21 @@ router.get(
   authMiddleware,
   async (req, res) => {
     try {
-      // 1️⃣ Pagination
+      // Pagination
       const limitNum = Math.min(
         Math.max(parseInt(req.query.limit) || 25, 1),
         100
       );
       const pageNum = Math.max(parseInt(req.query.page) || 1, 1);
 
-      // 2️⃣ Only temperature topic
+      // Only temperature topic
       const query = { topic: 'temperature' };
       const totalItems = await MqttMessage.countDocuments(query);
       if (!totalItems) {
         return res.status(404).json({ error: 'No temperature messages found' });
       }
 
-      // 3️⃣ Fetch messages
+      // Fetch messages
       const messages = await MqttMessage.find(query)
         .sort({ receivedAt: -1 })
         .skip((pageNum - 1) * limitNum)
@@ -326,7 +326,7 @@ router.get(
         .lean();
       logger.log(`Fetched ${messages.length}/${totalItems} temperature messages`);
 
-      // 4️⃣ Find which of these have been uploaded by this user to IOTA
+      // Find which of these have been uploaded by this user to IOTA
       const msgIds = messages.map(m => m._id);
       const uploads = await UploadedMessage.find({
         user: req.user.userId,
@@ -340,13 +340,13 @@ router.get(
         uploads.flatMap(u => u.readings.map(id => id.toString()))
       );
 
-      // 5️⃣ Attach flag
+      // Attach flag
       const enriched = messages.map(m => ({
         ...m,
         uploadedToIOTA: uploadedSet.has(m._id.toString())
       }));
 
-      // 6️⃣ Return
+      // Return
       res.json({
         totalItems,
         totalPages: Math.ceil(totalItems / limitNum),
@@ -405,10 +405,10 @@ router.get('/find/:tag', authMiddleware, async (req, res) => {
     const { tag } = req.params;
 
     try {
-        // 1️⃣ Hex-encode the UTF-8 tag and add the "0x" prefix for the query
+        // Hex-encode the UTF-8 tag and add the "0x" prefix for the query
         const hexTag = '0x' + Buffer.from(tag, 'utf8').toString('hex');
 
-        // 2️⃣ Query the modern Shimmer Mainnet Indexer for output IDs by tag
+        // Query the modern Shimmer Mainnet Indexer for output IDs by tag
         const idxResp = await fetch(
             `https://api.shimmer.network/api/plugins/indexer/v1/outputs/basic?tag=${hexTag}`
         );
@@ -419,13 +419,13 @@ router.get('/find/:tag', authMiddleware, async (req, res) => {
             return res.status(500).json({ error: `Indexer error: ${errorBody}` });
         }
 
-        // 3️⃣ Parse the list of output IDs from the 'items' array
+        // Parse the list of output IDs from the 'items' array
         const { items: outputIds } = await idxResp.json();
         if (!outputIds || outputIds.length === 0) {
             return res.status(404).json({ message: 'No data found for this tag.' });
         }
 
-        // 4️⃣ For each output, find its block and decode the payload
+        // For each output, find its block and decode the payload
         const results = await Promise.all(outputIds.map(async (outputId) => {
             try {
                 // 4a) Get the output's metadata to find the blockId it was included in
@@ -463,7 +463,7 @@ router.get('/find/:tag', authMiddleware, async (req, res) => {
             }
         }));
 
-        // 5️⃣ Filter out any nulls (failed lookups) and return the results
+        // Filter out any nulls (failed lookups) and return the results
         const filteredResults = results.filter(r => r !== null);
         if (filteredResults.length === 0) {
             return res.status(404).json({ message: 'Data found but could not be decoded.' });

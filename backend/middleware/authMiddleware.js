@@ -69,7 +69,7 @@ async function handleRefreshToken(req, res, next, refreshToken) {
         res.cookie('accessToken', newAccessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            maxAge: 30 * 60 * 1000 // 15 minutes
+            maxAge: 30 * 60 * 1000 
         });
 
         // Attach user info to the request and proceed

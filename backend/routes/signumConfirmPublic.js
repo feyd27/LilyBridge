@@ -6,7 +6,7 @@ const { LedgerClientFactory } = require('@signumjs/core');
 const UploadedMessage = require('../models/uploadedMessage');
 const logger = require('../services/logger');
 
-// ── Config ────────────────────────────────────────────────────────────────────
+// ── Config 
 const INTERNAL_JOB_KEY = process.env.INTERNAL_JOB_KEY;
 const nodeHost = process.env.SIGNUM_NODE_HOST || 'https://europe.signum.network';
 // Signum mainnet genesis (ms since epoch)
@@ -14,7 +14,7 @@ const SIGNUM_GENESIS_TIMESTAMP = 1407722400000;
 
 const ledger = LedgerClientFactory.createClient({ nodeHost });
 
-// ── Tiny key-only guard for internal calls ────────────────────────────────────
+// ── Tiny key-only guard for internal calls 
 function internalKeyOnly(req, res, next) {
   const hdr = req.get('x-internal-key') || req.get('x-inernal-key'); // accept common typo
   if (!INTERNAL_JOB_KEY || hdr !== INTERNAL_JOB_KEY) {
@@ -79,7 +79,7 @@ router.post('/confirm', internalKeyOnly, async (req, res) => {
     const blockIndex  = txInfo.height;
     const confirmedAt = new Date(SIGNUM_GENESIS_TIMESTAMP + txInfo.blockTimestamp * 1000);
 
-    // Update by chain + txId (no user constraint here)
+    // Update by chain + txId 
     const updated = await UploadedMessage.findOneAndUpdate(
       { blockchain: 'SIGNUM', txId },
       { confirmed: true, confirmedAt, blockIndex, status: 'CONFIRMED' },

@@ -112,7 +112,7 @@ router.post(
       logger.error('[Signum] messageIds array missing or empty');
       return res.status(400).json({ error: 'messageIds array required' });
     }
-    // 1️⃣ Fetch user & tag prefix
+    // Fetch user & tag prefix
     logger.log('[Signum] Fetching user with ID:', req.user.userId);
     let user;
     try {
@@ -129,7 +129,7 @@ router.post(
     const tag = `${rawPrefix}@lilybridge_${dateStr}`;
     logger.log('[Signum] Generated tag:', tag);
 
-    // 2️⃣ Load selected messages
+    // Load selected messages
     logger.log('[Signum] Loading MqttMessages for upload...');
     let messages;
     try {
@@ -150,7 +150,7 @@ router.post(
       return res.status(500).json({ error: 'Failed to load messages' });
     }
 
-    // 3️⃣ Build payload
+    // Build payload
     logger.log('[Signum] Building payload object');
     const payloadObj = {
       tag,
@@ -184,7 +184,7 @@ router.post(
       });
     }
 
-    // 4️⃣ Compute feePlanck
+    // Compute feePlanck
     // Rule: Split 0–1000 bytes into 6 equal buckets (X = 1000/6 bytes).
     // Fee = bucketIndex * 1,000,000 Planck, capped at 6,000,000.
 
@@ -199,7 +199,7 @@ router.post(
     logger.log(`[Signum] payloadSize=${payloadSize}B → bucket=${bucketIdx}/6 → feePlanck=${feePlanck}`);
 
 
-    // 5️⃣ Submit to Signum
+    // Submit to Signum
     logger.log('[Signum] Sending transaction to Signum...');
     logger.log('[Signum] Generating sign keys from passphrase...');
     const { publicKey, signPrivateKey } = generateSignKeys(SIGNUM_PASSPHRASE);
@@ -243,7 +243,7 @@ router.post(
     const explorerUrl = `https://explorer.signum.network/tx/${txNumericId}`;
     logger.log('[Signum] Explorer URL:', explorerUrl);
 
-    // 6️⃣ Persist upload record
+    // Persist upload record
     logger.log('[Signum] Persisting upload record to DB');
     const batchId = `${req.user.userId}_${Date.now()}`;
     const record = await UploadedMessage.create({
@@ -271,7 +271,7 @@ router.post(
       { $push: { uploadedBy: req.user.userId } }
     );
 
-    // 7️⃣ Return success
+    // Return success
     logger.log('[Signum] /signum/upload completed successfully');
     return res.status(201).json({
       blockId: txNumericId,
@@ -283,7 +283,7 @@ router.post(
   }
 );
 
-// ─── Swagger JSDoc ────────────────────────────────────────────────────────────
+// ─── Swagger JSDoc
 /**
  * @swagger
  * tags:
@@ -338,7 +338,7 @@ router.post('/simple-upload', async (req, res) => {
   logger.log('[Signum] /upload hit, body:', req.body);
   const { message, feeType = 'cheap' } = req.body;
 
-  // 1️⃣ Validate inputs & env
+  // Validate inputs & env
   if (!message) {
     logger.error('[Signum] Missing required parameter: message.');
     return res.status(400).json({ error: 'message is required' });
@@ -349,7 +349,7 @@ router.post('/simple-upload', async (req, res) => {
   }
 
   try {
-    // 2️⃣ Select feePlanck
+    // Select feePlanck
     logger.log('[Signum] Fetching suggested fees...');
     const suggestedFees = await ledger.network.getSuggestedFees();
     logger.log('[Signum] suggestedFees:', suggestedFees);
@@ -357,13 +357,13 @@ router.post('/simple-upload', async (req, res) => {
     const feePlanck = suggestedFees[key] != null ? suggestedFees[key] : suggestedFees.standard;
     logger.log(`[Signum] Using suggestedFees.${key}:`, feePlanck);
 
-    // 3️⃣ Derive keys from passphrase
+    // Derive keys from passphrase
     logger.log('[Signum] Generating sign keys from passphrase...');
     const { publicKey, signPrivateKey } = generateSignKeys(SIGNUM_PASSPHRASE);
     logger.log('[Signum] publicKey:', publicKey);
     logger.log('[Signum] signPrivateKey:', Boolean(signPrivateKey));
 
-    // 4️⃣ Broadcast in one call via message.sendMessage()
+    // Broadcast in one call via message.sendMessage()
     logger.log('[Signum] Sending message via ledger.message.sendMessage()...');
     const txId = await ledger.message.sendMessage({
       feePlanck,                        // required string :contentReference[oaicite:1]{index=1}
@@ -374,7 +374,7 @@ router.post('/simple-upload', async (req, res) => {
       senderPrivateKey: signPrivateKey  // SignKeys.signPrivateKey
     });
     logger.log('[Signum] sendMessage txId:', txId);
-    // 5️⃣ Return explorer URL
+    // Return explorer URL
     const explorerURL = `https://explorer.signum.network/tx/${txId.transaction}`;
     logger.log('[Signum] Explorer URL:', explorerURL);
     return res.status(201).json({ txId, explorerURL });
@@ -456,21 +456,21 @@ router.get(
   authMiddleware,
   async (req, res) => {
     try {
-      // 1️⃣ Pagination parameters
+      // Pagination parameters
       const limitNum = Math.min(
         Math.max(parseInt(req.query.limit, 10) || 25, 1),
         100
       );
       const pageNum = Math.max(parseInt(req.query.page, 10) || 1, 1);
 
-      // 2️⃣ Only temperature topic
+      // Only temperature topic
       const query = { topic: 'temperature' };
       const totalItems = await MqttMessage.countDocuments(query);
       if (!totalItems) {
         return res.status(404).json({ error: 'No temperature messages found' });
       }
 
-      // 3️⃣ Fetch paginated messages
+      // Fetch paginated messages
       const messages = await MqttMessage.find(query)
         .sort({ receivedAt: -1 })
         .skip((pageNum - 1) * limitNum)
@@ -478,7 +478,7 @@ router.get(
         .lean();
       logger.log(`Fetched ${messages.length}/${totalItems} temperature messages`);
 
-      // 4️⃣ Determine which readings have been uploaded to Signum
+      // Determine which readings have been uploaded to Signum
       const msgIds = messages.map(m => m._id);
       const uploads = await UploadedMessage.find({
         user: req.user.userId,
@@ -492,13 +492,13 @@ router.get(
         uploads.flatMap(u => u.readings.map(id => id.toString()))
       );
 
-      // 5️⃣ Attach flag to each message
+      // Attach flag to each message
       const enriched = messages.map(m => ({
         ...m,
         uploadedToSignum: uploadedSet.has(m._id.toString())
       }));
 
-      // 6️⃣ Send response
+      // Send response
       return res.json({
         totalItems,
         totalPages: Math.ceil(totalItems / limitNum),
