@@ -1,24 +1,27 @@
 // /js/deleteError.js
-
 document.addEventListener('DOMContentLoaded', () => {
-  const pageSizeSelect = document.getElementById('pageSize');
-  const prevPageBtn = document.getElementById('prevPage');
-  const nextPageBtn = document.getElementById('nextPage');
-  const paginationInfo = document.getElementById('paginationInfo');
-  const container = document.getElementById('errorMessagesContainer');
-  const deleteButton = document.getElementById('deleteSelectedError');
-  const alertContainer = document.getElementById('alertContainer');
-  const selectedCount = document.getElementById('selectedCount');
+  const pageSizeSelect   = document.getElementById('pageSize');
+  const prevPageBtn      = document.getElementById('prevPage');
+  const nextPageBtn      = document.getElementById('nextPage');
+  const paginationInfo   = document.getElementById('paginationInfo');
+  const container        = document.getElementById('errorMessagesContainer'); // tbody
+  const deleteButton     = document.getElementById('deleteSelectedError');
+  const alertContainer   = document.getElementById('alertContainer');
+  const selectedCount    = document.getElementById('selectedCount');
+
+  // Optional: if you have a wrapper around the table & pagination, set its ID here to hide it in one shot.
+  const uiWrapper = document.getElementById('errorsUI'); // e.g., a <section id="errorsUI">…
 
   let currentPage = 1;
-  let pageSize = parseInt(pageSizeSelect.value, 10);
-  let totalPages = 1;
+  let pageSize    = parseInt(pageSizeSelect.value, 10);
+  let totalPages  = 1;
   let selectedMessages = new Set();
 
   function smoothScrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  // Original timed alert (used for deletes / generic errors) – reloads after 30s
   function showTimedAlert(container, message, type = 'success') {
     container.className = `callout ${type} show`;
     container.textContent = message;
@@ -28,12 +31,34 @@ document.addEventListener('DOMContentLoaded', () => {
       location.reload();
     }, 30000);
   }
- 
+
+  // NEW: simple alert without auto-reload (used for "No messages to display")
+  function showAlert(container, message, type = 'alert') {
+    container.className = `callout ${type} show`;
+    container.textContent = message;
+    container.style.display = 'block';
+  }
+
+  // Hide all UI except the alert
+  function hideUIForNoMessages() {
+    // Hide wrapper if present
+    if (uiWrapper) uiWrapper.style.display = 'none';
+
+    // Fallback: hide specific parts individually
+    const table = container ? container.closest('table') : null;
+    if (table) table.style.display = 'none';
+
+    if (pageSizeSelect)  pageSizeSelect.style.display = 'none';
+    if (prevPageBtn)     prevPageBtn.style.display = 'none';
+    if (nextPageBtn)     nextPageBtn.style.display = 'none';
+    if (paginationInfo)  paginationInfo.style.display = 'none';
+    if (selectedCount)   selectedCount.style.display = 'none';
+    if (deleteButton)    deleteButton.style.display = 'none';
+  }
+
   function formatTimestamp(ts) {
     const d = new Date(ts);
-    // locale date (e.g. "8/4/2025" or "04.08.2025")
     const datePart = d.toLocaleDateString();
-    // force 24-hour time with seconds
     const timePart = d.toLocaleTimeString([], {
       hour12: false,
       hour:   '2-digit',
@@ -46,9 +71,31 @@ document.addEventListener('DOMContentLoaded', () => {
   async function fetchAndDisplayMessages() {
     try {
       const res = await fetch(`/api/mqtt/api/messages/errors?page=${currentPage}&limit=${pageSize}`);
+
+      if (res.status === 404) {
+        // No messages: hide all UI, show only the alert (no reload)
+        container.innerHTML = '';
+        hideUIForNoMessages();
+        showAlert(alertContainer, 'No messages to display', 'alert');
+        return;
+      }
+
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
       const data = await res.json();
       displayErrorMessages(data.messages || []);
+
+      // Ensure UI visible if there ARE messages (in case previous state hid it)
+      if (uiWrapper) uiWrapper.style.display = '';
+      const table = container ? container.closest('table') : null;
+      if (table) table.style.display = '';
+      if (pageSizeSelect)  pageSizeSelect.style.display = '';
+      if (prevPageBtn)     prevPageBtn.style.display = '';
+      if (nextPageBtn)     nextPageBtn.style.display = '';
+      if (paginationInfo)  paginationInfo.style.display = '';
+      if (selectedCount)   selectedCount.style.display = '';
+      if (deleteButton)    deleteButton.style.display = '';
+
       totalPages = data.totalPages || Math.ceil((data.totalItems || 0) / pageSize);
       updatePaginationDisplay(data.totalItems || 0, totalPages, currentPage);
       updateButtonStates();
@@ -83,13 +130,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updatePaginationDisplay(totalItems, totalPages, currentPage) {
-    paginationInfo.textContent =
-      `Page ${currentPage} of ${totalPages} — Showing ${Math.min(pageSize, totalItems)} of ${totalItems} messages`;
+    if (totalItems === 0) {
+      paginationInfo.textContent = 'No messages';
+    } else {
+      paginationInfo.textContent =
+        `Page ${currentPage} of ${totalPages} — Showing ${Math.min(pageSize, totalItems)} of ${totalItems} messages`;
+    }
   }
 
   function updateButtonStates() {
-    prevPageBtn.disabled = currentPage === 1;
-    nextPageBtn.disabled = currentPage === totalPages;
+    prevPageBtn.disabled = currentPage === 1 || totalPages === 0;
+    nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
   }
 
   function updateDeleteButtonState() {
@@ -133,9 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const res = await fetch('/api/mqtt/api/messages/errors', {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
