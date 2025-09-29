@@ -1,10 +1,8 @@
 // services/mqttService.js
 require('dotenv').config();
 const mqtt = require('mqtt');
-// const moment = require('moment');
+
 const moment = require('moment-timezone'); 
-// const config = require('../config/config');
-// const databaseService = require('./databaseService');
 const MqttMessage = require('../models/message');
 const logger = require('../services/logger');
 const SOURCE_TZ = process.env.SOURCE_TZ || 'Europe/Belgrade'; // added
@@ -48,7 +46,7 @@ mqttClient.on('message', async (topic, message) => {
 
   if (topic === 'temperature') {
     // Parse the temperature message
-    // const[chipInfo, tempReading, timeReading] = messageContent.split('|').map(part => part.trim());
+    
     const [chipInfo, tempReading, timeReading] = messageContent.split('|').map(part => part.trim());
     const[chipID, macAddress] = chipInfo.split('@');
     const temperature = parseFloat(tempReading.split(':')[1].replace('°C', '').trim());
